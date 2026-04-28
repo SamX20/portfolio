@@ -6,7 +6,8 @@ export interface Project {
   year: number;
   duration?: string;
   technologies: string[];
-  video_url?: string;
+  video_url?: string; // رابط مباشر أو embed URL
+  embed_code?: string; // كود الـ embed الكامل
   thumbnail?: string;
   featured: boolean;
   sort_order: number;

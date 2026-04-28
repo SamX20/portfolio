@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Project, CATEGORIES } from '@/types';
+import VideoPlayer from '@/components/VideoPlayer';
 
 const catLabel = (cat: string) =>
   CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
@@ -61,16 +62,14 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
             <p className="text-gray-400 text-lg leading-relaxed">{project.description}</p>
           </div>
 
-          {/* Thumbnail placeholder */}
-          <div
-            className="w-full h-64 md:h-80 rounded-2xl mb-8 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, rgba(147,51,234,0.4), rgba(236,72,153,0.3), rgba(6,182,212,0.2))' }}
-          >
-            <span className="text-6xl opacity-40">
-              {project.category === 'motion-design' ? '🎬' :
-               project.category === 'video-editing' ? '✂️' :
-               project.category === 'promotional' ? '📣' : '🏢'}
-            </span>
+          {/* Video Player */}
+          <div className="mb-8">
+            <VideoPlayer
+              embedCode={project.embed_code}
+              videoUrl={project.video_url}
+              thumbnail={project.thumbnail}
+              title={project.title}
+            />
           </div>
 
           {/* Meta */}
