@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -9,9 +10,70 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "محرر فيديو و موشن ديزاينر احترافي | Portfolio",
-  description: "عرض مشاريعي في مجال تحرير الفيديو والموشن ديزاين بتصميم احترافي وعصري",
-  generator: "Next.js",
+  title: "محمد علي - مصمم ومحرر فيديو احترافي | Portfolio",
+  description: "محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك بأحدث التقنيات.",
+  keywords: [
+    "مونتاج فيديو",
+    "تصميم",
+    "إعلانات تجارية",
+    "محرر فيديو",
+    "موشن ديزاين",
+    "محمد علي",
+    "فيديو ترويجي",
+    "محتوى بصري",
+    "Premiere Pro",
+    "After Effects",
+    "Cinema 4D"
+  ],
+  authors: [{ name: "محمد علي" }],
+  creator: "محمد علي",
+  publisher: "محمد علي",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://portfolio.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "محمد علي - مصمم ومحرر فيديو احترافي",
+    description: "محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات والفيديوهات.",
+    url: "https://portfolio.vercel.app",
+    siteName: "Portfolio محمد علي",
+    locale: "ar_SA",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "محمد علي - مصمم ومحرر فيديو احترافي",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "محمد علي - مصمم ومحرر فيديو احترافي",
+    description: "محترف في إنتاج المحتوى البصري والمونتاج والتصميم.",
+    images: ["/og-image.svg"],
+    creator: "@yourusername",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code",
+  },
 };
 
 export const viewport: Viewport = {
@@ -32,6 +94,18 @@ export default function RootLayout({
     >
       <head>
         <meta charSet="utf-8" />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'GA_MEASUREMENT_ID');
+          `}
+        </Script>
       </head>
       <body
         className="min-h-full flex flex-col"

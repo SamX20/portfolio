@@ -59,15 +59,27 @@ export default function Contact() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('Form submitted:', formData);
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-      setTimeout(() => setSubmitStatus('idle'), 4000);
-    } catch {
+      const response = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+        setTimeout(() => setSubmitStatus('idle'), 5000);
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
       setSubmitStatus('error');
-      setTimeout(() => setSubmitStatus('idle'), 4000);
+      setTimeout(() => setSubmitStatus('idle'), 5000);
     } finally {
       setIsSubmitting(false);
     }
