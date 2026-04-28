@@ -5,13 +5,6 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Project, CATEGORIES } from '@/types';
-import { projects } from '@/data/projects';
-
-export async function generateStaticParams() {
-  return projects.map((project) => ({
-    id: project.id,
-  }));
-}
 
 const catLabel = (cat: string) =>
   CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
