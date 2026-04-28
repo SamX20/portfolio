@@ -13,6 +13,8 @@ export const projects: Project[] = [
     technologies: ['Premiere Pro', 'After Effects'],
     featured: true,
     sort_order: 1,
+    video_url: 'https://youtube.com/watch?v=VIDEO_ID_1', // أو رابط مباشر
+    thumbnail: '/thumbnails/project1.jpg', // صورة مصغرة محلية
   },
   {
     id: 'proj-2',

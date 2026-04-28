@@ -113,7 +113,32 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           )}
         </div>
 
-        {/* View Details */}
+        {/* Action Buttons */}
+        <div className="flex gap-2 mb-3">
+          <Link href={`/project/${project.id}`} className="flex-1">
+            <motion.button
+              className="w-full py-2.5 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 text-white font-semibold rounded-lg border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 text-sm"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              📸 التفاصيل
+            </motion.button>
+          </Link>
+          {project.video_url && (
+            <motion.a
+              href={project.video_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2.5 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 hover:from-blue-600/30 hover:to-cyan-600/30 text-white font-semibold rounded-lg border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 text-sm"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              ▶ مشاهدة
+            </motion.a>
+          )}
+        </div>
+
+        {/* View Details Link */}
         <Link href={`/project/${project.id}`}>
           <motion.div
             className="flex items-center justify-end gap-1.5 text-sm font-semibold text-purple-400 hover:text-pink-400 transition-colors"
