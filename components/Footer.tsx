@@ -2,6 +2,15 @@
 
 import { motion } from 'framer-motion';
 
+interface FooterProps {
+  sections?: {
+    footer: {
+      copyright: string;
+      tagline: string;
+    };
+  };
+}
+
 const socialLinks = [
   {
     name: 'Facebook',
@@ -43,8 +52,12 @@ const socialLinks = [
 
 const quickLinks = ['الرئيسية', 'المشاريع', 'التواصل'];
 
-export default function Footer() {
+export default function Footer({ sections }: FooterProps) {
   const currentYear = new Date().getFullYear();
+
+  // Default values
+  const copyright = sections?.footer?.copyright || `© ${currentYear} جميع الحقوق محفوظة · صُنع بـ ❤️ لمحترفي الإبداع`;
+  const tagline = sections?.footer?.tagline || 'نصنع المحتوى الذي يتحدث عن نفسه';
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -71,8 +84,7 @@ export default function Footer() {
               Portfolio
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              محرر فيديو و موشن ديزاينر احترافي —<br />
-              أحوّل الأفكار إلى تحف فنية بصرية.
+              {tagline}
             </p>
           </motion.div>
 
@@ -128,7 +140,7 @@ export default function Footer() {
           variants={itemVariants}
           dir="rtl"
         >
-          © {currentYear} جميع الحقوق محفوظة · صُنع بـ ❤️ لمحترفي الإبداع
+          {copyright}
         </motion.p>
       </motion.div>
     </footer>

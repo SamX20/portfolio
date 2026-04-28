@@ -199,13 +199,49 @@ function ProjectModal({
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
-  const [tab, setTab] = useState<'projects' | 'stats' | 'contact' | 'social'>('projects');
+  const [tab, setTab] = useState<'profile' | 'projects' | 'stats' | 'contact' | 'social' | 'skills' | 'testimonials' | 'sections'>('profile');
 
   // Data
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState<Stat[]>([]);
   const [contacts, setContacts] = useState<ContactInfo[]>([]);
   const [socials, setSocials] = useState<SocialLink[]>([]);
+  const [skills, setSkills] = useState([
+    { id: '1', name: 'Adobe After Effects', level: 95, category: 'motion-design' },
+    { id: '2', name: 'Adobe Premiere Pro', level: 90, category: 'video-editing' },
+    { id: '3', name: 'Adobe Photoshop', level: 85, category: 'design' },
+    { id: '4', name: 'Cinema 4D', level: 80, category: '3d-modeling' },
+  ]);
+  const [testimonials, setTestimonials] = useState([
+    { id: '1', name: 'أحمد محمد', company: 'شركة الإعلانات المتحدة', content: 'عمل رائع جداً في تصميم الفيديو الترويجي لمنتجاتنا. الجودة عالية والإبداع واضح.', rating: 5 },
+    { id: '2', name: 'فاطمة علي', company: 'مدرسة الرياض', content: 'ساعدنا في إنتاج فيديوهات تعليمية ممتازة للطلاب. المونتاج احترافي والمحتوى جذاب.', rating: 5 },
+  ]);
+  const [sections, setSections] = useState({
+    hero: {
+      title: 'مرحباً، أنا محمد علي',
+      subtitle: 'مصمم ومحرر فيديو احترافي',
+      description: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
+      cta_text: 'شاهد أعمالي',
+      cta_link: '#portfolio'
+    },
+    about: {
+      title: 'من أنا',
+      content: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك.',
+      experience_years: '5+',
+      projects_completed: '100+'
+    },
+    footer: {
+      copyright: '© 2024 محمد علي. جميع الحقوق محفوظة.',
+      tagline: 'نصنع المحتوى الذي يتحدث عن نفسه'
+    }
+  });
+  const [profile, setProfile] = useState({
+    name: 'محمد علي',
+    title: 'مصمم ومحرر فيديو احترافي',
+    description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك بأحدث التقنيات.',
+    avatar: '',
+    resume: ''
+  });
   const [loading, setLoading] = useState(true);
 
   // UI state
@@ -261,13 +297,41 @@ export default function AdminPage() {
     showToast('تم حفظ الرابط ✓');
   };
 
+  const saveProfile = async () => {
+    // هنا يمكن حفظ البيانات في Supabase أو localStorage
+    localStorage.setItem('profile_data', JSON.stringify(profile));
+    showToast('تم حفظ الملف الشخصي ✓');
+  };
+
+  const saveSkill = async (skill: any) => {
+    // هنا يمكن حفظ البيانات في Supabase أو localStorage
+    localStorage.setItem('skills_data', JSON.stringify(skills));
+    showToast('تم حفظ المهارة ✓');
+  };
+
+  const saveTestimonial = async (testimonial: any) => {
+    // هنا يمكن حفظ البيانات في Supabase أو localStorage
+    localStorage.setItem('testimonials_data', JSON.stringify(testimonials));
+    showToast('تم حفظ الشهادة ✓');
+  };
+
+  const saveSections = async () => {
+    // هنا يمكن حفظ البيانات في Supabase أو localStorage
+    localStorage.setItem('sections_data', JSON.stringify(sections));
+    showToast('تم حفظ الأقسام ✓');
+  };
+
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
 
   const tabs = [
-    { id: 'projects', label: 'المشاريع',       icon: '🎬', count: projects.length },
-    { id: 'stats',    label: 'الإحصائيات',     icon: '📊', count: stats.length },
-    { id: 'contact',  label: 'التواصل',         icon: '📞', count: contacts.length },
-    { id: 'social',   label: 'السوشيال ميديا', icon: '🔗', count: socials.length },
+    { id: 'profile',     label: 'الملف الشخصي',   icon: '👤', count: 1 },
+    { id: 'sections',    label: 'الأقسام',        icon: '📄', count: 3 },
+    { id: 'skills',      label: 'المهارات',       icon: '⚡', count: skills.length },
+    { id: 'testimonials', label: 'الشهادات',      icon: '⭐', count: testimonials.length },
+    { id: 'projects',    label: 'المشاريع',       icon: '🎬', count: projects.length },
+    { id: 'stats',       label: 'الإحصائيات',     icon: '📊', count: stats.length },
+    { id: 'contact',     label: 'التواصل',         icon: '📞', count: contacts.length },
+    { id: 'social',      label: 'السوشيال ميديا', icon: '🔗', count: socials.length },
   ] as const;
 
   return (
@@ -366,6 +430,357 @@ export default function AdminPage() {
         ) : (
           <AnimatePresence mode="wait">
             <motion.div key={tab} variants={fade} initial="hidden" animate="visible">
+
+              {/* ── PROFILE TAB ── */}
+              {tab === 'profile' && (
+                <div>
+                  <h2 className="text-white font-bold text-lg mb-5">الملف الشخصي</h2>
+                  <p className="text-gray-600 text-sm mb-6">هذه المعلومات تظهر في قسم Hero وAbout في الصفحة الرئيسية</p>
+                  <div className="space-y-6">
+                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <h3 className="text-white font-semibold mb-4">المعلومات الأساسية</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelCls}>الاسم الكامل</label>
+                          <input
+                            type="text"
+                            value={profile.name}
+                            onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
+                            className={inputCls}
+                            placeholder="محمد علي"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>المسمى الوظيفي</label>
+                          <input
+                            type="text"
+                            value={profile.title}
+                            onChange={e => setProfile(prev => ({ ...prev, title: e.target.value }))}
+                            className={inputCls}
+                            placeholder="مصمم ومحرر فيديو احترافي"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <label className={labelCls}>الوصف الشخصي</label>
+                        <textarea
+                          value={profile.description}
+                          onChange={e => setProfile(prev => ({ ...prev, description: e.target.value }))}
+                          className={`${inputCls} h-24 resize-none`}
+                          placeholder="اكتب وصفاً عن نفسك وخبراتك..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <h3 className="text-white font-semibold mb-4">الوسائط</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelCls}>رابط الصورة الشخصية</label>
+                          <input
+                            type="url"
+                            value={profile.avatar}
+                            onChange={e => setProfile(prev => ({ ...prev, avatar: e.target.value }))}
+                            className={inputCls}
+                            placeholder="https://..."
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>رابط السيرة الذاتية (PDF)</label>
+                          <input
+                            type="url"
+                            value={profile.resume}
+                            onChange={e => setProfile(prev => ({ ...prev, resume: e.target.value }))}
+                            className={inputCls}
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={saveProfile}
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      حفظ الملف الشخصي
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── SKILLS TAB ── */}
+              {tab === 'skills' && (
+                <div>
+                  <h2 className="text-white font-bold text-lg mb-5">المهارات والخبرات</h2>
+                  <p className="text-gray-600 text-sm mb-6">هذه المهارات تظهر في قسم المهارات في الصفحة الرئيسية</p>
+                  <div className="space-y-4">
+                    {skills.map(skill => (
+                      <div key={skill.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label className={labelCls}>اسم المهارة</label>
+                            <input
+                              type="text"
+                              defaultValue={skill.name}
+                              onChange={e => { const v = e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, name: v } : x)); }}
+                              className={inputCls}
+                              placeholder="Adobe After Effects"
+                            />
+                          </div>
+                          <div>
+                            <label className={labelCls}>المستوى (%)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              defaultValue={skill.level}
+                              onChange={e => { const v = +e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, level: v } : x)); }}
+                              className={inputCls}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelCls}>الفئة</label>
+                            <select
+                              defaultValue={skill.category}
+                              onChange={e => { const v = e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, category: v } : x)); }}
+                              className={inputCls}
+                            >
+                              <option value="motion-design">موشن جرافيك</option>
+                              <option value="video-editing">مونتاج فيديو</option>
+                              <option value="design">تصميم</option>
+                              <option value="3d-modeling">نمذجة ثلاثية الأبعاد</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-400">المستوى الحالي</span>
+                            <span className="text-sm text-purple-400 font-semibold">{skill.level}%</span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-2">
+                            <div
+                              className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${skill.level}%` }}
+                            />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => saveSkill(skill)}
+                          className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
+                        >
+                          حفظ المهارة
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── TESTIMONIALS TAB ── */}
+              {tab === 'testimonials' && (
+                <div>
+                  <h2 className="text-white font-bold text-lg mb-5">شهادات العملاء</h2>
+                  <p className="text-gray-600 text-sm mb-6">هذه الشهادات تظهر في قسم الشهادات في الصفحة الرئيسية</p>
+                  <div className="space-y-4">
+                    {testimonials.map(testimonial => (
+                      <div key={testimonial.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className={labelCls}>اسم العميل</label>
+                            <input
+                              type="text"
+                              defaultValue={testimonial.name}
+                              onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, name: v } : x)); }}
+                              className={inputCls}
+                              placeholder="أحمد محمد"
+                            />
+                          </div>
+                          <div>
+                            <label className={labelCls}>الشركة/المؤسسة</label>
+                            <input
+                              type="text"
+                              defaultValue={testimonial.company}
+                              onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, company: v } : x)); }}
+                              className={inputCls}
+                              placeholder="شركة الإعلانات المتحدة"
+                            />
+                          </div>
+                        </div>
+                        <div className="mb-4">
+                          <label className={labelCls}>محتوى الشهادة</label>
+                          <textarea
+                            defaultValue={testimonial.content}
+                            onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, content: v } : x)); }}
+                            className={`${inputCls} h-20 resize-none`}
+                            placeholder="اكتب محتوى الشهادة..."
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <label className={labelCls}>التقييم:</label>
+                            <select
+                              defaultValue={testimonial.rating}
+                              onChange={e => { const v = +e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, rating: v } : x)); }}
+                              className={`${inputCls} w-20`}
+                            >
+                              <option value={5}>⭐⭐⭐⭐⭐</option>
+                              <option value={4}>⭐⭐⭐⭐</option>
+                              <option value={3}>⭐⭐⭐</option>
+                              <option value={2}>⭐⭐</option>
+                              <option value={1}>⭐</option>
+                            </select>
+                          </div>
+                          <button
+                            onClick={() => saveTestimonial(testimonial)}
+                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
+                          >
+                            حفظ الشهادة
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── SECTIONS TAB ── */}
+              {tab === 'sections' && (
+                <div>
+                  <h2 className="text-white font-bold text-lg mb-5">إدارة الأقسام</h2>
+                  <p className="text-gray-600 text-sm mb-6">تحكم في محتوى الأقسام المختلفة في الصفحة الرئيسية</p>
+
+                  {/* Hero Section */}
+                  <div className="mb-8">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-xl">🚀</span>
+                      قسم Hero
+                    </h3>
+                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                          <label className={labelCls}>العنوان الرئيسي</label>
+                          <input
+                            type="text"
+                            value={sections.hero.title}
+                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, title: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="مرحباً، أنا محمد علي"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>العنوان الفرعي</label>
+                          <input
+                            type="text"
+                            value={sections.hero.subtitle}
+                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, subtitle: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="مصمم ومحرر فيديو احترافي"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>نص الدعوة للعمل</label>
+                          <input
+                            type="text"
+                            value={sections.hero.cta_text}
+                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, cta_text: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="شاهد أعمالي"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelCls}>الوصف</label>
+                          <textarea
+                            value={sections.hero.description}
+                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, description: e.target.value } }))}
+                            className={`${inputCls} h-20 resize-none`}
+                            placeholder="اكتب وصفاً جذاباً..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* About Section */}
+                  <div className="mb-8">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-xl">👨‍💻</span>
+                      قسم من أنا
+                    </h3>
+                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelCls}>عنوان القسم</label>
+                          <input
+                            type="text"
+                            value={sections.about.title}
+                            onChange={e => setSections(prev => ({ ...prev, about: { ...prev.about, title: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="من أنا"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>سنوات الخبرة</label>
+                          <input
+                            type="text"
+                            value={sections.about.experience_years}
+                            onChange={e => setSections(prev => ({ ...prev, about: { ...prev.about, experience_years: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="5+"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelCls}>المحتوى</label>
+                          <textarea
+                            value={sections.about.content}
+                            onChange={e => setSections(prev => ({ ...prev, about: { ...prev.about, content: e.target.value } }))}
+                            className={`${inputCls} h-24 resize-none`}
+                            placeholder="اكتب محتوى قسم من أنا..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Section */}
+                  <div className="mb-8">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-xl">📄</span>
+                      قسم Footer
+                    </h3>
+                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                          <label className={labelCls}>نص حقوق النشر</label>
+                          <input
+                            type="text"
+                            value={sections.footer.copyright}
+                            onChange={e => setSections(prev => ({ ...prev, footer: { ...prev.footer, copyright: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="© 2024 محمد علي. جميع الحقوق محفوظة."
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelCls}>الشعار</label>
+                          <input
+                            type="text"
+                            value={sections.footer.tagline}
+                            onChange={e => setSections(prev => ({ ...prev, footer: { ...prev.footer, tagline: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="نصنع المحتوى الذي يتحدث عن نفسه"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={saveSections}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                  >
+                    حفظ جميع الأقسام
+                  </button>
+                </div>
+              )}
 
               {/* ── PROJECTS TAB ── */}
               {tab === 'projects' && (

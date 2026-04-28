@@ -3,7 +3,26 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
 
-export default function Hero() {
+interface HeroProps {
+  profile?: {
+    name: string;
+    title: string;
+    description: string;
+    avatar: string;
+    resume: string;
+  };
+  sections?: {
+    hero: {
+      title: string;
+      subtitle: string;
+      description: string;
+      cta_text: string;
+      cta_link: string;
+    };
+  };
+}
+
+export default function Hero({ profile, sections }: HeroProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
@@ -34,6 +53,12 @@ export default function Hero() {
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Default values
+  const heroTitle = sections?.hero?.title || 'مرحباً، أنا محمد علي';
+  const heroSubtitle = sections?.hero?.subtitle || 'مصمم ومحرر فيديو احترافي';
+  const heroDescription = sections?.hero?.description || 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.';
+  const ctaText = sections?.hero?.cta_text || 'شاهد أعمالي';
 
   return (
     <div
@@ -83,7 +108,7 @@ export default function Hero() {
         {/* Badge */}
         <motion.div className="inline-block mb-8" variants={itemVariants}>
           <span className="px-5 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-300 text-sm font-semibold tracking-wide">
-            ✨ محرر فيديو و موشن ديزاينر احترافي
+            ✨ {heroSubtitle}
           </span>
         </motion.div>
 
@@ -93,11 +118,7 @@ export default function Hero() {
           variants={itemVariants}
         >
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
-            أحوّل أفكارك إلى
-          </span>
-          <br />
-          <span className="shimmer-text">
-            تحفة فنية بصرية
+            {heroTitle}
           </span>
         </motion.h1>
 
@@ -106,7 +127,7 @@ export default function Hero() {
           className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed"
           variants={itemVariants}
         >
-          مع خبرة عملية في تحرير الفيديو والموشن ديزاين، أنشئ محتوى بصري يأسر الجمهور ويحقق نتائج استثنائية
+          {heroDescription}
         </motion.p>
 
         {/* CTA Buttons */}
@@ -120,7 +141,7 @@ export default function Hero() {
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.96 }}
           >
-            شاهد أعمالي
+            {ctaText}
           </motion.button>
           <motion.button
             onClick={() => scrollToSection('contact')}
