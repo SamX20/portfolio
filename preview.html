@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Preview - سامر جابر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#a855f7',
+                        secondary: '#ec4899',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+        /* Custom styles from globals.css */
+        body {
+            background-color: #0a0a0f;
+            color: #ffffff;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            text-align: right;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Grid Pattern Background */
+        .bg-grid-pattern {
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(168, 85, 247, 0.04) 25%, rgba(168, 85, 247, 0.04) 26%, transparent 27%, transparent 74%, rgba(168, 85, 247, 0.04) 75%, rgba(168, 85, 247, 0.04) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(168, 85, 247, 0.04) 25%, rgba(168, 85, 247, 0.04) 26%, transparent 27%, transparent 74%, rgba(168, 85, 247, 0.04) 75%, rgba(168, 85, 247, 0.04) 76%, transparent 77%, transparent);
+            background-size: 60px 60px;
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa, #ec4899, #f97316);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Glass Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(168, 85, 247, 0.7); }
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .animate-glow {
+            animation: glow 2.5s ease-in-out infinite;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0f;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #a855f7, #ec4899);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #9333ea, #db2777);
+        }
+    </style>
+</head>
+<body class="bg-grid-pattern">
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-[#0a0a0f]/85 backdrop-blur-xl shadow-2xl shadow-black/50 border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <span class="text-2xl font-bold gradient-text">سامر جابر</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4 space-x-reverse">
+                        <a href="#home" class="text-white hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">الرئيسية</a>
+                        <a href="#projects" class="text-white hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">المشاريع</a>
+                        <a href="#contact" class="text-white hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">التواصل</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative w-full min-h-screen overflow-hidden flex items-center justify-center pt-16">
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(700px circle at 50% 50%, rgba(168,85,247,0.10) 0%, transparent 60%);"></div>
+
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="animate-float">
+                <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+                    <span class="block text-white">مرحباً بك في</span>
+                    <span class="block gradient-text">عالم الإبداع</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    مصمم ومحرر فيديو متخصص في إنتاج المحتوى البصري الاحترافي
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#projects" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-full hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        عرض الأعمال
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </a>
+                    <a href="#contact" class="inline-flex items-center px-8 py-4 glass text-white font-bold rounded-full hover:bg-white/10 transition-all duration-300">
+                        تواصل معي
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div class="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
+                <div class="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black mb-6 gradient-text">المشاريع</h2>
+                <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+                    مجموعة من الأعمال الإبداعية في مجال التصميم والمونتاج
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Project Card 1 -->
+                <div class="group relative h-full rounded-2xl overflow-hidden border border-white/5 hover:border-purple-500/40 transition-all duration-500 transform hover:-translate-y-2" style="background: linear-gradient(135deg, #13131f 0%, #0f0f1a 100%);">
+                    <div class="relative h-52 overflow-hidden">
+                        <div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" style="background: linear-gradient(135deg, rgba(147,51,234,0.5) 0%, rgba(236,72,153,0.4) 50%, rgba(6,182,212,0.3) 100%);"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity duration-300">
+                            <span class="text-7xl select-none">🎬</span>
+                        </div>
+                        <div class="absolute top-3 right-3 z-10">
+                            <span class="px-3 py-1 bg-yellow-400/90 text-black text-xs font-black rounded-full">⭐ مميز</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+                        <span class="inline-block text-xs font-semibold text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full mb-3 border border-purple-500/20">موشن ديزاين</span>
+                        <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 group-hover:bg-clip-text transition-all duration-300">
+                            إعلان منتج تجاري
+                        </h3>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            إعلان احترافي لمنتج تجاري مع موشن جرافيك متقدم
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="text-xs bg-white/5 text-gray-300 px-2 py-1 rounded">Premiere Pro</span>
+                            <span class="text-xs bg-white/5 text-gray-300 px-2 py-1 rounded">After Effects</span>
+                        </div>
+                        <button class="w-full py-3 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 text-white font-semibold rounded-xl border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300">
+                            📸 التفاصيل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Project Card 2 -->
+                <div class="group relative h-full rounded-2xl overflow-hidden border border-white/5 hover:border-purple-500/40 transition-all duration-500 transform hover:-translate-y-2" style="background: linear-gradient(135deg, #13131f 0%, #0f0f1a 100%);">
+                    <div class="relative h-52 overflow-hidden">
+                        <div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" style="background: linear-gradient(135deg, rgba(147,51,234,0.5) 0%, rgba(236,72,153,0.4) 50%, rgba(6,182,212,0.3) 100%);"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity duration-300">
+                            <span class="text-7xl select-none">✂️</span>
+                        </div>
+                        <div class="absolute top-3 right-3 z-10">
+                            <span class="px-3 py-1 bg-yellow-400/90 text-black text-xs font-black rounded-full">⭐ مميز</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+                        <span class="inline-block text-xs font-semibold text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full mb-3 border border-purple-500/20">تحرير فيديو</span>
+                        <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 group-hover:bg-clip-text transition-all duration-300">
+                            تغطية حفل موسيقي
+                        </h3>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            تحرير فيديو احترافي لحفل موسيقي مع مونتاج إبداعي
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="text-xs bg-white/5 text-gray-300 px-2 py-1 rounded">Premiere Pro</span>
+                            <span class="text-xs bg-white/5 text-gray-300 px-2 py-1 rounded">DaVinci</span>
+                        </div>
+                        <button class="w-full py-3 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 text-white font-semibold rounded-xl border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300">
+                            📸 التفاصيل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Project Card 3 -->
+                <div class="group relative h-full rounded-2xl overflow-hidden border border-white/5 hover:border-purple-500/40 transition-all duration-500 transform hover:-translate-y-2" style="background: linear-gradient(135deg, #13131f 0%, #0f0f1a 100%);">
+                    <div class="relative h-52 overflow-hidden">
+                        <div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" style="background: linear-gradient(135deg, rgba(147,51,234,0.5) 0%, rgba(236,72,153,0.4) 50%, rgba(6,182,212,0.3) 100%);"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity duration-300">
+                            <span class="text-7xl select-none">📣</span>
+                        </div>
+                        <div class="absolute top-3 right-3 z-10">
+                            <span class="px-3 py-1 bg-yellow-400/90 text-black text-xs font-black rounded-full">⭐ مميز</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+                        <span class="inline-block text-xs font-semibold text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full mb-3 border border-purple-500/20">ترويجي</span>
+                        <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 group-hover:bg-clip-text transition-all duration-300">
+                            فيديو ترويجي للشركة
+                        </h3>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            فيديو تسويقي يعرض خدمات الشركة بأسلوب احترافي
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="text-xs bg-white/5 text-gray-300 px-2 py-1 rounded">After Effects</span>
+                            <span class="text-xs bg-white/5 text-gray-300 px-2 py-1 rounded">Cinema 4D</span>
+                        </div>
+                        <button class="w-full py-3 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 text-white font-semibold rounded-xl border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300">
+                            📸 التفاصيل
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-black mb-6 gradient-text">تواصل معي</h2>
+            <p class="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+                جاهز للبدء في مشروعك التالي؟ دعنا نتحدث عن أفكارك
+            </p>
+
+            <div class="glass rounded-3xl p-8 md:p-12">
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <input type="text" placeholder="الاسم الكامل" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors">
+                        </div>
+                        <div>
+                            <input type="email" placeholder="البريد الإلكتروني" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors">
+                        </div>
+                    </div>
+                    <div>
+                        <textarea rows="5" placeholder="رسالتك..." class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        إرسال الرسالة
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/5">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="mb-8">
+                <span class="text-2xl font-bold gradient-text">محمد علي</span>
+            </div>
+            <p class="text-gray-400 mb-6">
+                مصمم ومحرر فيديو متخصص في إنتاج المحتوى البصري الاحترافي
+            </p>
+            <div class="flex justify-center space-x-6 space-x-reverse">
+                <a href="#" class="text-gray-400 hover:text-purple-400 transition-colors">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-purple-400 transition-colors">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.749.097.118.112.221.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001.012.017z"/>
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-purple-400 transition-colors">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.749.097.118.112.221.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001.012.017z"/>
+                    </svg>
+                </a>
+            </div>
+            <p class="text-gray-500 text-sm">
+                © 2024 محمد علي. جميع الحقوق محفوظة.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add some basic interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to project cards
+            const projectCards = document.querySelectorAll('.group');
+            projectCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

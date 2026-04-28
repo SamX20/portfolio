@@ -1,0 +1,23 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        cairo: ['var(--font-cairo)', 'sans-serif'],
+      },
+      colors: {
+        primary: '#a855f7',
+        secondary: '#ec4899',
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;
