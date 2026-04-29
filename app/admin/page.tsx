@@ -49,7 +49,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
       >
         <div className="text-center mb-8">
           <div className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-2">
-            Portfolio
+            تسجيل دخول لإدارة الصفحة
           </div>
           <p className="text-gray-500 text-sm">لوحة التحكم</p>
         </div>
@@ -215,6 +215,7 @@ export default function AdminPage() {
     { id: '2', name: 'Adobe Premiere Pro', level: 90, category: 'video-editing' },
     { id: '3', name: 'Adobe Photoshop', level: 85, category: 'design' },
     { id: '4', name: 'Cinema 4D', level: 80, category: '3d-modeling' },
+    { id: '5', name: 'NanoBanana 2', level: 80, category: 'AI-tools' },
   ]);
   const [testimonials, setTestimonials] = useState([
     { id: '1', name: 'أحمد محمد', company: 'شركة الإعلانات المتحدة', content: 'عمل رائع جداً في تصميم الفيديو الترويجي لمنتجاتنا. الجودة عالية والإبداع واضح.', rating: 5 },
