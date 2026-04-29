@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ContactInfo, SocialLink } from '@/types';
 
@@ -12,7 +12,12 @@ interface FormData {
   message: string;
 }
 
-export default function Contact() {
+interface ContactProps {
+  contacts?: ContactInfo[];
+  socialLinks?: SocialLink[];
+}
+
+export default function Contact({ contacts = [], socialLinks = [] }: ContactProps) {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -23,134 +28,48 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  // State for dynamic contact info and social links
-  const [contacts, setContacts] = useState<ContactInfo[]>([]);
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const defaultContacts: ContactInfo[] = [
+    {
+      id: 'email',
+      icon: '📧',
+      title: 'البريد الإلكتروني',
+      content: 'contact@example.com',
+      href: 'mailto:contact@example.com',
+    },
+    {
+      id: 'phone',
+      icon: '📱',
+      title: 'الهاتف',
+      content: '+962 79 123 4567',
+      href: 'tel:+962791234567',
+    },
+    {
+      id: 'location',
+      icon: '📍',
+      title: 'الموقع',
+      content: 'الأردن - عمّان',
+      href: '#',
+    },
+    {
+      id: 'hours',
+      icon: '⏰',
+      title: 'ساعات العمل',
+      content: '9:00 - 18:00 (الأحد - الخميس)',
+      href: '#',
+    },
+  ];
 
-  useEffect(() => {
-    // Load contact info from localStorage
-    const contactsData = localStorage.getItem('contacts_data');
-    if (contactsData) {
-      try {
-        const parsedContacts = JSON.parse(contactsData);
-        if (parsedContacts.length > 0) {
-          setContacts(parsedContacts);
-        } else {
-          // Set default contact info if no data exists
-          setContacts([
-            {
-              id: '1',
-              icon: '📧',
-              title: 'البريد الإلكتروني',
-              content: 'contact@example.com',
-              href: 'mailto:contact@example.com',
-            },
-            {
-              id: '2',
-              icon: '📱',
-              title: 'الهاتف',
-              content: '+962 79 123 4567',
-              href: 'tel:+962791234567',
-            },
-            {
-              id: '3',
-              icon: '📍',
-              title: 'الموقع',
-              content: 'الأردن - عمّان',
-              href: '#',
-            },
-            {
-              id: '4',
-              icon: '⏰',
-              title: 'ساعات العمل',
-              content: '9:00 - 18:00 (الأحد - الخميس)',
-              href: '#',
-            },
-          ]);
-        }
-      } catch (e) {
-        console.error('خطأ في تحميل معلومات التواصل:', e);
-        // Set default contact info on error
-        setContacts([
-          {
-            id: '1',
-            icon: '📧',
-            title: 'البريد الإلكتروني',
-            content: 'contact@example.com',
-            href: 'mailto:contact@example.com',
-          },
-          {
-            id: '2',
-            icon: '📱',
-            title: 'الهاتف',
-            content: '+962 79 123 4567',
-            href: 'tel:+962791234567',
-          },
-          {
-            id: '3',
-            icon: '📍',
-            title: 'الموقع',
-            content: 'الأردن - عمّان',
-            href: '#',
-          },
-          {
-            id: '4',
-            icon: '⏰',
-            title: 'ساعات العمل',
-            content: '9:00 - 18:00 (الأحد - الخميس)',
-            href: '#',
-          },
-        ]);
-      }
-    } else {
-      // Set default contact info if no localStorage data
-      setContacts([
-        {
-          id: '1',
-          icon: '📧',
-          title: 'البريد الإلكتروني',
-          content: 'contact@example.com',
-          href: 'mailto:contact@example.com',
-        },
-        {
-          id: '2',
-          icon: '📱',
-          title: 'الهاتف',
-          content: '+962 79 123 4567',
-          href: 'tel:+962791234567',
-        },
-        {
-          id: '3',
-          icon: '📍',
-          title: 'الموقع',
-          content: 'الأردن - عمّان',
-          href: '#',
-        },
-        {
-          id: '4',
-          icon: '⏰',
-          title: 'ساعات العمل',
-          content: '9:00 - 18:00 (الأحد - الخميس)',
-          href: '#',
-        },
-      ]);
-    }
+  const defaultSocialLinks: SocialLink[] = [
+    { id: 'facebook', name: 'Facebook', url: '#' , sort_order: 0},
+    { id: 'instagram', name: 'Instagram', url: '#', sort_order: 1},
+    { id: 'linkedin', name: 'LinkedIn', url: '#', sort_order: 2},
+    { id: 'youtube', name: 'YouTube', url: '#', sort_order: 3},
+  ];
 
-    // Load social links from localStorage
-    const socialsData = localStorage.getItem('socials_data');
-    if (socialsData) {
-      try {
-        const parsedSocials = JSON.parse(socialsData);
-        if (parsedSocials.length > 0) {
-          setSocialLinks(parsedSocials);
-        }
-      } catch (e) {
-        console.error('خطأ في تحميل مواقع التواصل:', e);
-      }
-    }
-  }, []);
+  const contactsToShow = contacts.length > 0 ? contacts : defaultContacts;
+  const socialsToShow = socialLinks.length > 0 ? socialLinks : defaultSocialLinks;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -236,7 +155,7 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {contacts.map((item) => (
+            {contactsToShow.map((item) => (
               <motion.div
                 key={item.id || item.title}
                 variants={itemVariants}
@@ -265,7 +184,7 @@ export default function Contact() {
             <motion.div variants={itemVariants} className="pt-4">
               <p className="text-white font-semibold text-sm mb-4">تابعني على</p>
               <div className="flex gap-3">
-                {socialLinks.map((social) => (
+                {socialsToShow.map((social) => (
                   <motion.a
                     key={social.id}
                     href={social.url || '#'}

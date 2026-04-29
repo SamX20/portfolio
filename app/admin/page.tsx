@@ -258,90 +258,6 @@ export default function AdminPage() {
     if (sessionStorage.getItem('admin_auth') === '1') setAuthed(true);
   }, []);
 
-  // تحميل البيانات من localStorage عند البدء
-  useEffect(() => {
-    if (!authed) return;
-    
-    // تحميل الملف الشخصي
-    const savedProfile = localStorage.getItem('profile_data');
-    if (savedProfile) {
-      try {
-        setProfile(JSON.parse(savedProfile));
-      } catch (e) {
-        console.error('خطأ في تحميل الملف الشخصي:', e);
-      }
-    }
-
-    // تحميل المهارات
-    const savedSkills = localStorage.getItem('skills_data');
-    if (savedSkills) {
-      try {
-        setSkills(JSON.parse(savedSkills));
-      } catch (e) {
-        console.error('خطأ في تحميل المهارات:', e);
-      }
-    }
-
-    // تحميل الشهادات
-    const savedTestimonials = localStorage.getItem('testimonials_data');
-    if (savedTestimonials) {
-      try {
-        setTestimonials(JSON.parse(savedTestimonials));
-      } catch (e) {
-        console.error('خطأ في تحميل الشهادات:', e);
-      }
-    }
-
-    // تحميل الأقسام
-    const savedSections = localStorage.getItem('sections_data');
-    if (savedSections) {
-      try {
-        setSections(JSON.parse(savedSections));
-      } catch (e) {
-        console.error('خطأ في تحميل الأقسام:', e);
-      }
-    }
-
-    // تحميل المشاريع
-    const savedProjects = localStorage.getItem('projects_data');
-    if (savedProjects) {
-      try {
-        setProjects(JSON.parse(savedProjects));
-      } catch (e) {
-        console.error('خطأ في تحميل المشاريع:', e);
-      }
-    }
-
-    // تحميل الإحصائيات
-    const savedStats = localStorage.getItem('stats_data');
-    if (savedStats) {
-      try {
-        setStats(JSON.parse(savedStats));
-      } catch (e) {
-        console.error('خطأ في تحميل الإحصائيات:', e);
-      }
-    }
-
-    // تحميل معلومات التواصل
-    const savedContacts = localStorage.getItem('contacts_data');
-    if (savedContacts) {
-      try {
-        setContacts(JSON.parse(savedContacts));
-      } catch (e) {
-        console.error('خطأ في تحميل معلومات التواصل:', e);
-      }
-    }
-
-    // تحميل مواقع التواصل
-    const savedSocials = localStorage.getItem('socials_data');
-    if (savedSocials) {
-      try {
-        setSocials(JSON.parse(savedSocials));
-      } catch (e) {
-        console.error('خطأ في تحميل مواقع التواصل:', e);
-      }
-    }
-  }, [authed]);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
@@ -362,19 +278,15 @@ export default function AdminPage() {
     ]);
     if (p.data) {
       setProjects(p.data);
-      localStorage.setItem('projects_data', JSON.stringify(p.data));
     }
     if (s.data) {
       setStats(s.data);
-      localStorage.setItem('stats_data', JSON.stringify(s.data));
     }
     if (c.data) {
       setContacts(c.data);
-      localStorage.setItem('contacts_data', JSON.stringify(c.data));
     }
     if (so.data) {
       setSocials(so.data);
-      localStorage.setItem('socials_data', JSON.stringify(so.data));
     }
     setLoading(false);
   }, []);
@@ -383,12 +295,8 @@ export default function AdminPage() {
 
   const deleteProject = async (id: string) => {
     if (!supabase) {
-      // حذف محلي إذا لم يكن supabase متوفراً
-      const updated = projects.filter(p => p.id !== id);
-      setProjects(updated);
-      localStorage.setItem('projects_data', JSON.stringify(updated));
+      showToast('Supabase غير متوفر؛ لا يمكن حذف المشروع عالماً', 'error');
       setDeleteConfirm(null);
-      showToast('تم حذف المشروع');
       return;
     }
     await supabase.from('projects').delete().eq('id', id);
@@ -399,12 +307,8 @@ export default function AdminPage() {
 
   const deleteStat = async (id: string) => {
     if (!supabase) {
-      // حذف محلي إذا لم يكن supabase متوفراً
-      const updated = stats.filter(s => s.id !== id);
-      setStats(updated);
-      localStorage.setItem('stats_data', JSON.stringify(updated));
+      showToast('Supabase غير متوفر؛ لا يمكن حذف الإحصائية عالماً', 'error');
       setDeleteConfirm(null);
-      showToast('تم حذف الإحصائية');
       return;
     }
     await supabase.from('stats').delete().eq('id', id);
@@ -415,12 +319,8 @@ export default function AdminPage() {
 
   const deleteContact = async (id: string) => {
     if (!supabase) {
-      // حذف محلي إذا لم يكن supabase متوفراً
-      const updated = contacts.filter(c => c.id !== id);
-      setContacts(updated);
-      localStorage.setItem('contacts_data', JSON.stringify(updated));
+      showToast('Supabase غير متوفر؛ لا يمكن حذف معلومات التواصل عالماً', 'error');
       setDeleteConfirm(null);
-      showToast('تم حذف معلومات التواصل');
       return;
     }
     await supabase.from('contact_info').delete().eq('id', id);
@@ -431,12 +331,8 @@ export default function AdminPage() {
 
   const deleteSocial = async (id: string) => {
     if (!supabase) {
-      // حذف محلي إذا لم يكن supabase متوفراً
-      const updated = socials.filter(s => s.id !== id);
-      setSocials(updated);
-      localStorage.setItem('socials_data', JSON.stringify(updated));
+      showToast('Supabase غير متوفر؛ لا يمكن حذف الرابط عالماً', 'error');
       setDeleteConfirm(null);
-      showToast('تم حذف الرابط');
       return;
     }
     await supabase.from('social_links').delete().eq('id', id);
@@ -461,7 +357,6 @@ export default function AdminPage() {
       label: 'إحصائية جديدة',
     };
     setStats([...stats, newStat]);
-    localStorage.setItem('stats_data', JSON.stringify([...stats, newStat]));
     showToast('تمت إضافة إحصائية جديدة');
   };
 
@@ -474,7 +369,6 @@ export default function AdminPage() {
       href: '',
     };
     setContacts([...contacts, newContact]);
-    localStorage.setItem('contacts_data', JSON.stringify([...contacts, newContact]));
     showToast('تمت إضافة معلومات تواصل جديدة');
   };
 
@@ -486,92 +380,56 @@ export default function AdminPage() {
       sort_order: socials.length,
     };
     setSocials([...socials, newSocial]);
-    localStorage.setItem('socials_data', JSON.stringify([...socials, newSocial]));
     showToast('تمت إضافة رابط جديد');
   };
 
   const saveStat = async (s: Stat) => {
     if (!supabase) {
-      // حفظ محلي إذا لم يكن supabase متوفراً
-      const updated = stats.map(x => x.id === s.id ? s : x);
-      setStats(updated);
-      localStorage.setItem('stats_data', JSON.stringify(updated));
-      showToast('تم حفظ الإحصائية ✓');
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ الإحصائية عالماً', 'error');
       return;
     }
     await supabase.from('stats').update({ value: s.value, label: s.label }).eq('id', s.id);
     showToast('تم حفظ الإحصائية ✓');
-    // تحديث البيانات من Supabase
-    const updated = stats.map(x => x.id === s.id ? s : x);
-    setStats(updated);
-    localStorage.setItem('stats_data', JSON.stringify(updated));
-    // إعادة تحميل البيانات من قاعدة البيانات
     fetchAll();
   };
 
   const saveContact = async (c: ContactInfo) => {
     if (!supabase) {
-      // حفظ محلي إذا لم يكن supabase متوفراً
-      const updated = contacts.map(x => x.id === c.id ? c : x);
-      setContacts(updated);
-      localStorage.setItem('contacts_data', JSON.stringify(updated));
-      showToast('تم حفظ معلومات التواصل ✓');
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ معلومات التواصل عالماً', 'error');
       return;
     }
     await supabase.from('contact_info').update(c).eq('id', c.id);
     showToast('تم حفظ معلومات التواصل ✓');
-    // تحديث البيانات من Supabase
-    const updated = contacts.map(x => x.id === c.id ? c : x);
-    setContacts(updated);
-    localStorage.setItem('contacts_data', JSON.stringify(updated));
-    // إعادة تحميل البيانات من قاعدة البيانات
     fetchAll();
   };
 
   const saveSocial = async (s: SocialLink) => {
     if (!supabase) {
-      // حفظ محلي إذا لم يكن supabase متوفراً
-      const updated = socials.map(x => x.id === s.id ? s : x);
-      setSocials(updated);
-      localStorage.setItem('socials_data', JSON.stringify(updated));
-      showToast('تم حفظ الرابط ✓');
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ الرابط عالماً', 'error');
       return;
     }
     await supabase.from('social_links').update({ url: s.url }).eq('id', s.id);
     showToast('تم حفظ الرابط ✓');
-    // تحديث البيانات من Supabase
-    const updated = socials.map(x => x.id === s.id ? s : x);
-    setSocials(updated);
-    localStorage.setItem('socials_data', JSON.stringify(updated));
-    // إعادة تحميل البيانات من قاعدة البيانات
     fetchAll();
   };
 
   const saveProfile = async () => {
-    // هنا يمكن حفظ البيانات في Supabase أو localStorage
-    localStorage.setItem('profile_data', JSON.stringify(profile));
     showToast('تم حفظ الملف الشخصي ✓');
   };
 
   const saveSkill = async (skill: any) => {
-    // هنا يمكن حفظ البيانات في Supabase أو localStorage
     const updatedSkills = skills.map(s => s.id === skill.id ? skill : s);
-    localStorage.setItem('skills_data', JSON.stringify(updatedSkills));
     setSkills(updatedSkills);
     showToast('تم حفظ المهارة ✓');
   };
 
   const saveTestimonial = async (testimonial: any) => {
-    // هنا يمكن حفظ البيانات في Supabase أو localStorage
     const updatedTestimonials = testimonials.map(t => t.id === testimonial.id ? testimonial : t);
-    localStorage.setItem('testimonials_data', JSON.stringify(updatedTestimonials));
     setTestimonials(updatedTestimonials);
     showToast('تم حفظ الشهادة ✓');
   };
 
   const saveSections = async () => {
-    // هنا يمكن حفظ البيانات في Supabase أو localStorage
-    localStorage.setItem('sections_data', JSON.stringify(sections));
     showToast('تم حفظ الأقسام ✓');
   };
 
@@ -777,7 +635,6 @@ export default function AdminPage() {
                         };
                         const updatedSkills = [...skills, newSkill];
                         setSkills(updatedSkills);
-                        localStorage.setItem('skills_data', JSON.stringify(updatedSkills));
                       }}
                       className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
                     >
@@ -846,7 +703,6 @@ export default function AdminPage() {
                         <button
                           onClick={() => {
                             setSkills(prev => prev.filter(x => x.id !== skill.id));
-                            localStorage.setItem('skills_data', JSON.stringify(skills.filter(x => x.id !== skill.id)));
                             showToast('تم حذف المهارة');
                           }}
                           className="mt-4 ml-2 px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
@@ -875,7 +731,6 @@ export default function AdminPage() {
                         };
                         const updatedTestimonials = [...testimonials, newTestimonial];
                         setTestimonials(updatedTestimonials);
-                        localStorage.setItem('testimonials_data', JSON.stringify(updatedTestimonials));
                       }}
                       className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
                     >
@@ -941,7 +796,6 @@ export default function AdminPage() {
                           <button
                             onClick={() => {
                               setTestimonials(prev => prev.filter(x => x.id !== testimonial.id));
-                              localStorage.setItem('testimonials_data', JSON.stringify(testimonials.filter(x => x.id !== testimonial.id)));
                               showToast('تم حذف الشهادة');
                             }}
                             className="px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all ml-2"
@@ -1170,7 +1024,6 @@ export default function AdminPage() {
                         };
                         const updatedStats = [...stats, newStat];
                         setStats(updatedStats);
-                        localStorage.setItem('stats_data', JSON.stringify(updatedStats));
                       }}
                       className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
                     >
@@ -1206,7 +1059,6 @@ export default function AdminPage() {
                         <button
                           onClick={() => {
                             setStats(prev => prev.filter(x => x.id !== s.id));
-                            localStorage.setItem('stats_data', JSON.stringify(stats.filter(x => x.id !== s.id)));
                             showToast('تم حذف الإحصائية');
                           }}
                           className="w-full mt-2 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
@@ -1235,7 +1087,6 @@ export default function AdminPage() {
                         };
                         const updatedContacts = [...contacts, newContact];
                         setContacts(updatedContacts);
-                        localStorage.setItem('contacts_data', JSON.stringify(updatedContacts));
                       }}
                       className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
                     >
@@ -1278,7 +1129,6 @@ export default function AdminPage() {
                         <button
                           onClick={() => {
                             setContacts(prev => prev.filter(x => x.id !== c.id));
-                            localStorage.setItem('contacts_data', JSON.stringify(contacts.filter(x => x.id !== c.id)));
                             showToast('تم حذف معلومات التواصل');
                           }}
                           className="mt-3 ml-2 px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
@@ -1306,7 +1156,6 @@ export default function AdminPage() {
                         };
                         const updatedSocials = [...socials, newSocial];
                         setSocials(updatedSocials);
-                        localStorage.setItem('socials_data', JSON.stringify(updatedSocials));
                       }}
                       className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
                     >
@@ -1338,7 +1187,6 @@ export default function AdminPage() {
                           <button
                             onClick={() => {
                               setSocials(prev => prev.filter(x => x.id !== s.id));
-                              localStorage.setItem('socials_data', JSON.stringify(socials.filter(x => x.id !== s.id)));
                               showToast('تم حذف الموقع');
                             }}
                             className="px-4 py-2 rounded-xl bg-red-500 text-white font-bold text-xs flex-shrink-0 hover:bg-red-600 transition-all ml-2"

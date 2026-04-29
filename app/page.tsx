@@ -62,14 +62,11 @@ export default function Home() {
   useEffect(() => {
     const loadData = async () => {
       if (!supabase) {
-        // Fallback to localStorage if Supabase is not available
-        loadFromLocalStorage();
         setLoading(false);
         return;
       }
 
       try {
-        // Load all data from Supabase
         const [projectsRes, statsRes, contactsRes, socialsRes] = await Promise.all([
           supabase.from('projects').select('*').order('sort_order'),
           supabase.from('stats').select('*'),
@@ -77,70 +74,22 @@ export default function Home() {
           supabase.from('social_links').select('*').order('sort_order'),
         ]);
 
-        // Update state with database data
         if (projectsRes.data) {
           setProjects(projectsRes.data);
-          localStorage.setItem('projects_data', JSON.stringify(projectsRes.data));
         }
         if (statsRes.data) {
           setStats(statsRes.data);
-          localStorage.setItem('stats_data', JSON.stringify(statsRes.data));
         }
         if (contactsRes.data) {
           setContacts(contactsRes.data);
-          localStorage.setItem('contacts_data', JSON.stringify(contactsRes.data));
         }
         if (socialsRes.data) {
           setSocials(socialsRes.data);
-          localStorage.setItem('socials_data', JSON.stringify(socialsRes.data));
         }
-
-        // Load local data (profile, sections, skills, testimonials)
-        loadFromLocalStorage();
       } catch (error) {
         console.error('Error loading data from Supabase:', error);
-        // Fallback to localStorage
-        loadFromLocalStorage();
       } finally {
         setLoading(false);
-      }
-    };
-
-    const loadFromLocalStorage = () => {
-      const profileData = localStorage.getItem('profile_data');
-      if (profileData) {
-        try {
-          setProfile(JSON.parse(profileData));
-        } catch (e) {
-          console.error('Error parsing profile data:', e);
-        }
-      }
-
-      const sectionsData = localStorage.getItem('sections_data');
-      if (sectionsData) {
-        try {
-          setSections(JSON.parse(sectionsData));
-        } catch (e) {
-          console.error('Error parsing sections data:', e);
-        }
-      }
-
-      const skillsData = localStorage.getItem('skills_data');
-      if (skillsData) {
-        try {
-          setSkills(JSON.parse(skillsData));
-        } catch (e) {
-          console.error('Error parsing skills data:', e);
-        }
-      }
-
-      const testimonialsData = localStorage.getItem('testimonials_data');
-      if (testimonialsData) {
-        try {
-          setTestimonials(JSON.parse(testimonialsData));
-        } catch (e) {
-          console.error('Error parsing testimonials data:', e);
-        }
       }
     };
 
@@ -154,8 +103,8 @@ export default function Home() {
       <Skills skills={skills} />
       <Testimonials testimonials={testimonials} />
       <Portfolio />
-      <Contact />
-      <Footer sections={sections} />
+      <Contact contacts={contacts} socialLinks={socials} />
+      <Footer sections={sections} socialLinks={socials} />
     </main>
   );
 }

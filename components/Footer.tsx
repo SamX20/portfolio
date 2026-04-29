@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { SocialLink } from '@/types';
 
 interface FooterProps {
@@ -11,27 +11,13 @@ interface FooterProps {
       tagline: string;
     };
   };
+  socialLinks?: SocialLink[];
 }
 
 const quickLinks = ['الرئيسية', 'المشاريع', 'التواصل'];
 
-export default function Footer({ sections }: FooterProps) {
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-
-  useEffect(() => {
-    // Load social links from localStorage
-    const socialsData = localStorage.getItem('socials_data');
-    if (socialsData) {
-      try {
-        const parsedSocials = JSON.parse(socialsData);
-        if (parsedSocials.length > 0) {
-          setSocialLinks(parsedSocials);
-        }
-      } catch (e) {
-        console.error('خطأ في تحميل مواقع التواصل:', e);
-      }
-    }
-  }, []);
+export default function Footer({ sections, socialLinks = [] }: FooterProps) {
+  const navigationSocialLinks = socialLinks;
 
   const getSocialIcon = (name: string) => {
     const icons: Record<string, React.JSX.Element> = {
@@ -114,7 +100,7 @@ export default function Footer({ sections }: FooterProps) {
           <motion.div variants={itemVariants}>
             <h4 className="text-white font-bold mb-4 text-sm tracking-wide">تابعني</h4>
             <div className="flex gap-3 justify-end">
-              {socialLinks.map((social) => (
+              {navigationSocialLinks.map((social) => (
                 <motion.a
                   key={social.id}
                   href={social.url || '#'}
