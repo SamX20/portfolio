@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
-import useDisableMotion from '@/lib/useDisableMotion';
+import useDisableMotion, { useMotionPreferences } from '@/lib/useDisableMotion';
 
 interface HeroProps {
   profile?: {
@@ -27,19 +27,21 @@ export default function Hero({ profile, sections }: HeroProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const disableMotion = useDisableMotion();
+  const { disableParallaxMotion } = useMotionPreferences();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const y = useTransform(scrollYProgress, [0, 0.5], [0, 80]);
+  const y = useTransform(scrollYProgress, [0, 0.5], [0, 70]);
+  const enableParallax = !disableParallaxMotion;
 
   useEffect(() => {
-    if (disableMotion) return;
+    if (disableParallaxMotion) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [disableMotion]);
+  }, [disableParallaxMotion]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -76,7 +78,9 @@ export default function Hero({ profile, sections }: HeroProps) {
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `radial-gradient(700px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(168,85,247,0.10) 0%, transparent 60%)`,
+          background: enableParallax
+            ? `radial-gradient(700px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(168,85,247,0.10) 0%, transparent 60%)`
+            : 'radial-gradient(circle at center, rgba(168,85,247,0.07) 0%, transparent 55%)',
         }}
       />
 
@@ -87,20 +91,20 @@ export default function Hero({ profile, sections }: HeroProps) {
       <motion.div
         className="absolute top-16 right-8 md:right-24 w-80 h-80 rounded-full blur-3xl"
         style={{ background: 'rgba(147, 51, 234, 0.18)' }}
-        animate={!disableMotion ? { y: [0, 40, 0], x: [0, 20, 0] } : undefined}
-        transition={!disableMotion ? { duration: 9, repeat: Infinity, ease: 'easeInOut' } : undefined}
+        animate={enableParallax ? { y: [0, 40, 0], x: [0, 20, 0] } : undefined}
+        transition={enableParallax ? { duration: 9, repeat: Infinity, ease: 'easeInOut' } : undefined}
       />
       <motion.div
         className="absolute bottom-24 left-8 md:left-24 w-72 h-72 rounded-full blur-3xl"
         style={{ background: 'rgba(6, 182, 212, 0.13)' }}
-        animate={!disableMotion ? { y: [0, -40, 0], x: [0, -20, 0] } : undefined}
-        transition={!disableMotion ? { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 } : undefined}
+        animate={enableParallax ? { y: [0, -40, 0], x: [0, -20, 0] } : undefined}
+        transition={enableParallax ? { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 } : undefined}
       />
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none"
         style={{ background: 'rgba(236, 72, 153, 0.07)' }}
-        animate={!disableMotion ? { scale: [1, 1.2, 1] } : undefined}
-        transition={!disableMotion ? { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 } : undefined}
+        animate={enableParallax ? { scale: [1, 1.2, 1] } : undefined}
+        transition={enableParallax ? { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 } : undefined}
       />
 
       {/* Main Content */}

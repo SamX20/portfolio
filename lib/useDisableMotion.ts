@@ -2,30 +2,51 @@
 
 import { useEffect, useState } from 'react';
 
-export default function useDisableMotion() {
-  const [disableMotion, setDisableMotion] = useState(() => {
-    if (typeof window === 'undefined') return false;
+export interface MotionPreferences {
+  prefersReducedMotion: boolean;
+  isTouchDevice: boolean;
+  disableMotion: boolean;
+  disableHoverMotion: boolean;
+  disableParallaxMotion: boolean;
+}
 
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    const hasNoHover = window.matchMedia('(hover: none)').matches;
-    const userAgent = navigator.userAgent || '';
-    const isTouchDevice = /iP(hone|od|ad)|Android/.test(userAgent);
+function detectMotionPreferences(): MotionPreferences {
+  if (typeof window === 'undefined') {
+    return {
+      prefersReducedMotion: false,
+      isTouchDevice: false,
+      disableMotion: false,
+      disableHoverMotion: false,
+      disableParallaxMotion: false,
+    };
+  }
 
-    return prefersReduced || hasCoarsePointer || hasNoHover || isTouchDevice;
-  });
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTouchDevice = /iP(hone|od|ad)|Android|Mobile|Tablet/.test(navigator.userAgent || '');
+  const disableMotion = prefersReducedMotion;
+  const disableHoverMotion = prefersReducedMotion || isTouchDevice;
+  const disableParallaxMotion = prefersReducedMotion || isTouchDevice;
+
+  return {
+    prefersReducedMotion,
+    isTouchDevice,
+    disableMotion,
+    disableHoverMotion,
+    disableParallaxMotion,
+  };
+}
+
+export function useMotionPreferences() {
+  const [prefs, setPrefs] = useState<MotionPreferences>(() => detectMotionPreferences());
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    const hasNoHover = window.matchMedia('(hover: none)').matches;
-    const userAgent = navigator.userAgent || '';
-    const isTouchDevice = /iP(hone|od|ad)|Android/.test(userAgent);
-
-    setDisableMotion(prefersReduced || hasCoarsePointer || hasNoHover || isTouchDevice);
+    setPrefs(detectMotionPreferences());
   }, []);
 
+  return prefs;
+}
+
+export default function useDisableMotion() {
+  const { disableMotion } = useMotionPreferences();
   return disableMotion;
 }

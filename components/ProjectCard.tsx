@@ -22,6 +22,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     <motion.div
       className="group relative h-full rounded-2xl overflow-hidden border border-white/5 hover:border-purple-500/40 transition-all duration-500"
       style={{ background: 'linear-gradient(135deg, #13131f 0%, #0f0f1a 100%)' }}
+      initial={!disableMotion ? { opacity: 0, y: 20 } : undefined}
+      whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+      viewport={!disableMotion ? { once: true, margin: '-120px' } : undefined}
       whileHover={!disableMotion ? { y: -8 } : undefined}
       transition={!disableMotion ? { duration: 0.35, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } : undefined}
     >
