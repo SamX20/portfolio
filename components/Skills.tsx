@@ -51,7 +51,7 @@ export default function Skills({ skills = [] }: SkillsProps) {
   const disableMotion = useDisableMotion();
 
   return (
-    <section className="min-h-screen py-24 px-4" id="skills" style={{ backgroundColor: '#0d0d14' }}>
+    <section className="min-h-screen py-24 px-4 bg-[#0a0a0f] md:bg-[#0d0d14]" id="skills">
       <div className="max-w-5xl mx-auto">
         <motion.div
           className="text-center mb-16"

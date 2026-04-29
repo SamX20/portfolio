@@ -120,9 +120,8 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
 
   return (
     <section
-      className="min-h-screen py-24 px-4"
+      className="min-h-screen py-24 px-4 bg-[#0a0a0f] md:bg-gradient-to-b md:from-[#0d0d14] md:to-[#0a0a0f]"
       id="contact"
-      style={{ background: 'linear-gradient(to bottom, #0d0d14, #0a0a0f)' }}
     >
       <div className="max-w-5xl mx-auto">
         {/* Header */}

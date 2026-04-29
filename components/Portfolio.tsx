@@ -19,7 +19,7 @@ export default function Portfolio({ projects = [] }: PortfolioProps) {
   const filtered = activeCategory === 'all' ? projects : projects.filter(p => p.category === activeCategory);
 
   return (
-    <section className="min-h-screen py-24 px-4" id="projects" style={{ backgroundColor: '#0d0d14' }}>
+    <section className="min-h-screen py-24 px-4 bg-[#0a0a0f] md:bg-[#0d0d14]" id="projects">
       <div className="max-w-7xl mx-auto">
         <motion.div className="text-center mb-16" initial={!disableMotion ? { opacity: 0, y: -20 } : undefined} whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined} viewport={!disableMotion ? { once: true, margin: '-80px' } : undefined} transition={!disableMotion ? { duration: 0.7, ease: [0.22,1,0.36,1] as [number,number,number,number] } : undefined}>
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full tracking-widest">PORTFOLIO</span>

@@ -40,7 +40,7 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
   const disableMotion = useDisableMotion();
 
   return (
-    <section className="min-h-screen py-24 px-4" id="testimonials" style={{ backgroundColor: '#0a0a0f' }}>
+    <section className="min-h-screen py-24 px-4 bg-[#0a0a0f]" id="testimonials">
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="text-center mb-16"
