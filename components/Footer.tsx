@@ -113,6 +113,8 @@ export default function Footer({ sections }: FooterProps) {
                 <motion.a
                   key={social.name}
                   href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={social.name}
                   className="w-10 h-10 rounded-full bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-purple-400 hover:bg-purple-600/25 hover:border-purple-500/50 transition-all"
                   whileHover={{ scale: 1.12, y: -3 }}

@@ -248,6 +248,8 @@ export default function Contact() {
                   {item.href && item.href !== '#' ? (
                     <a
                       href={item.href}
+                      target={item.href.startsWith('http') ? '_blank' : undefined}
+                      rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                       className="text-gray-500 hover:text-purple-400 transition-colors text-sm"
                     >
                       {item.content}
