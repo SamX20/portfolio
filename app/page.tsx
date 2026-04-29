@@ -8,6 +8,8 @@ import Testimonials from '@/components/Testimonials';
 import { supabase } from '@/lib/supabase';
 import { Project, ContactInfo, SocialLink, SectionsData, Profile, Skill, Testimonial } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 async function loadHomeData() {
   if (!supabase) {
     return {
