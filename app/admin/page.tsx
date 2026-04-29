@@ -633,6 +633,7 @@ export default function AdminPage() {
                               <option value="video-editing">مونتاج فيديو</option>
                               <option value="design">تصميم</option>
                               <option value="3d-modeling">نمذجة ثلاثية الأبعاد</option>
+                              <option value="3d-modeling">ادوات الذكاء الإصطناعي</option>
                             </select>
                           </div>
                         </div>
