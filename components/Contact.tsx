@@ -136,7 +136,7 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 rounded-full tracking-widest">
             CONTACT
           </span>
-          <h2 className="text-4xl md:text-5xl font-black mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
             <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
               تحدّث معي
             </span>

@@ -120,7 +120,7 @@ export default function Hero({ profile, sections }: HeroProps) {
 
         {/* Main Heading */}
         <motion.h1
-          className="text-5xl md:text-7xl font-black mb-6 leading-tight"
+          className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight"
           variants={itemVariants}
         >
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">

@@ -36,6 +36,22 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* Utility for bg-clip-text with vendor prefix */
+@supports not (-webkit-background-clip: text) {
+  .bg-clip-text {
+    background-clip: text;
+  }
+}
+
+@supports (-webkit-background-clip: text) {
+  .bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+
 /* RTL Support */
 .rtl-text {
   direction: rtl;
