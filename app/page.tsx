@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
 import Portfolio from '@/components/Portfolio';
@@ -5,10 +8,19 @@ import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import Skills from '@/components/Skills';
 import Testimonials from '@/components/Testimonials';
+import LoadingScreen from '@/components/LoadingScreen';
 import { supabase } from '@/lib/supabase';
 import { Project, ContactInfo, SocialLink, SectionsData, Profile, Skill, Testimonial } from '@/types';
 
-export const dynamic = 'force-dynamic';
+interface HomeData {
+  projects: Project[];
+  contacts: ContactInfo[];
+  socials: SocialLink[];
+  sections: SectionsData;
+  profile: Profile;
+  skills: Skill[];
+  testimonials: Testimonial[];
+}
 
 async function loadHomeData() {
   if (!supabase) {
@@ -124,8 +136,26 @@ async function loadHomeData() {
   };
 }
 
-export default async function Home() {
-  const { projects, contacts, socials, sections, profile, skills, testimonials } = await loadHomeData();
+export default function Home() {
+  const [data, setData] = useState<HomeData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      // Add mobile delay
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        await new Promise(resolve => setTimeout(resolve, 6000));
+      }
+      const result = await loadHomeData();
+      setData(result);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading || !data) return <LoadingScreen />;
+
+  const { projects, contacts, socials, sections, profile, skills, testimonials } = data;
 
   return (
     <main>
