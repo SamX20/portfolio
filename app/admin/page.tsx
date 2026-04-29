@@ -257,6 +257,51 @@ export default function AdminPage() {
     if (sessionStorage.getItem('admin_auth') === '1') setAuthed(true);
   }, []);
 
+  // تحميل البيانات من localStorage عند البدء
+  useEffect(() => {
+    if (!authed) return;
+    
+    // تحميل الملف الشخصي
+    const savedProfile = localStorage.getItem('profile_data');
+    if (savedProfile) {
+      try {
+        setProfile(JSON.parse(savedProfile));
+      } catch (e) {
+        console.error('خطأ في تحميل الملف الشخصي:', e);
+      }
+    }
+
+    // تحميل المهارات
+    const savedSkills = localStorage.getItem('skills_data');
+    if (savedSkills) {
+      try {
+        setSkills(JSON.parse(savedSkills));
+      } catch (e) {
+        console.error('خطأ في تحميل المهارات:', e);
+      }
+    }
+
+    // تحميل الشهادات
+    const savedTestimonials = localStorage.getItem('testimonials_data');
+    if (savedTestimonials) {
+      try {
+        setTestimonials(JSON.parse(savedTestimonials));
+      } catch (e) {
+        console.error('خطأ في تحميل الشهادات:', e);
+      }
+    }
+
+    // تحميل الأقسام
+    const savedSections = localStorage.getItem('sections_data');
+    if (savedSections) {
+      try {
+        setSections(JSON.parse(savedSections));
+      } catch (e) {
+        console.error('خطأ في تحميل الأقسام:', e);
+      }
+    }
+  }, [authed]);
+
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -292,21 +337,48 @@ export default function AdminPage() {
   };
 
   const saveStat = async (s: Stat) => {
-    if (!supabase) return;
+    if (!supabase) {
+      // حفظ محلي إذا لم يكن supabase متوفراً
+      const updated = stats.map(x => x.id === s.id ? s : x);
+      setStats(updated);
+      showToast('تم حفظ الإحصائية ✓');
+      return;
+    }
     await supabase.from('stats').update({ value: s.value, label: s.label }).eq('id', s.id);
     showToast('تم حفظ الإحصائية ✓');
+    // تحديث البيانات من Supabase
+    const updated = stats.map(x => x.id === s.id ? s : x);
+    setStats(updated);
   };
 
   const saveContact = async (c: ContactInfo) => {
-    if (!supabase) return;
+    if (!supabase) {
+      // حفظ محلي إذا لم يكن supabase متوفراً
+      const updated = contacts.map(x => x.id === c.id ? c : x);
+      setContacts(updated);
+      showToast('تم حفظ معلومات التواصل ✓');
+      return;
+    }
     await supabase.from('contact_info').update(c).eq('id', c.id);
     showToast('تم حفظ معلومات التواصل ✓');
+    // تحديث البيانات من Supabase
+    const updated = contacts.map(x => x.id === c.id ? c : x);
+    setContacts(updated);
   };
 
   const saveSocial = async (s: SocialLink) => {
-    if (!supabase) return;
+    if (!supabase) {
+      // حفظ محلي إذا لم يكن supabase متوفراً
+      const updated = socials.map(x => x.id === s.id ? s : x);
+      setSocials(updated);
+      showToast('تم حفظ الرابط ✓');
+      return;
+    }
     await supabase.from('social_links').update({ url: s.url }).eq('id', s.id);
     showToast('تم حفظ الرابط ✓');
+    // تحديث البيانات من Supabase
+    const updated = socials.map(x => x.id === s.id ? s : x);
+    setSocials(updated);
   };
 
   const saveProfile = async () => {
