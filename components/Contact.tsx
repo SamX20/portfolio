@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ContactInfo, SocialLink } from '@/types';
 
 interface FormData {
   name: string;
@@ -10,35 +11,6 @@ interface FormData {
   subject: string;
   message: string;
 }
-
-const contactItems = [
-  {
-    icon: '📧',
-    title: 'البريد الإلكتروني',
-    content: 'contact@example.com',
-    href: 'mailto:contact@example.com',
-  },
-  {
-    icon: '📱',
-    title: 'الهاتف',
-    content: '+962 79 123 4567',
-    href: 'tel:+962791234567',
-  },
-  {
-    icon: '📍',
-    title: 'الموقع',
-    content: 'الأردن - عمّان',
-    href: '#',
-  },
-  {
-    icon: '⏰',
-    title: 'ساعات العمل',
-    content: '9:00 - 18:00 (الأحد - الخميس)',
-    href: '#',
-  },
-];
-
-const socials = ['Facebook', 'Instagram', 'LinkedIn', 'YouTube'];
 
 export default function Contact() {
   const [formData, setFormData] = useState<FormData>({
@@ -50,6 +22,133 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // State for dynamic contact info and social links
+  const [contacts, setContacts] = useState<ContactInfo[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+
+  useEffect(() => {
+    // Load contact info from localStorage
+    const contactsData = localStorage.getItem('contacts_data');
+    if (contactsData) {
+      try {
+        const parsedContacts = JSON.parse(contactsData);
+        if (parsedContacts.length > 0) {
+          setContacts(parsedContacts);
+        } else {
+          // Set default contact info if no data exists
+          setContacts([
+            {
+              id: '1',
+              icon: '📧',
+              title: 'البريد الإلكتروني',
+              content: 'contact@example.com',
+              href: 'mailto:contact@example.com',
+            },
+            {
+              id: '2',
+              icon: '📱',
+              title: 'الهاتف',
+              content: '+962 79 123 4567',
+              href: 'tel:+962791234567',
+            },
+            {
+              id: '3',
+              icon: '📍',
+              title: 'الموقع',
+              content: 'الأردن - عمّان',
+              href: '#',
+            },
+            {
+              id: '4',
+              icon: '⏰',
+              title: 'ساعات العمل',
+              content: '9:00 - 18:00 (الأحد - الخميس)',
+              href: '#',
+            },
+          ]);
+        }
+      } catch (e) {
+        console.error('خطأ في تحميل معلومات التواصل:', e);
+        // Set default contact info on error
+        setContacts([
+          {
+            id: '1',
+            icon: '📧',
+            title: 'البريد الإلكتروني',
+            content: 'contact@example.com',
+            href: 'mailto:contact@example.com',
+          },
+          {
+            id: '2',
+            icon: '📱',
+            title: 'الهاتف',
+            content: '+962 79 123 4567',
+            href: 'tel:+962791234567',
+          },
+          {
+            id: '3',
+            icon: '📍',
+            title: 'الموقع',
+            content: 'الأردن - عمّان',
+            href: '#',
+          },
+          {
+            id: '4',
+            icon: '⏰',
+            title: 'ساعات العمل',
+            content: '9:00 - 18:00 (الأحد - الخميس)',
+            href: '#',
+          },
+        ]);
+      }
+    } else {
+      // Set default contact info if no localStorage data
+      setContacts([
+        {
+          id: '1',
+          icon: '📧',
+          title: 'البريد الإلكتروني',
+          content: 'contact@example.com',
+          href: 'mailto:contact@example.com',
+        },
+        {
+          id: '2',
+          icon: '📱',
+          title: 'الهاتف',
+          content: '+962 79 123 4567',
+          href: 'tel:+962791234567',
+        },
+        {
+          id: '3',
+          icon: '📍',
+          title: 'الموقع',
+          content: 'الأردن - عمّان',
+          href: '#',
+        },
+        {
+          id: '4',
+          icon: '⏰',
+          title: 'ساعات العمل',
+          content: '9:00 - 18:00 (الأحد - الخميس)',
+          href: '#',
+        },
+      ]);
+    }
+
+    // Load social links from localStorage
+    const socialsData = localStorage.getItem('socials_data');
+    if (socialsData) {
+      try {
+        const parsedSocials = JSON.parse(socialsData);
+        if (parsedSocials.length > 0) {
+          setSocialLinks(parsedSocials);
+        }
+      } catch (e) {
+        console.error('خطأ في تحميل مواقع التواصل:', e);
+      }
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -137,16 +236,16 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {contactItems.map((item) => (
+            {contacts.map((item) => (
               <motion.div
-                key={item.title}
+                key={item.id || item.title}
                 variants={itemVariants}
                 className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-purple-500/30 hover:bg-purple-500/5 transition-all duration-300"
               >
                 <div className="text-2xl w-10 text-center flex-shrink-0">{item.icon}</div>
                 <div className="text-right">
                   <p className="text-white font-semibold text-sm mb-0.5">{item.title}</p>
-                  {item.href !== '#' ? (
+                  {item.href && item.href !== '#' ? (
                     <a
                       href={item.href}
                       className="text-gray-500 hover:text-purple-400 transition-colors text-sm"
@@ -164,16 +263,18 @@ export default function Contact() {
             <motion.div variants={itemVariants} className="pt-4">
               <p className="text-white font-semibold text-sm mb-4">تابعني على</p>
               <div className="flex gap-3">
-                {socials.map((social) => (
+                {socialLinks.map((social) => (
                   <motion.a
-                    key={social}
-                    href="#"
-                    aria-label={social}
+                    key={social.id}
+                    href={social.url || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.name}
                     className="w-10 h-10 rounded-full bg-purple-600/10 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-600/30 hover:border-purple-400 transition-all text-xs font-bold"
                     whileHover={{ scale: 1.12, y: -2 }}
                     whileTap={{ scale: 0.93 }}
                   >
-                    {social[0]}
+                    {social.name[0]}
                   </motion.a>
                 ))}
               </div>
