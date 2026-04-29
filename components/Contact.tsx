@@ -127,10 +127,10 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
         {/* Header */}
         <motion.div
           className="text-center mb-16"
-          initial={!disableMotion ? { opacity: 0, y: -20 } : undefined}
+          initial={!disableMotion ? { opacity: 0, y: -18 } : undefined}
           whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
-          viewport={!disableMotion ? { once: true } : undefined}
-          transition={!disableMotion ? { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } : undefined}
+          viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
+          transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } : undefined}
         >
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 rounded-full tracking-widest">
             CONTACT
@@ -154,7 +154,7 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
             variants={containerVariants}
             initial={!disableMotion ? 'hidden' : undefined}
             whileInView={!disableMotion ? 'visible' : undefined}
-            viewport={!disableMotion ? { once: true } : undefined}
+            viewport={!disableMotion ? { once: true, amount: 0.25, margin: '-130px' } : undefined}
           >
             {contactsToShow.map((item) => (
               <motion.div
@@ -210,7 +210,7 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
             variants={containerVariants}
             initial={!disableMotion ? 'hidden' : undefined}
             whileInView={!disableMotion ? 'visible' : undefined}
-            viewport={!disableMotion ? { once: true } : undefined}
+            viewport={!disableMotion ? { once: true, amount: 0.25, margin: '-130px' } : undefined}
           >
             {/* Name + Email row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

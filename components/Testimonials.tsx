@@ -44,10 +44,10 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="text-center mb-16"
-          initial={!disableMotion ? { opacity: 0, y: -20 } : undefined}
+          initial={!disableMotion ? { opacity: 0, y: -16 } : undefined}
           whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
-          viewport={!disableMotion ? { once: true, margin: '-80px' } : undefined}
-          transition={!disableMotion ? { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
+          viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
+          transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full tracking-widest">
             TESTIMONIALS
@@ -62,7 +62,7 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
           variants={!disableMotion ? containerVariants : undefined}
           initial={!disableMotion ? 'hidden' : undefined}
           whileInView={!disableMotion ? 'visible' : undefined}
-          viewport={!disableMotion ? { once: true, margin: '-80px' } : undefined}
+          viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {testimonials.map(testimonial => (

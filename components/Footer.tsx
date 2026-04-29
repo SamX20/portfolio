@@ -68,7 +68,7 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
         variants={containerVariants}
         initial={!disableMotion ? 'hidden' : undefined}
         whileInView={!disableMotion ? 'visible' : undefined}
-        viewport={!disableMotion ? { once: true } : undefined}
+        viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10 text-right">
           {/* Brand */}
@@ -126,7 +126,7 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
           initial={!disableMotion ? { scaleX: 0 } : undefined}
           whileInView={!disableMotion ? { scaleX: 1 } : undefined}
           transition={!disableMotion ? { duration: 1 } : undefined}
-          viewport={!disableMotion ? { once: true } : undefined}
+          viewport={!disableMotion ? { once: true, amount: 0.2, margin: '-120px' } : undefined}
         />
 
         {/* Copyright */}
