@@ -3,6 +3,24 @@
 -- شغّل هذا الملف في Supabase SQL Editor
 -- ================================================
 
+-- تنظيف السياسات الموجودة (اختياري - شغّله لو واجهت مشاكل)
+-- drop policy if exists "public_read_projects" on projects;
+-- drop policy if exists "public_read_stats" on stats;
+-- drop policy if exists "public_read_contact" on contact_info;
+-- drop policy if exists "public_read_social" on social_links;
+-- drop policy if exists "public_read_sections" on sections;
+-- drop policy if exists "public_read_profile" on profile;
+-- drop policy if exists "public_read_skills" on skills;
+-- drop policy if exists "public_read_testimonials" on testimonials;
+-- drop policy if exists "service_write_projects" on projects;
+-- drop policy if exists "service_write_stats" on stats;
+-- drop policy if exists "service_write_contact" on contact_info;
+-- drop policy if exists "service_write_social" on social_links;
+-- drop policy if exists "service_write_sections" on sections;
+-- drop policy if exists "service_write_profile" on profile;
+-- drop policy if exists "service_write_skills" on skills;
+-- drop policy if exists "service_write_testimonials" on testimonials;
+
 -- 1. جدول المشاريع
 create table if not exists projects (
   id          text primary key default gen_random_uuid()::text,
