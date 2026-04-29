@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Project } from '@/types';
 import Link from 'next/link';
+import useDisableMotion from '@/lib/useDisableMotion';
 
 interface ProjectCardProps {
   project: Project;
@@ -16,12 +17,13 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+  const disableMotion = useDisableMotion();
   return (
     <motion.div
       className="group relative h-full rounded-2xl overflow-hidden border border-white/5 hover:border-purple-500/40 transition-all duration-500"
       style={{ background: 'linear-gradient(135deg, #13131f 0%, #0f0f1a 100%)' }}
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] }}
+      whileHover={!disableMotion ? { y: -8 } : undefined}
+      transition={!disableMotion ? { duration: 0.35, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } : undefined}
     >
       {/* Thumbnail Area */}
       <div className="relative h-52 overflow-hidden">
@@ -57,10 +59,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         >
           <motion.button
             className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold text-white text-sm shadow-xl shadow-purple-500/30"
-            initial={{ scale: 0.85, opacity: 0 }}
-            whileHover={{ scale: 1.05 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.25 }}
+            initial={!disableMotion ? { scale: 0.85, opacity: 0 } : undefined}
+            whileHover={!disableMotion ? { scale: 1.05 } : undefined}
+            animate={!disableMotion ? { scale: 1, opacity: 1 } : undefined}
+            transition={!disableMotion ? { duration: 0.25 } : undefined}
           >
             {project.video_url ? '▶ شاهد المشروع' : '📸 التفاصيل'}
           </motion.button>
@@ -118,8 +120,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <Link href={`/project/${project.id}`} className="flex-1">
             <motion.button
               className="w-full py-2.5 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 text-white font-semibold rounded-lg border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 text-sm"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={!disableMotion ? { scale: 1.02 } : undefined}
+              whileTap={!disableMotion ? { scale: 0.98 } : undefined}
             >
               📸 التفاصيل
             </motion.button>
@@ -130,8 +132,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-2.5 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 hover:from-blue-600/30 hover:to-cyan-600/30 text-white font-semibold rounded-lg border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 text-sm"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={!disableMotion ? { scale: 1.02 } : undefined}
+              whileTap={!disableMotion ? { scale: 0.98 } : undefined}
             >
               ▶ مشاهدة
             </motion.a>
@@ -142,7 +144,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <Link href={`/project/${project.id}`}>
           <motion.div
             className="flex items-center justify-end gap-1.5 text-sm font-semibold text-purple-400 hover:text-pink-400 transition-colors"
-            whileHover={{ x: -4 }}
+            whileHover={!disableMotion ? { x: -4 } : undefined}
           >
             <span>عرض التفاصيل</span>
             <span className="text-base">←</span>

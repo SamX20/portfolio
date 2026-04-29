@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useDisableMotion from '@/lib/useDisableMotion';
 import { ContactInfo, SocialLink } from '@/types';
 
 interface FormData {
@@ -27,6 +28,7 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const disableMotion = useDisableMotion();
 
   const defaultContacts: ContactInfo[] = [
     {
@@ -126,10 +128,10 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
         {/* Header */}
         <motion.div
           className="text-center mb-16"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] }}
+          initial={!disableMotion ? { opacity: 0, y: -20 } : undefined}
+          whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+          viewport={!disableMotion ? { once: true } : undefined}
+          transition={!disableMotion ? { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } : undefined}
         >
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 rounded-full tracking-widest">
             CONTACT
@@ -151,9 +153,9 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
           <motion.div
             className="lg:col-span-2 space-y-6"
             variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
+            initial={!disableMotion ? 'hidden' : undefined}
+            whileInView={!disableMotion ? 'visible' : undefined}
+            viewport={!disableMotion ? { once: true } : undefined}
           >
             {contactsToShow.map((item) => (
               <motion.div
@@ -192,8 +194,8 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
                     rel="noopener noreferrer"
                     aria-label={social.name}
                     className="w-10 h-10 rounded-full bg-purple-600/10 border border-purple-500/30 flex items-center justify-center text-purple-400 hover:bg-purple-600/30 hover:border-purple-400 transition-all text-xs font-bold"
-                    whileHover={{ scale: 1.12, y: -2 }}
-                    whileTap={{ scale: 0.93 }}
+                    whileHover={!disableMotion ? { scale: 1.12, y: -2 } : undefined}
+                    whileTap={!disableMotion ? { scale: 0.93 } : undefined}
                   >
                     {social.name[0]}
                   </motion.a>
@@ -207,9 +209,9 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
             onSubmit={handleSubmit}
             className="lg:col-span-3 space-y-5 p-8 rounded-2xl border border-white/5 bg-white/[0.02]"
             variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
+            initial={!disableMotion ? 'hidden' : undefined}
+            whileInView={!disableMotion ? 'visible' : undefined}
+            viewport={!disableMotion ? { once: true } : undefined}
           >
             {/* Name + Email row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -314,13 +316,13 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
               type="submit"
               disabled={isSubmitting}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-bold text-white text-base hover:shadow-2xl hover:shadow-purple-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              whileHover={{ scale: isSubmitting ? 1 : 1.02, y: isSubmitting ? 0 : -2 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={!disableMotion ? { scale: isSubmitting ? 1 : 1.02, y: isSubmitting ? 0 : -2 } : undefined}
+              whileTap={!disableMotion ? { scale: 0.98 } : undefined}
               variants={itemVariants}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
-                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                  <motion.span animate={!disableMotion ? { rotate: 360 } : undefined} transition={!disableMotion ? { duration: 1, repeat: Infinity, ease: 'linear' } : undefined}>
                     ⏳
                   </motion.span>
                   جاري الإرسال...

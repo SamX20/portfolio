@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import React from 'react';
+import useDisableMotion from '@/lib/useDisableMotion';
 import { SocialLink } from '@/types';
 
 interface FooterProps {
@@ -45,6 +46,7 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
     return icons[name] || null;
   };
   const currentYear = new Date().getFullYear();
+  const disableMotion = useDisableMotion();
 
   // Default values
   const copyright = sections?.footer?.copyright || `© ${currentYear} جميع الحقوق محفوظة · صُنع بـ ❤️ لمحترفي الإبداع`;
@@ -64,9 +66,9 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
       <motion.div
         className="max-w-7xl mx-auto px-4 py-14"
         variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
+        initial={!disableMotion ? 'hidden' : undefined}
+        whileInView={!disableMotion ? 'visible' : undefined}
+        viewport={!disableMotion ? { once: true } : undefined}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10 text-right">
           {/* Brand */}
@@ -108,8 +110,8 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
                   rel="noopener noreferrer"
                   aria-label={social.name}
                   className="w-10 h-10 rounded-full bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-purple-400 hover:bg-purple-600/25 hover:border-purple-500/50 transition-all"
-                  whileHover={{ scale: 1.12, y: -3 }}
-                  whileTap={{ scale: 0.93 }}
+                  whileHover={!disableMotion ? { scale: 1.12, y: -3 } : undefined}
+                  whileTap={!disableMotion ? { scale: 0.93 } : undefined}
                 >
                   {getSocialIcon(social.name)}
                 </motion.a>
@@ -121,16 +123,16 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
         {/* Divider */}
         <motion.div
           className="h-px bg-gradient-to-r from-transparent via-purple-600/30 to-transparent mb-8"
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          transition={{ duration: 1 }}
-          viewport={{ once: true }}
+          initial={!disableMotion ? { scaleX: 0 } : undefined}
+          whileInView={!disableMotion ? { scaleX: 1 } : undefined}
+          transition={!disableMotion ? { duration: 1 } : undefined}
+          viewport={!disableMotion ? { once: true } : undefined}
         />
 
         {/* Copyright */}
         <motion.p
           className="text-center text-gray-700 text-sm"
-          variants={itemVariants}
+          variants={!disableMotion ? itemVariants : undefined}
           dir="rtl"
         >
           {copyright}

@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
+import useDisableMotion from '@/lib/useDisableMotion';
 
 interface HeroProps {
   profile?: {
@@ -25,17 +26,20 @@ interface HeroProps {
 export default function Hero({ profile, sections }: HeroProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
+  const disableMotion = useDisableMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const y = useTransform(scrollYProgress, [0, 0.5], [0, 80]);
 
   useEffect(() => {
+    if (disableMotion) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [disableMotion]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -49,6 +53,8 @@ export default function Hero({ profile, sections }: HeroProps) {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } },
   };
+
+  const heroMotionStyle = disableMotion ? undefined : { opacity, y };
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -81,20 +87,20 @@ export default function Hero({ profile, sections }: HeroProps) {
       <motion.div
         className="absolute top-16 right-8 md:right-24 w-80 h-80 rounded-full blur-3xl"
         style={{ background: 'rgba(147, 51, 234, 0.18)' }}
-        animate={{ y: [0, 40, 0], x: [0, 20, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        animate={!disableMotion ? { y: [0, 40, 0], x: [0, 20, 0] } : undefined}
+        transition={!disableMotion ? { duration: 9, repeat: Infinity, ease: 'easeInOut' } : undefined}
       />
       <motion.div
         className="absolute bottom-24 left-8 md:left-24 w-72 h-72 rounded-full blur-3xl"
         style={{ background: 'rgba(6, 182, 212, 0.13)' }}
-        animate={{ y: [0, -40, 0], x: [0, -20, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+        animate={!disableMotion ? { y: [0, -40, 0], x: [0, -20, 0] } : undefined}
+        transition={!disableMotion ? { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 } : undefined}
       />
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none"
         style={{ background: 'rgba(236, 72, 153, 0.07)' }}
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        animate={!disableMotion ? { scale: [1, 1.2, 1] } : undefined}
+        transition={!disableMotion ? { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 } : undefined}
       />
 
       {/* Main Content */}
@@ -103,7 +109,7 @@ export default function Hero({ profile, sections }: HeroProps) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ opacity, y }}
+        style={heroMotionStyle}
       >
         {/* Badge */}
         <motion.div className="inline-block mb-8" variants={itemVariants}>
@@ -138,16 +144,16 @@ export default function Hero({ profile, sections }: HeroProps) {
           <motion.button
             onClick={() => scrollToSection('projects')}
             className="px-9 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold text-white hover:shadow-2xl hover:shadow-purple-500/40 transition-all text-base"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={!disableMotion ? { scale: 1.05, y: -2 } : undefined}
+            whileTap={!disableMotion ? { scale: 0.96 } : undefined}
           >
             {ctaText}
           </motion.button>
           <motion.button
             onClick={() => scrollToSection('contact')}
             className="px-9 py-3.5 border border-cyan-500/50 text-cyan-400 rounded-full font-bold hover:bg-cyan-500/10 hover:border-cyan-400 transition-all text-base"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={!disableMotion ? { scale: 1.05, y: -2 } : undefined}
+            whileTap={!disableMotion ? { scale: 0.96 } : undefined}
           >
             تواصل معي
           </motion.button>
@@ -167,8 +173,8 @@ export default function Hero({ profile, sections }: HeroProps) {
               key={index}
               className="p-4 rounded-2xl border border-purple-500/20 text-center"
               style={{ background: 'rgba(168,85,247,0.07)' }}
-              whileHover={{ scale: 1.05, borderColor: 'rgba(168,85,247,0.5)' }}
-              transition={{ duration: 0.2 }}
+              whileHover={!disableMotion ? { scale: 1.05, borderColor: 'rgba(168,85,247,0.5)' } : undefined}
+              transition={!disableMotion ? { duration: 0.2 } : undefined}
             >
               <div className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 {stat.number}
@@ -182,17 +188,17 @@ export default function Hero({ profile, sections }: HeroProps) {
         <motion.div
           className="flex flex-col items-center gap-2 cursor-pointer"
           onClick={() => scrollToSection('projects')}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          whileHover={{ opacity: 0.7 }}
+          initial={!disableMotion ? { opacity: 0 } : undefined}
+          animate={!disableMotion ? { opacity: 1 } : undefined}
+          transition={!disableMotion ? { delay: 1.5 } : undefined}
+          whileHover={!disableMotion ? { opacity: 0.7 } : undefined}
         >
           <span className="text-gray-600 text-xs tracking-widest">اكتشف المزيد</span>
           <div className="w-6 h-10 rounded-full border border-gray-700 flex items-start justify-center p-1.5">
             <motion.div
               className="w-1.5 h-1.5 rounded-full bg-purple-400"
-              animate={{ y: [0, 14, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              animate={!disableMotion ? { y: [0, 14, 0] } : undefined}
+              transition={!disableMotion ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : undefined}
             />
           </div>
         </motion.div>
