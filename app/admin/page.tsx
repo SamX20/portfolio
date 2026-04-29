@@ -605,7 +605,7 @@ export default function AdminPage() {
                             <label className={labelCls}>اسم المهارة</label>
                             <input
                               type="text"
-                              defaultValue={skill.name}
+                              value={skill.name}
                               onChange={e => { const v = e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, name: v } : x)); }}
                               className={inputCls}
                               placeholder="Adobe After Effects"
@@ -617,7 +617,7 @@ export default function AdminPage() {
                               type="number"
                               min="0"
                               max="100"
-                              defaultValue={skill.level}
+                              value={skill.level}
                               onChange={e => { const v = +e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, level: v } : x)); }}
                               className={inputCls}
                             />
@@ -625,7 +625,7 @@ export default function AdminPage() {
                           <div>
                             <label className={labelCls}>الفئة</label>
                             <select
-                              defaultValue={skill.category}
+                              value={skill.category}
                               onChange={e => { const v = e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, category: v } : x)); }}
                               className={inputCls}
                             >
@@ -673,7 +673,7 @@ export default function AdminPage() {
                             <label className={labelCls}>اسم العميل</label>
                             <input
                               type="text"
-                              defaultValue={testimonial.name}
+                              value={testimonial.name}
                               onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, name: v } : x)); }}
                               className={inputCls}
                               placeholder="أحمد محمد"
@@ -683,7 +683,7 @@ export default function AdminPage() {
                             <label className={labelCls}>الشركة/المؤسسة</label>
                             <input
                               type="text"
-                              defaultValue={testimonial.company}
+                              value={testimonial.company}
                               onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, company: v } : x)); }}
                               className={inputCls}
                               placeholder="شركة الإعلانات المتحدة"
@@ -693,7 +693,7 @@ export default function AdminPage() {
                         <div className="mb-4">
                           <label className={labelCls}>محتوى الشهادة</label>
                           <textarea
-                            defaultValue={testimonial.content}
+                            value={testimonial.content}
                             onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, content: v } : x)); }}
                             className={`${inputCls} h-20 resize-none`}
                             placeholder="اكتب محتوى الشهادة..."
@@ -703,7 +703,7 @@ export default function AdminPage() {
                           <div className="flex items-center gap-2">
                             <label className={labelCls}>التقييم:</label>
                             <select
-                              defaultValue={testimonial.rating}
+                              value={testimonial.rating}
                               onChange={e => { const v = +e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, rating: v } : x)); }}
                               className={`${inputCls} w-20`}
                             >
@@ -939,7 +939,7 @@ export default function AdminPage() {
                         <label className={labelCls}>القيمة</label>
                         <input
                           type="text"
-                          defaultValue={s.value}
+                          value={s.value}
                           onChange={e => { const v = e.target.value; setStats(prev => prev.map(x => x.id === s.id ? { ...x, value: v } : x)); }}
                           className={`${inputCls} text-2xl font-black mb-3`}
                           placeholder="100+"
@@ -947,7 +947,7 @@ export default function AdminPage() {
                         <label className={labelCls}>التسمية</label>
                         <input
                           type="text"
-                          defaultValue={s.label}
+                          value={s.label}
                           onChange={e => { const v = e.target.value; setStats(prev => prev.map(x => x.id === s.id ? { ...x, label: v } : x)); }}
                           className={inputCls}
                           placeholder="مشروع منجز"
@@ -980,7 +980,7 @@ export default function AdminPage() {
                             <label className={labelCls}>المحتوى</label>
                             <input
                               type="text"
-                              defaultValue={c.content}
+                              value={c.content}
                               onChange={e => { const v = e.target.value; setContacts(prev => prev.map(x => x.id === c.id ? { ...x, content: v } : x)); }}
                               className={inputCls}
                             />
@@ -989,7 +989,7 @@ export default function AdminPage() {
                             <label className={labelCls}>الرابط (href)</label>
                             <input
                               type="text"
-                              defaultValue={c.href}
+                              value={c.href}
                               onChange={e => { const v = e.target.value; setContacts(prev => prev.map(x => x.id === c.id ? { ...x, href: v } : x)); }}
                               className={inputCls}
                             />
@@ -1021,7 +1021,7 @@ export default function AdminPage() {
                             <p className="text-white font-semibold text-sm mb-2">{s.name}</p>
                             <input
                               type="url"
-                              defaultValue={s.url}
+                              value={s.url}
                               onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, url: v } : x)); }}
                               placeholder="https://..."
                               className={inputCls}

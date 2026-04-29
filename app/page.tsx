@@ -6,6 +6,8 @@ import Hero from '@/components/Hero';
 import Portfolio from '@/components/Portfolio';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import Skills from '@/components/Skills';
+import Testimonials from '@/components/Testimonials';
 
 export default function Home() {
   const [profile, setProfile] = useState({
@@ -75,6 +77,8 @@ export default function Home() {
     <main>
       <Navigation />
       <Hero profile={profile} sections={sections} />
+      <Skills skills={skills} />
+      <Testimonials testimonials={testimonials} />
       <Portfolio />
       <Contact />
       <Footer sections={sections} />
