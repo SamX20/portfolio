@@ -12,9 +12,19 @@ export default function Portfolio() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.from('projects').select('*').order('sort_order').then(({ data }) => {
+    if (!supabase) {
+      setError('Supabase غير مكوّن. يرجى إعداد متغيرات البيئة.');
+      setLoading(false);
+      return;
+    }
+
+    supabase.from('projects').select('*').order('sort_order').then(({ data, error: fetchError }) => {
+      if (fetchError) {
+        setError(fetchError.message || 'حدث خطأ أثناء تحميل المشاريع.');
+      }
       if (data) setProjects(data);
       setLoading(false);
     });
@@ -46,6 +56,8 @@ export default function Portfolio() {
 
         {loading ? (
           <div className="text-center py-20 text-gray-600">جاري التحميل...</div>
+        ) : error ? (
+          <div className="text-center py-20 text-red-400">{error}</div>
         ) : (
           <AnimatePresence mode="popLayout">
             <motion.div key={activeCategory} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>

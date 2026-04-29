@@ -15,16 +15,30 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     supabase
       .from('projects')
       .select('*')
       .eq('id', params.id)
       .single()
-      .then(({ data }) => {
-        setProject(data);
+      .then(({ data, error }) => {
+        if (!error) setProject(data);
         setLoading(false);
       });
   }, [params.id]);
+
+  if (!supabase) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#0a0a0f' }}>
+        <div className="text-white text-lg">Supabase غير مكوّن.</div>
+        <div className="text-gray-400 text-sm">أضف متغيرات البيئة اللازمة حتى تعمل صفحة المشروع.</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

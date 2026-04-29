@@ -102,6 +102,10 @@ function ProjectModal({
   const set = (k: keyof Project, v: unknown) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSave = async () => {
+    if (!supabase) {
+      alert('Supabase غير مكوّن');
+      return;
+    }
     setSaving(true);
     const payload = {
       ...form,
@@ -259,6 +263,10 @@ export default function AdminPage() {
   };
 
   const fetchAll = useCallback(async () => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const [p, s, c, so] = await Promise.all([
       supabase.from('projects').select('*').order('sort_order'),
@@ -276,6 +284,7 @@ export default function AdminPage() {
   useEffect(() => { if (authed) fetchAll(); }, [authed, fetchAll]);
 
   const deleteProject = async (id: string) => {
+    if (!supabase) return;
     await supabase.from('projects').delete().eq('id', id);
     setDeleteConfirm(null);
     showToast('تم حذف المشروع');
@@ -283,16 +292,19 @@ export default function AdminPage() {
   };
 
   const saveStat = async (s: Stat) => {
+    if (!supabase) return;
     await supabase.from('stats').update({ value: s.value, label: s.label }).eq('id', s.id);
     showToast('تم حفظ الإحصائية ✓');
   };
 
   const saveContact = async (c: ContactInfo) => {
+    if (!supabase) return;
     await supabase.from('contact_info').update(c).eq('id', c.id);
     showToast('تم حفظ معلومات التواصل ✓');
   };
 
   const saveSocial = async (s: SocialLink) => {
+    if (!supabase) return;
     await supabase.from('social_links').update({ url: s.url }).eq('id', s.id);
     showToast('تم حفظ الرابط ✓');
   };
