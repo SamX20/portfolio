@@ -64,6 +64,72 @@ insert into social_links (id, name, url, sort_order) values
   ('youtube',   'YouTube',   '#', 4)
 on conflict (id) do nothing;
 
+-- 5. جدول الأقسام (Hero, About, Footer)
+create table if not exists sections (
+  id       text primary key,
+  section  text not null,
+  key      text not null,
+  value    text not null,
+  unique(section, key)
+);
+
+insert into sections (id, section, key, value) values
+  ('hero-title',       'hero', 'title',       'مرحباً، أنا محمد علي'),
+  ('hero-subtitle',    'hero', 'subtitle',    'مصمم ومحرر فيديو احترافي'),
+  ('hero-description', 'hero', 'description', 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.'),
+  ('hero-cta_text',    'hero', 'cta_text',    'شاهد أعمالي'),
+  ('hero-cta_link',    'hero', 'cta_link',    '#portfolio'),
+  ('about-title',      'about', 'title',      'من أنا'),
+  ('about-content',    'about', 'content',    'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك.'),
+  ('about-exp_years',  'about', 'experience_years', '5+'),
+  ('about-proj_comp',  'about', 'projects_completed', '100+'),
+  ('footer-copyright', 'footer', 'copyright', '© 2024 محمد علي. جميع الحقوق محفوظة.'),
+  ('footer-tagline',   'footer', 'tagline',   'نصنع المحتوى الذي يتحدث عن نفسه')
+on conflict (id) do nothing;
+
+-- 6. جدول الملف الشخصي
+create table if not exists profile (
+  id          text primary key default 'main',
+  name        text not null,
+  title       text not null,
+  description text not null,
+  avatar      text,
+  resume      text
+);
+
+insert into profile (id, name, title, description) values
+  ('main', 'محمد علي', 'مصمم ومحرر فيديو احترافي', 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك بأحدث التقنيات.')
+on conflict (id) do nothing;
+
+-- 7. جدول المهارات
+create table if not exists skills (
+  id       text primary key,
+  name     text not null,
+  level    integer not null check (level >= 0 and level <= 100),
+  category text not null
+);
+
+insert into skills (id, name, level, category) values
+  ('skill-1', 'Adobe After Effects', 95, 'motion-design'),
+  ('skill-2', 'Adobe Premiere Pro',  90, 'video-editing'),
+  ('skill-3', 'Adobe Photoshop',     85, 'design'),
+  ('skill-4', 'Cinema 4D',           80, '3d-modeling')
+on conflict (id) do nothing;
+
+-- 8. جدول الشهادات
+create table if not exists testimonials (
+  id       text primary key,
+  name     text not null,
+  company  text not null,
+  content  text not null,
+  rating   integer not null check (rating >= 1 and rating <= 5)
+);
+
+insert into testimonials (id, name, company, content, rating) values
+  ('test-1', 'أحمد محمد', 'شركة الإعلانات المتحدة', 'عمل رائع جداً في تصميم الفيديو الترويجي لمنتجاتنا. الجودة عالية والإبداع واضح.', 5),
+  ('test-2', 'فاطمة علي', 'مدرسة الرياض', 'ساعدنا في إنتاج فيديوهات تعليمية ممتازة للطلاب. المونتاج احترافي والمحتوى جذاب.', 5)
+on conflict (id) do nothing;
+
 -- 5. بيانات تجريبية للمشاريع
 insert into projects (id, title, description, category, year, duration, technologies, featured, sort_order) values
   ('proj-1', 'إعلان منتج تجاري',    'إعلان احترافي لمنتج تجاري مع موشن جرافيك متقدم',          'commercial',    2024, '30 ثانية',  ARRAY['Premiere Pro','After Effects'], true,  1),
@@ -74,20 +140,32 @@ insert into projects (id, title, description, category, year, duration, technolo
   ('proj-6', 'تغطية فعالية شركة',   'تحرير فيديو احترافي لتغطية فعالية شركة كبرى',            'video-editing', 2024, '3 دقائق',   ARRAY['Premiere Pro','Lightroom'],     false, 6)
 on conflict (id) do nothing;
 
--- 6. تفعيل Row Level Security (RLS) - مهم للأمان
+-- 9. تفعيل Row Level Security (RLS) - مهم للأمان
 alter table projects     enable row level security;
 alter table stats        enable row level security;
 alter table contact_info enable row level security;
 alter table social_links enable row level security;
+alter table sections     enable row level security;
+alter table profile      enable row level security;
+alter table skills       enable row level security;
+alter table testimonials enable row level security;
 
 -- سياسة القراءة العامة (الموقع يقرأ البيانات)
 create policy "public_read_projects"     on projects     for select using (true);
 create policy "public_read_stats"        on stats        for select using (true);
 create policy "public_read_contact"      on contact_info for select using (true);
 create policy "public_read_social"       on social_links for select using (true);
+create policy "public_read_sections"     on sections     for select using (true);
+create policy "public_read_profile"      on profile      for select using (true);
+create policy "public_read_skills"       on skills       for select using (true);
+create policy "public_read_testimonials" on testimonials for select using (true);
 
 -- سياسة الكتابة (Service Role فقط - من الداشبورد)
 create policy "service_write_projects"     on projects     for all using (true) with check (true);
 create policy "service_write_stats"        on stats        for all using (true) with check (true);
 create policy "service_write_contact"      on contact_info for all using (true) with check (true);
 create policy "service_write_social"       on social_links for all using (true) with check (true);
+create policy "service_write_sections"     on sections     for all using (true) with check (true);
+create policy "service_write_profile"      on profile      for all using (true) with check (true);
+create policy "service_write_skills"       on skills       for all using (true) with check (true);
+create policy "service_write_testimonials" on testimonials for all using (true) with check (true);

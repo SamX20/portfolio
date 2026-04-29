@@ -6,47 +6,7 @@ import Footer from '@/components/Footer';
 import Skills from '@/components/Skills';
 import Testimonials from '@/components/Testimonials';
 import { supabase } from '@/lib/supabase';
-import { Project, ContactInfo, SocialLink } from '@/types';
-
-const profile = {
-  name: 'محمد علي',
-  title: 'مصمم ومحرر فيديو احترافي',
-  description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك بأحدث التقنيات.',
-  avatar: '',
-  resume: ''
-};
-
-const sections = {
-  hero: {
-    title: 'مرحباً، أنا محمد علي',
-    subtitle: 'مصمم ومحرر فيديو احترافي',
-    description: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
-    cta_text: 'شاهد أعمالي',
-    cta_link: '#portfolio'
-  },
-  about: {
-    title: 'من أنا',
-    content: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك.',
-    experience_years: '5+',
-    projects_completed: '100+'
-  },
-  footer: {
-    copyright: '© 2024 محمد علي. جميع الحقوق محفوظة.',
-    tagline: 'نصنع المحتوى الذي يتحدث عن نفسه'
-  }
-};
-
-const skills = [
-  { id: '1', name: 'Adobe After Effects', level: 95, category: 'motion-design' },
-  { id: '2', name: 'Adobe Premiere Pro', level: 90, category: 'video-editing' },
-  { id: '3', name: 'Adobe Photoshop', level: 85, category: 'design' },
-  { id: '4', name: 'Cinema 4D', level: 80, category: '3d-modeling' },
-];
-
-const testimonials = [
-  { id: '1', name: 'أحمد محمد', company: 'شركة الإعلانات المتحدة', content: 'عمل رائع جداً في تصميم الفيديو الترويجي لمنتجاتنا. الجودة عالية والإبداع واضح.', rating: 5 },
-  { id: '2', name: 'فاطمة علي', company: 'مدرسة الرياض', content: 'ساعدنا في إنتاج فيديوهات تعليمية ممتازة للطلاب. المونتاج احترافي والمحتوى جذاب.', rating: 5 },
-];
+import { Project, ContactInfo, SocialLink, SectionsData, Profile, Skill, Testimonial } from '@/types';
 
 async function loadHomeData() {
   if (!supabase) {
@@ -54,24 +14,116 @@ async function loadHomeData() {
       projects: [] as Project[],
       contacts: [] as ContactInfo[],
       socials: [] as SocialLink[],
+      sections: {
+        hero: {
+          title: 'مرحباً، أنا محمد علي',
+          subtitle: 'مصمم ومحرر فيديو احترافي',
+          description: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
+          cta_text: 'شاهد أعمالي',
+          cta_link: '#portfolio'
+        },
+        about: {
+          title: 'من أنا',
+          content: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+          experience_years: '5+',
+          projects_completed: '100+'
+        },
+        footer: {
+          copyright: '© 2024 محمد علي. جميع الحقوق محفوظة.',
+          tagline: 'نصنع المحتوى الذي يتحدث عن نفسه'
+        }
+      } as SectionsData,
+      profile: {
+        id: 'main',
+        name: 'محمد علي',
+        title: 'مصمم ومحرر فيديو احترافي',
+        description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+        avatar: '',
+        resume: ''
+      } as Profile,
+      skills: [] as Skill[],
+      testimonials: [] as Testimonial[]
     };
   }
 
-  const [projectsRes, contactsRes, socialsRes] = await Promise.all([
+  const [
+    projectsRes,
+    statsRes,
+    contactsRes,
+    socialsRes,
+    sectionsRes,
+    profileRes,
+    skillsRes,
+    testimonialsRes
+  ] = await Promise.all([
     supabase.from('projects').select('*').order('sort_order'),
+    supabase.from('stats').select('*'),
     supabase.from('contact_info').select('*'),
     supabase.from('social_links').select('*').order('sort_order'),
+    supabase.from('sections').select('*'),
+    supabase.from('profile').select('*').eq('id', 'main').single(),
+    supabase.from('skills').select('*'),
+    supabase.from('testimonials').select('*'),
   ]);
 
+  // Process sections data
+  const sectionsRaw = sectionsRes.data || [];
+  const sectionsMap = sectionsRaw.reduce((acc: any, item: any) => {
+    if (!acc[item.section]) acc[item.section] = {};
+    acc[item.section][item.key] = item.value;
+    return acc;
+  }, {});
+
+  const sections: SectionsData = {
+    hero: {
+      title: sectionsMap.hero?.title || 'مرحباً، أنا محمد علي',
+      subtitle: sectionsMap.hero?.subtitle || 'مصمم ومحرر فيديو احترافي',
+      description: sectionsMap.hero?.description || 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
+      cta_text: sectionsMap.hero?.cta_text || 'شاهد أعمالي',
+      cta_link: sectionsMap.hero?.cta_link || '#portfolio'
+    },
+    about: {
+      title: sectionsMap.about?.title || 'من أنا',
+      content: sectionsMap.about?.content || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+      experience_years: sectionsMap.about?.experience_years || '5+',
+      projects_completed: sectionsMap.about?.projects_completed || '100+'
+    },
+    footer: {
+      copyright: sectionsMap.footer?.copyright || '© 2024 محمد علي. جميع الحقوق محفوظة.',
+      tagline: sectionsMap.footer?.tagline || 'نصنع المحتوى الذي يتحدث عن نفسه'
+    }
+  };
+
+  const profile: Profile = profileRes.data ? {
+    id: profileRes.data.id,
+    name: profileRes.data.name || 'محمد علي',
+    title: profileRes.data.title || 'مصمم ومحرر فيديو احترافي',
+    description: profileRes.data.description || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+    avatar: profileRes.data.avatar || '',
+    resume: profileRes.data.resume || ''
+  } : {
+    id: 'main',
+    name: 'محمد علي',
+    title: 'مصمم ومحرر فيديو احترافي',
+    description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+    avatar: '',
+    resume: ''
+  };
+
   return {
-    projects: projectsRes.data ?? [],
-    contacts: contactsRes.data ?? [],
-    socials: socialsRes.data ?? [],
+    projects: projectsRes.data || [],
+    stats: statsRes.data || [],
+    contacts: contactsRes.data || [],
+    socials: socialsRes.data || [],
+    sections,
+    profile,
+    skills: skillsRes.data || [],
+    testimonials: testimonialsRes.data || []
   };
 }
 
 export default async function Home() {
-  const { projects, contacts, socials } = await loadHomeData();
+  const { projects, contacts, socials, sections, profile, skills, testimonials } = await loadHomeData();
 
   return (
     <main>

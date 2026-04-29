@@ -270,24 +270,67 @@ export default function AdminPage() {
       return;
     }
     setLoading(true);
-    const [p, s, c, so] = await Promise.all([
+    const [p, s, c, so, sec, prof, sk, test] = await Promise.all([
       supabase.from('projects').select('*').order('sort_order'),
       supabase.from('stats').select('*'),
       supabase.from('contact_info').select('*'),
       supabase.from('social_links').select('*').order('sort_order'),
+      supabase.from('sections').select('*'),
+      supabase.from('profile').select('*').eq('id', 'main').single(),
+      supabase.from('skills').select('*'),
+      supabase.from('testimonials').select('*'),
     ]);
-    if (p.data) {
-      setProjects(p.data);
+
+    if (p.data) setProjects(p.data);
+    if (s.data) setStats(s.data);
+    if (c.data) setContacts(c.data);
+    if (so.data) setSocials(so.data);
+
+    // Load sections data
+    if (sec.data) {
+      const sectionsData = sec.data.reduce((acc: any, item: any) => {
+        if (!acc[item.section]) acc[item.section] = {};
+        acc[item.section][item.key] = item.value;
+        return acc;
+      }, {});
+      setSections({
+        hero: {
+          title: sectionsData.hero?.title || 'مرحباً، أنا محمد علي',
+          subtitle: sectionsData.hero?.subtitle || 'مصمم ومحرر فيديو احترافي',
+          description: sectionsData.hero?.description || 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
+          cta_text: sectionsData.hero?.cta_text || 'شاهد أعمالي',
+          cta_link: sectionsData.hero?.cta_link || '#portfolio'
+        },
+        about: {
+          title: sectionsData.about?.title || 'من أنا',
+          content: sectionsData.about?.content || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+          experience_years: sectionsData.about?.experience_years || '5+',
+          projects_completed: sectionsData.about?.projects_completed || '100+'
+        },
+        footer: {
+          copyright: sectionsData.footer?.copyright || '© 2024 محمد علي. جميع الحقوق محفوظة.',
+          tagline: sectionsData.footer?.tagline || 'نصنع المحتوى الذي يتحدث عن نفسه'
+        }
+      });
     }
-    if (s.data) {
-      setStats(s.data);
+
+    // Load profile data
+    if (prof.data) {
+      setProfile({
+        name: prof.data.name || 'محمد علي',
+        title: prof.data.title || 'مصمم ومحرر فيديو احترافي',
+        description: prof.data.description || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
+        avatar: prof.data.avatar || '',
+        resume: prof.data.resume || ''
+      });
     }
-    if (c.data) {
-      setContacts(c.data);
-    }
-    if (so.data) {
-      setSocials(so.data);
-    }
+
+    // Load skills data
+    if (sk.data) setSkills(sk.data);
+
+    // Load testimonials data
+    if (test.data) setTestimonials(test.data);
+
     setLoading(false);
   }, []);
 
@@ -414,22 +457,63 @@ export default function AdminPage() {
   };
 
   const saveProfile = async () => {
+    if (!supabase) {
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ الملف الشخصي عالماً', 'error');
+      return;
+    }
+    await supabase.from('profile').upsert({
+      id: 'main',
+      name: profile.name,
+      title: profile.title,
+      description: profile.description,
+      avatar: profile.avatar,
+      resume: profile.resume
+    });
     showToast('تم حفظ الملف الشخصي ✓');
   };
 
   const saveSkill = async (skill: any) => {
-    const updatedSkills = skills.map(s => s.id === skill.id ? skill : s);
-    setSkills(updatedSkills);
+    if (!supabase) {
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ المهارة عالماً', 'error');
+      return;
+    }
+    await supabase.from('skills').upsert(skill);
     showToast('تم حفظ المهارة ✓');
   };
 
   const saveTestimonial = async (testimonial: any) => {
-    const updatedTestimonials = testimonials.map(t => t.id === testimonial.id ? testimonial : t);
-    setTestimonials(updatedTestimonials);
+    if (!supabase) {
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ الشهادة عالماً', 'error');
+      return;
+    }
+    await supabase.from('testimonials').upsert(testimonial);
     showToast('تم حفظ الشهادة ✓');
   };
 
   const saveSections = async () => {
+    if (!supabase) {
+      showToast('Supabase غير متوفر؛ لا يمكن حفظ الأقسام عالماً', 'error');
+      return;
+    }
+
+    const sectionsToSave = [
+      // Hero section
+      { id: 'hero-title', section: 'hero', key: 'title', value: sections.hero.title },
+      { id: 'hero-subtitle', section: 'hero', key: 'subtitle', value: sections.hero.subtitle },
+      { id: 'hero-description', section: 'hero', key: 'description', value: sections.hero.description },
+      { id: 'hero-cta_text', section: 'hero', key: 'cta_text', value: sections.hero.cta_text },
+      { id: 'hero-cta_link', section: 'hero', key: 'cta_link', value: sections.hero.cta_link },
+      // About section
+      { id: 'about-title', section: 'about', key: 'title', value: sections.about.title },
+      { id: 'about-content', section: 'about', key: 'content', value: sections.about.content },
+      { id: 'about-exp_years', section: 'about', key: 'experience_years', value: sections.about.experience_years },
+      { id: 'about-proj_comp', section: 'about', key: 'projects_completed', value: sections.about.projects_completed },
+      // Footer section
+      { id: 'footer-copyright', section: 'footer', key: 'copyright', value: sections.footer.copyright },
+      { id: 'footer-tagline', section: 'footer', key: 'tagline', value: sections.footer.tagline },
+    ];
+
+    await supabase.from('sections').upsert(sectionsToSave);
     showToast('تم حفظ الأقسام ✓');
   };
 
