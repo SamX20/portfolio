@@ -151,21 +151,21 @@ alter table skills       enable row level security;
 alter table testimonials enable row level security;
 
 -- سياسة القراءة العامة (الموقع يقرأ البيانات)
-create policy "public_read_projects"     on projects     for select using (true);
-create policy "public_read_stats"        on stats        for select using (true);
-create policy "public_read_contact"      on contact_info for select using (true);
-create policy "public_read_social"       on social_links for select using (true);
-create policy "public_read_sections"     on sections     for select using (true);
-create policy "public_read_profile"      on profile      for select using (true);
-create policy "public_read_skills"       on skills       for select using (true);
-create policy "public_read_testimonials" on testimonials for select using (true);
+create policy if not exists "public_read_projects"     on projects     for select using (true);
+create policy if not exists "public_read_stats"        on stats        for select using (true);
+create policy if not exists "public_read_contact"      on contact_info for select using (true);
+create policy if not exists "public_read_social"       on social_links for select using (true);
+create policy if not exists "public_read_sections"     on sections     for select using (true);
+create policy if not exists "public_read_profile"      on profile      for select using (true);
+create policy if not exists "public_read_skills"       on skills       for select using (true);
+create policy if not exists "public_read_testimonials" on testimonials for select using (true);
 
 -- سياسة الكتابة (Service Role فقط - من الداشبورد)
-create policy "service_write_projects"     on projects     for all using (true) with check (true);
-create policy "service_write_stats"        on stats        for all using (true) with check (true);
-create policy "service_write_contact"      on contact_info for all using (true) with check (true);
-create policy "service_write_social"       on social_links for all using (true) with check (true);
-create policy "service_write_sections"     on sections     for all using (true) with check (true);
-create policy "service_write_profile"      on profile      for all using (true) with check (true);
-create policy "service_write_skills"       on skills       for all using (true) with check (true);
-create policy "service_write_testimonials" on testimonials for all using (true) with check (true);
+create policy if not exists "service_write_projects"     on projects     for all using (true) with check (true);
+create policy if not exists "service_write_stats"        on stats        for all using (true) with check (true);
+create policy if not exists "service_write_contact"      on contact_info for all using (true) with check (true);
+create policy if not exists "service_write_social"       on social_links for all using (true) with check (true);
+create policy if not exists "service_write_sections"     on sections     for all using (true) with check (true);
+create policy if not exists "service_write_profile"      on profile      for all using (true) with check (true);
+create policy if not exists "service_write_skills"       on skills       for all using (true) with check (true);
+create policy if not exists "service_write_testimonials" on testimonials for all using (true) with check (true);
