@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -113,6 +114,7 @@ export default function RootLayout({
         style={{ backgroundColor: "#0a0a0f" }}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
