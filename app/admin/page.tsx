@@ -301,6 +301,46 @@ export default function AdminPage() {
         console.error('خطأ في تحميل الأقسام:', e);
       }
     }
+
+    // تحميل المشاريع
+    const savedProjects = localStorage.getItem('projects_data');
+    if (savedProjects) {
+      try {
+        setProjects(JSON.parse(savedProjects));
+      } catch (e) {
+        console.error('خطأ في تحميل المشاريع:', e);
+      }
+    }
+
+    // تحميل الإحصائيات
+    const savedStats = localStorage.getItem('stats_data');
+    if (savedStats) {
+      try {
+        setStats(JSON.parse(savedStats));
+      } catch (e) {
+        console.error('خطأ في تحميل الإحصائيات:', e);
+      }
+    }
+
+    // تحميل معلومات التواصل
+    const savedContacts = localStorage.getItem('contacts_data');
+    if (savedContacts) {
+      try {
+        setContacts(JSON.parse(savedContacts));
+      } catch (e) {
+        console.error('خطأ في تحميل معلومات التواصل:', e);
+      }
+    }
+
+    // تحميل مواقع التواصل
+    const savedSocials = localStorage.getItem('socials_data');
+    if (savedSocials) {
+      try {
+        setSocials(JSON.parse(savedSocials));
+      } catch (e) {
+        console.error('خطأ في تحميل مواقع التواصل:', e);
+      }
+    }
   }, [authed]);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -320,21 +360,134 @@ export default function AdminPage() {
       supabase.from('contact_info').select('*'),
       supabase.from('social_links').select('*').order('sort_order'),
     ]);
-    if (p.data) setProjects(p.data);
-    if (s.data) setStats(s.data);
-    if (c.data) setContacts(c.data);
-    if (so.data) setSocials(so.data);
+    if (p.data) {
+      setProjects(p.data);
+      localStorage.setItem('projects_data', JSON.stringify(p.data));
+    }
+    if (s.data) {
+      setStats(s.data);
+      localStorage.setItem('stats_data', JSON.stringify(s.data));
+    }
+    if (c.data) {
+      setContacts(c.data);
+      localStorage.setItem('contacts_data', JSON.stringify(c.data));
+    }
+    if (so.data) {
+      setSocials(so.data);
+      localStorage.setItem('socials_data', JSON.stringify(so.data));
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { if (authed) fetchAll(); }, [authed, fetchAll]);
 
   const deleteProject = async (id: string) => {
-    if (!supabase) return;
+    if (!supabase) {
+      // حذف محلي إذا لم يكن supabase متوفراً
+      const updated = projects.filter(p => p.id !== id);
+      setProjects(updated);
+      localStorage.setItem('projects_data', JSON.stringify(updated));
+      setDeleteConfirm(null);
+      showToast('تم حذف المشروع');
+      return;
+    }
     await supabase.from('projects').delete().eq('id', id);
     setDeleteConfirm(null);
     showToast('تم حذف المشروع');
     fetchAll();
+  };
+
+  const deleteStat = async (id: string) => {
+    if (!supabase) {
+      // حذف محلي إذا لم يكن supabase متوفراً
+      const updated = stats.filter(s => s.id !== id);
+      setStats(updated);
+      localStorage.setItem('stats_data', JSON.stringify(updated));
+      setDeleteConfirm(null);
+      showToast('تم حذف الإحصائية');
+      return;
+    }
+    await supabase.from('stats').delete().eq('id', id);
+    setDeleteConfirm(null);
+    showToast('تم حذف الإحصائية');
+    fetchAll();
+  };
+
+  const deleteContact = async (id: string) => {
+    if (!supabase) {
+      // حذف محلي إذا لم يكن supabase متوفراً
+      const updated = contacts.filter(c => c.id !== id);
+      setContacts(updated);
+      localStorage.setItem('contacts_data', JSON.stringify(updated));
+      setDeleteConfirm(null);
+      showToast('تم حذف معلومات التواصل');
+      return;
+    }
+    await supabase.from('contact_info').delete().eq('id', id);
+    setDeleteConfirm(null);
+    showToast('تم حذف معلومات التواصل');
+    fetchAll();
+  };
+
+  const deleteSocial = async (id: string) => {
+    if (!supabase) {
+      // حذف محلي إذا لم يكن supabase متوفراً
+      const updated = socials.filter(s => s.id !== id);
+      setSocials(updated);
+      localStorage.setItem('socials_data', JSON.stringify(updated));
+      setDeleteConfirm(null);
+      showToast('تم حذف الرابط');
+      return;
+    }
+    await supabase.from('social_links').delete().eq('id', id);
+    setDeleteConfirm(null);
+    showToast('تم حذف الرابط');
+    fetchAll();
+  };
+
+  const addProject = () => {
+    setProjectModal({
+      title: '', description: '', category: 'video-editing',
+      year: new Date().getFullYear(), duration: '',
+      technologies: [], featured: false, sort_order: 0,
+      video_url: '',
+    });
+  };
+
+  const addStat = () => {
+    const newStat: Stat = {
+      id: Date.now().toString(),
+      value: '0',
+      label: 'إحصائية جديدة',
+    };
+    setStats([...stats, newStat]);
+    localStorage.setItem('stats_data', JSON.stringify([...stats, newStat]));
+    showToast('تمت إضافة إحصائية جديدة');
+  };
+
+  const addContact = () => {
+    const newContact: ContactInfo = {
+      id: Date.now().toString(),
+      icon: '📧',
+      title: 'معلومات تواصل جديدة',
+      content: '',
+      href: '',
+    };
+    setContacts([...contacts, newContact]);
+    localStorage.setItem('contacts_data', JSON.stringify([...contacts, newContact]));
+    showToast('تمت إضافة معلومات تواصل جديدة');
+  };
+
+  const addSocial = () => {
+    const newSocial: SocialLink = {
+      id: Date.now().toString(),
+      name: 'Facebook',
+      url: '',
+      sort_order: socials.length,
+    };
+    setSocials([...socials, newSocial]);
+    localStorage.setItem('socials_data', JSON.stringify([...socials, newSocial]));
+    showToast('تمت إضافة رابط جديد');
   };
 
   const saveStat = async (s: Stat) => {
@@ -342,6 +495,7 @@ export default function AdminPage() {
       // حفظ محلي إذا لم يكن supabase متوفراً
       const updated = stats.map(x => x.id === s.id ? s : x);
       setStats(updated);
+      localStorage.setItem('stats_data', JSON.stringify(updated));
       showToast('تم حفظ الإحصائية ✓');
       return;
     }
@@ -350,6 +504,9 @@ export default function AdminPage() {
     // تحديث البيانات من Supabase
     const updated = stats.map(x => x.id === s.id ? s : x);
     setStats(updated);
+    localStorage.setItem('stats_data', JSON.stringify(updated));
+    // إعادة تحميل البيانات من قاعدة البيانات
+    fetchAll();
   };
 
   const saveContact = async (c: ContactInfo) => {
@@ -357,6 +514,7 @@ export default function AdminPage() {
       // حفظ محلي إذا لم يكن supabase متوفراً
       const updated = contacts.map(x => x.id === c.id ? c : x);
       setContacts(updated);
+      localStorage.setItem('contacts_data', JSON.stringify(updated));
       showToast('تم حفظ معلومات التواصل ✓');
       return;
     }
@@ -365,6 +523,9 @@ export default function AdminPage() {
     // تحديث البيانات من Supabase
     const updated = contacts.map(x => x.id === c.id ? c : x);
     setContacts(updated);
+    localStorage.setItem('contacts_data', JSON.stringify(updated));
+    // إعادة تحميل البيانات من قاعدة البيانات
+    fetchAll();
   };
 
   const saveSocial = async (s: SocialLink) => {
@@ -372,6 +533,7 @@ export default function AdminPage() {
       // حفظ محلي إذا لم يكن supabase متوفراً
       const updated = socials.map(x => x.id === s.id ? s : x);
       setSocials(updated);
+      localStorage.setItem('socials_data', JSON.stringify(updated));
       showToast('تم حفظ الرابط ✓');
       return;
     }
@@ -380,6 +542,9 @@ export default function AdminPage() {
     // تحديث البيانات من Supabase
     const updated = socials.map(x => x.id === s.id ? s : x);
     setSocials(updated);
+    localStorage.setItem('socials_data', JSON.stringify(updated));
+    // إعادة تحميل البيانات من قاعدة البيانات
+    fetchAll();
   };
 
   const saveProfile = async () => {
@@ -390,13 +555,17 @@ export default function AdminPage() {
 
   const saveSkill = async (skill: any) => {
     // هنا يمكن حفظ البيانات في Supabase أو localStorage
-    localStorage.setItem('skills_data', JSON.stringify(skills));
+    const updatedSkills = skills.map(s => s.id === skill.id ? skill : s);
+    localStorage.setItem('skills_data', JSON.stringify(updatedSkills));
+    setSkills(updatedSkills);
     showToast('تم حفظ المهارة ✓');
   };
 
   const saveTestimonial = async (testimonial: any) => {
     // هنا يمكن حفظ البيانات في Supabase أو localStorage
-    localStorage.setItem('testimonials_data', JSON.stringify(testimonials));
+    const updatedTestimonials = testimonials.map(t => t.id === testimonial.id ? testimonial : t);
+    localStorage.setItem('testimonials_data', JSON.stringify(updatedTestimonials));
+    setTestimonials(updatedTestimonials);
     showToast('تم حفظ الشهادة ✓');
   };
 
@@ -596,7 +765,25 @@ export default function AdminPage() {
               {/* ── SKILLS TAB ── */}
               {tab === 'skills' && (
                 <div>
-                  <h2 className="text-white font-bold text-lg mb-5">المهارات والخبرات</h2>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-white font-bold text-lg">المهارات والخبرات ({skills.length})</h2>
+                    <button
+                      onClick={() => {
+                        const newSkill = {
+                          id: Date.now().toString(),
+                          name: '',
+                          level: 80,
+                          category: 'motion-design'
+                        };
+                        const updatedSkills = [...skills, newSkill];
+                        setSkills(updatedSkills);
+                        localStorage.setItem('skills_data', JSON.stringify(updatedSkills));
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      + إضافة مهارة
+                    </button>
+                  </div>
                   <p className="text-gray-600 text-sm mb-6">هذه المهارات تظهر في قسم المهارات في الصفحة الرئيسية</p>
                   <div className="space-y-4">
                     {skills.map(skill => (
@@ -656,6 +843,16 @@ export default function AdminPage() {
                         >
                           حفظ المهارة
                         </button>
+                        <button
+                          onClick={() => {
+                            setSkills(prev => prev.filter(x => x.id !== skill.id));
+                            localStorage.setItem('skills_data', JSON.stringify(skills.filter(x => x.id !== skill.id)));
+                            showToast('تم حذف المهارة');
+                          }}
+                          className="mt-4 ml-2 px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
+                        >
+                          حذف
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -665,7 +862,26 @@ export default function AdminPage() {
               {/* ── TESTIMONIALS TAB ── */}
               {tab === 'testimonials' && (
                 <div>
-                  <h2 className="text-white font-bold text-lg mb-5">شهادات العملاء</h2>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-white font-bold text-lg">شهادات العملاء ({testimonials.length})</h2>
+                    <button
+                      onClick={() => {
+                        const newTestimonial = {
+                          id: Date.now().toString(),
+                          name: '',
+                          company: '',
+                          content: '',
+                          rating: 5
+                        };
+                        const updatedTestimonials = [...testimonials, newTestimonial];
+                        setTestimonials(updatedTestimonials);
+                        localStorage.setItem('testimonials_data', JSON.stringify(updatedTestimonials));
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      + إضافة شهادة
+                    </button>
+                  </div>
                   <p className="text-gray-600 text-sm mb-6">هذه الشهادات تظهر في قسم الشهادات في الصفحة الرئيسية</p>
                   <div className="space-y-4">
                     {testimonials.map(testimonial => (
@@ -721,6 +937,16 @@ export default function AdminPage() {
                             className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
                           >
                             حفظ الشهادة
+                          </button>
+                          <button
+                            onClick={() => {
+                              setTestimonials(prev => prev.filter(x => x.id !== testimonial.id));
+                              localStorage.setItem('testimonials_data', JSON.stringify(testimonials.filter(x => x.id !== testimonial.id)));
+                              showToast('تم حذف الشهادة');
+                            }}
+                            className="px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all ml-2"
+                          >
+                            حذف
                           </button>
                         </div>
                       </div>
@@ -933,7 +1159,24 @@ export default function AdminPage() {
               {/* ── STATS TAB ── */}
               {tab === 'stats' && (
                 <div>
-                  <h2 className="text-white font-bold text-lg mb-5">الإحصائيات</h2>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-white font-bold text-lg">الإحصائيات ({stats.length})</h2>
+                    <button
+                      onClick={() => {
+                        const newStat = {
+                          id: Date.now().toString(),
+                          value: '100+',
+                          label: 'مشروع منجز'
+                        };
+                        const updatedStats = [...stats, newStat];
+                        setStats(updatedStats);
+                        localStorage.setItem('stats_data', JSON.stringify(updatedStats));
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      + إضافة إحصائية
+                    </button>
+                  </div>
                   <p className="text-gray-600 text-sm mb-6">هذه الأرقام تظهر في قسم Hero في الصفحة الرئيسية</p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {stats.map(s => (
@@ -960,6 +1203,16 @@ export default function AdminPage() {
                         >
                           حفظ
                         </button>
+                        <button
+                          onClick={() => {
+                            setStats(prev => prev.filter(x => x.id !== s.id));
+                            localStorage.setItem('stats_data', JSON.stringify(stats.filter(x => x.id !== s.id)));
+                            showToast('تم حذف الإحصائية');
+                          }}
+                          className="w-full mt-2 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
+                        >
+                          حذف
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -969,7 +1222,26 @@ export default function AdminPage() {
               {/* ── CONTACT TAB ── */}
               {tab === 'contact' && (
                 <div>
-                  <h2 className="text-white font-bold text-lg mb-5">معلومات التواصل</h2>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-white font-bold text-lg">معلومات التواصل ({contacts.length})</h2>
+                    <button
+                      onClick={() => {
+                        const newContact = {
+                          id: Date.now().toString(),
+                          title: 'الإيميل',
+                          content: '',
+                          href: '',
+                          icon: '📧'
+                        };
+                        const updatedContacts = [...contacts, newContact];
+                        setContacts(updatedContacts);
+                        localStorage.setItem('contacts_data', JSON.stringify(updatedContacts));
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      + إضافة معلومات تواصل
+                    </button>
+                  </div>
                   <div className="space-y-4">
                     {contacts.map(c => (
                       <div key={c.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
@@ -1003,6 +1275,16 @@ export default function AdminPage() {
                         >
                           حفظ
                         </button>
+                        <button
+                          onClick={() => {
+                            setContacts(prev => prev.filter(x => x.id !== c.id));
+                            localStorage.setItem('contacts_data', JSON.stringify(contacts.filter(x => x.id !== c.id)));
+                            showToast('تم حذف معلومات التواصل');
+                          }}
+                          className="mt-3 ml-2 px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
+                        >
+                          حذف
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -1012,7 +1294,25 @@ export default function AdminPage() {
               {/* ── SOCIAL TAB ── */}
               {tab === 'social' && (
                 <div>
-                  <h2 className="text-white font-bold text-lg mb-5">روابط السوشيال ميديا</h2>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-white font-bold text-lg">روابط السوشيال ميديا ({socials.length})</h2>
+                    <button
+                      onClick={() => {
+                        const newSocial = {
+                          id: Date.now().toString(),
+                          name: 'Facebook',
+                          url: '',
+                          sort_order: socials.length
+                        };
+                        const updatedSocials = [...socials, newSocial];
+                        setSocials(updatedSocials);
+                        localStorage.setItem('socials_data', JSON.stringify(updatedSocials));
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      + إضافة موقع تواصل
+                    </button>
+                  </div>
                   <div className="space-y-3">
                     {socials.map(s => {
                       const icons: Record<string, string> = { Facebook: '📘', Instagram: '📸', LinkedIn: '💼', YouTube: '▶️' };
@@ -1034,6 +1334,16 @@ export default function AdminPage() {
                             className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs flex-shrink-0 hover:shadow-lg transition-all"
                           >
                             حفظ
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSocials(prev => prev.filter(x => x.id !== s.id));
+                              localStorage.setItem('socials_data', JSON.stringify(socials.filter(x => x.id !== s.id)));
+                              showToast('تم حذف الموقع');
+                            }}
+                            className="px-4 py-2 rounded-xl bg-red-500 text-white font-bold text-xs flex-shrink-0 hover:bg-red-600 transition-all ml-2"
+                          >
+                            حذف
                           </button>
                         </div>
                       );
