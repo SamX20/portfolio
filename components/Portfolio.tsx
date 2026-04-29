@@ -1,36 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import useDisableMotion from '@/lib/useDisableMotion';
-import { supabase } from '@/lib/supabase';
 import { Project, CATEGORIES } from '@/types';
 import ProjectCard from './ProjectCard';
 
 const ALL_CATS = [{ value: 'all', label: 'الكل' }, ...CATEGORIES];
 
-export default function Portfolio() {
-  const [projects, setProjects] = useState<Project[]>([]);
+interface PortfolioProps {
+  projects?: Project[];
+}
+
+export default function Portfolio({ projects = [] }: PortfolioProps) {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const disableMotion = useDisableMotion();
-
-  useEffect(() => {
-    if (!supabase) {
-      setError('Supabase غير مكوّن. يرجى إعداد متغيرات البيئة.');
-      setLoading(false);
-      return;
-    }
-
-    supabase.from('projects').select('*').order('sort_order').then(({ data, error: fetchError }) => {
-      if (fetchError) {
-        setError(fetchError.message || 'حدث خطأ أثناء تحميل المشاريع.');
-      }
-      if (data) setProjects(data);
-      setLoading(false);
-    });
-  }, []);
 
   const filtered = activeCategory === 'all' ? projects : projects.filter(p => p.category === activeCategory);
 
@@ -56,15 +40,21 @@ export default function Portfolio() {
           </LayoutGroup>
         </motion.div>
 
-        {loading ? (
-          <div className="text-center py-20 text-gray-600">جاري التحميل...</div>
-        ) : error ? (
-          <div className="text-center py-20 text-red-400">{error}</div>
+        {projects.length === 0 ? (
+          <div className="text-center py-20 text-gray-600">لا توجد مشاريع لعرضها حالياً.</div>
+        ) : disableMotion ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(project => (
+              <div key={project.id}>
+                <ProjectCard project={project} />
+              </div>
+            ))}
+          </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            <motion.div key={activeCategory} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" initial={!disableMotion ? { opacity: 0 } : undefined} animate={!disableMotion ? { opacity: 1 } : undefined} exit={!disableMotion ? { opacity: 0 } : undefined} transition={!disableMotion ? { duration: 0.3 } : undefined}>
+            <motion.div key={activeCategory} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               {filtered.map((project, index) => (
-                <motion.div key={project.id} initial={!disableMotion ? { opacity: 0, y: 24, scale: 0.97 } : undefined} animate={!disableMotion ? { opacity: 1, y: 0, scale: 1 } : undefined} exit={!disableMotion ? { opacity: 0, y: -16, scale: 0.97 } : undefined} transition={!disableMotion ? { duration: 0.5, delay: index * 0.07, ease: [0.22,1,0.36,1] as [number,number,number,number] } : undefined}>
+                <motion.div key={project.id} initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -16, scale: 0.97 }} transition={{ duration: 0.5, delay: index * 0.07, ease: [0.22,1,0.36,1] as [number,number,number,number] }}>
                   <ProjectCard project={project} />
                 </motion.div>
               ))}

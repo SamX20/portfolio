@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useDisableMotion from '@/lib/useDisableMotion';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const disableMotion = useDisableMotion();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,9 +47,9 @@ export default function Navigation() {
           ? 'bg-[#0a0a0f]/85 backdrop-blur-xl shadow-2xl shadow-black/50 border-b border-white/5'
           : 'bg-transparent'
       }`}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      initial={!disableMotion ? { opacity: 0, y: -20 } : undefined}
+      animate={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+      transition={!disableMotion ? { duration: 0.6, ease: 'easeOut' } : undefined}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -55,17 +57,17 @@ export default function Navigation() {
           <Link href="/">
             <motion.div
               className="text-xl font-black cursor-pointer relative"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={!disableMotion ? { scale: 1.05 } : undefined}
+              whileTap={!disableMotion ? { scale: 0.97 } : undefined}
             >
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
                 Portfolio
               </span>
               <motion.div
                 className="absolute -bottom-1 right-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-400"
-                initial={{ width: 0 }}
-                whileHover={{ width: '100%' }}
-                transition={{ duration: 0.3 }}
+                initial={!disableMotion ? { width: 0 } : undefined}
+                whileHover={!disableMotion ? { width: '100%' } : undefined}
+                transition={!disableMotion ? { duration: 0.3 } : undefined}
               />
             </motion.div>
           </Link>
@@ -82,9 +84,9 @@ export default function Navigation() {
                   className={`relative text-sm font-medium transition-colors duration-200 ${
                     isActive ? 'text-white' : 'text-gray-400 hover:text-white'
                   }`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.08 }}
+                  initial={!disableMotion ? { opacity: 0, y: -10 } : undefined}
+                  animate={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+                  transition={!disableMotion ? { delay: index * 0.08 } : undefined}
                 >
                   {item.label}
                   {isActive && (
@@ -100,11 +102,11 @@ export default function Navigation() {
             <motion.a
               href="#contact"
               className="px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-white font-semibold text-sm hover:shadow-lg hover:shadow-purple-500/40 transition-all"
-              whileHover={{ scale: 1.05, y: -1 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              whileHover={!disableMotion ? { scale: 1.05, y: -1 } : undefined}
+              whileTap={!disableMotion ? { scale: 0.95 } : undefined}
+              initial={!disableMotion ? { opacity: 0, y: -10 } : undefined}
+              animate={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+              transition={!disableMotion ? { delay: 0.3 } : undefined}
             >
               احصل على عرض
             </motion.a>
@@ -114,7 +116,7 @@ export default function Navigation() {
           <motion.button
             className="md:hidden relative w-10 h-10 flex items-center justify-center text-white"
             onClick={() => setIsOpen(!isOpen)}
-            whileTap={{ scale: 0.9 }}
+            whileTap={!disableMotion ? { scale: 0.9 } : undefined}
             aria-label="Toggle menu"
           >
             <motion.div
@@ -155,10 +157,10 @@ export default function Navigation() {
         {isOpen && (
           <motion.div
             className="md:hidden overflow-hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/5"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            initial={!disableMotion ? { opacity: 0, height: 0 } : undefined}
+            animate={!disableMotion ? { opacity: 1, height: 'auto' } : undefined}
+            exit={!disableMotion ? { opacity: 0, height: 0 } : undefined}
+            transition={!disableMotion ? { duration: 0.35, ease: 'easeInOut' } : undefined}
           >
             <div className="px-6 py-6 space-y-1">
               {navItems.map((item, index) => (
@@ -167,9 +169,9 @@ export default function Navigation() {
                   href={item.href}
                   className="flex items-center justify-end gap-3 py-3 text-gray-300 hover:text-white transition-colors text-base font-medium border-b border-white/5 last:border-0"
                   onClick={() => setIsOpen(false)}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.07 }}
+                  initial={!disableMotion ? { opacity: 0, x: 20 } : undefined}
+                  animate={!disableMotion ? { opacity: 1, x: 0 } : undefined}
+                  transition={!disableMotion ? { delay: index * 0.07 } : undefined}
                 >
                   {item.label}
                 </motion.a>
@@ -178,9 +180,9 @@ export default function Navigation() {
                 href="#contact"
                 className="block mt-4 py-3 text-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold"
                 onClick={() => setIsOpen(false)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
+                initial={!disableMotion ? { opacity: 0, y: 10 } : undefined}
+                animate={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+                transition={!disableMotion ? { delay: 0.25 } : undefined}
               >
                 احصل على عرض
               </motion.a>

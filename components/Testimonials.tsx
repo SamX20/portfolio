@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import useDisableMotion from '@/lib/useDisableMotion';
 
 interface Testimonial {
   id: string;
@@ -36,15 +37,17 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
     },
   };
 
+  const disableMotion = useDisableMotion();
+
   return (
     <section className="min-h-screen py-24 px-4" id="testimonials" style={{ backgroundColor: '#0a0a0f' }}>
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="text-center mb-16"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+          initial={!disableMotion ? { opacity: 0, y: -20 } : undefined}
+          whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+          viewport={!disableMotion ? { once: true, margin: '-80px' } : undefined}
+          transition={!disableMotion ? { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full tracking-widest">
             TESTIMONIALS
@@ -56,16 +59,16 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
+          variants={!disableMotion ? containerVariants : undefined}
+          initial={!disableMotion ? 'hidden' : undefined}
+          whileInView={!disableMotion ? 'visible' : undefined}
+          viewport={!disableMotion ? { once: true, margin: '-80px' } : undefined}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {testimonials.map(testimonial => (
             <motion.div
               key={testimonial.id}
-              variants={cardVariants}
+              variants={!disableMotion ? cardVariants : undefined}
               className="p-6 rounded-2xl border border-white/8 hover:border-purple-500/30 transition-all"
               style={{ background: 'rgba(255,255,255,0.03)' }}
             >
