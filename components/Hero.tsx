@@ -128,9 +128,13 @@ export default function Hero({ profile, sections }: HeroProps) {
         {/* Logo */}
         {sections?.global?.logo && (
           <motion.div className="mb-8" variants={itemVariants}>
-            <div className="text-6xl md:text-8xl">
-              {sections.global.logo}
-            </div>
+            {sections.global.logo.startsWith('/') || sections.global.logo.startsWith('http') ? (
+              <img src={sections.global.logo} alt="Logo" className="w-20 h-20 md:w-32 md:h-32 object-contain mx-auto" />
+            ) : (
+              <div className="text-6xl md:text-8xl text-center">
+                {sections.global.logo}
+              </div>
+            )}
           </motion.div>
         )}
 

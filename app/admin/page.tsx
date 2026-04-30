@@ -18,6 +18,30 @@ const inputCls =
 
 const labelCls = 'block text-xs font-semibold text-gray-400 mb-1.5';
 
+// ─── Upload Function ──────────────────────────────────────────────────────────
+const uploadFile = async (file: File): Promise<string | null> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.url;
+    } else {
+      console.error('Upload failed');
+      return null;
+    }
+  } catch (error) {
+    console.error('Upload error:', error);
+    return null;
+  }
+};
+
 // ─── Login Screen ──────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [pw, setPw] = useState('');
@@ -929,13 +953,27 @@ export default function AdminPage() {
                           />
                         </div>
                         <div>
-                          <label className={labelCls}>الشعار (إيموجي أو رمز)</label>
+                          <label className={labelCls}>الشعار (رفع ملف أو رابط)</label>
+                          <input
+                            type="file"
+                            accept="image/*,.svg"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const url = await uploadFile(file);
+                                if (url) {
+                                  setSections(prev => ({ ...prev, global: { ...prev.global, logo: url } }));
+                                }
+                              }
+                            }}
+                            className={`${inputCls} file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700`}
+                          />
                           <input
                             type="text"
                             value={sections.global.logo}
                             onChange={e => setSections(prev => ({ ...prev, global: { ...prev.global, logo: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="🎬"
+                            className={`${inputCls} mt-2`}
+                            placeholder="أو أدخل رابط الصورة مباشرة"
                           />
                         </div>
                       </div>
@@ -1304,13 +1342,30 @@ export default function AdminPage() {
                               placeholder="https://..."
                               className={inputCls}
                             />
-                            <input
-                              type="text"
-                              value={s.icon || ''}
-                              onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, icon: v } : x)); }}
-                              placeholder="أيقونة (إيموجي أو رمز)"
-                              className={`${inputCls} mt-2`}
-                            />
+                            <div className="mt-2">
+                              <label className="block text-xs font-semibold text-gray-400 mb-1">الأيقونة</label>
+                              <input
+                                type="file"
+                                accept="image/*,.svg"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const url = await uploadFile(file);
+                                    if (url) {
+                                      setSocials(prev => prev.map(x => x.id === s.id ? { ...x, icon: url } : x));
+                                    }
+                                  }
+                                }}
+                                className={`${inputCls} file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700`}
+                              />
+                              <input
+                                type="text"
+                                value={s.icon || ''}
+                                onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, icon: v } : x)); }}
+                                placeholder="أو أدخل رابط الصورة مباشرة"
+                                className={`${inputCls} mt-1`}
+                              />
+                            </div>
                           </div>
                           <button
                             onClick={() => saveSocial(s)}

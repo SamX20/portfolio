@@ -116,7 +116,15 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
                   whileHover={!disableMotion ? { scale: 1.12, y: -3 } : undefined}
                   whileTap={!disableMotion ? { scale: 0.93 } : undefined}
                 >
-                  {social.icon ? <span className="text-lg">{social.icon}</span> : getSocialIcon(social.name)}
+                  {social.icon ? (
+                    social.icon.startsWith('/') || social.icon.startsWith('http') ? (
+                      <img src={social.icon} alt={social.name} className="w-4 h-4 object-contain" />
+                    ) : (
+                      <span className="text-lg">{social.icon}</span>
+                    )
+                  ) : (
+                    getSocialIcon(social.name)
+                  )}
                 </motion.a>
               ))}
             </div>

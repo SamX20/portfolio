@@ -65,7 +65,15 @@ export default function Navigation({ sections }: NavigationProps) {
               whileHover={!disableMotion ? { scale: 1.05 } : undefined}
               whileTap={!disableMotion ? { scale: 0.97 } : undefined}
             >
-              <span className="text-purple-400 text-2xl">🎬</span>
+              {sections?.global?.logo ? (
+                sections.global.logo.startsWith('/') || sections.global.logo.startsWith('http') ? (
+                  <img src={sections.global.logo} alt="Logo" className="w-8 h-8 object-contain" />
+                ) : (
+                  <span className="text-purple-400 text-2xl">{sections.global.logo}</span>
+                )
+              ) : (
+                <span className="text-purple-400 text-2xl">🎬</span>
+              )}
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
                 {sections?.global?.site_title || 'Portfolio'}
               </span>

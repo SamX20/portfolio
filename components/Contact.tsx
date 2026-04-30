@@ -197,7 +197,15 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
                     whileHover={!disableMotion ? { scale: 1.12, y: -2 } : undefined}
                     whileTap={!disableMotion ? { scale: 0.93 } : undefined}
                   >
-                    {social.name[0]}
+                    {social.icon ? (
+                      social.icon.startsWith('/') || social.icon.startsWith('http') ? (
+                        <img src={social.icon} alt={social.name} className="w-5 h-5 object-contain" />
+                      ) : (
+                        <span className="text-lg">{social.icon}</span>
+                      )
+                    ) : (
+                      social.name[0]
+                    )}
                   </motion.a>
                 ))}
               </div>
