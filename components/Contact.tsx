@@ -171,11 +171,12 @@ export default function Contact({ contacts = [], socialLinks = [] }: ContactProp
                       target={item.href.startsWith('http') ? '_blank' : undefined}
                       rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                       className="text-gray-500 hover:text-purple-400 transition-colors text-sm"
+                      dir={item.id === 'phone' ? 'ltr' : undefined}
                     >
                       {item.content}
                     </a>
                   ) : (
-                    <p className="text-gray-500 text-sm">{item.content}</p>
+                    <p className="text-gray-500 text-sm" dir={item.id === 'phone' ? 'ltr' : undefined}>{item.content}</p>
                   )}
                 </div>
               </motion.div>
