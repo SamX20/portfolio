@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
+
+const BUCKET_NAME = 'uploads';
 
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'Supabase admin client is not configured.' }, { status: 500 });
+    }
+
     const data = await request.formData();
     const file: File | null = data.get('file') as unknown as File;
 
@@ -11,28 +16,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file received.' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const fileData = await file.arrayBuffer();
+    const timestamp = Date.now();
+    const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const filePath = `${timestamp}-${sanitized}`;
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from(BUCKET_NAME)
+      .upload(filePath, Buffer.from(fileData), { contentType: file.type, upsert: true });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      return NextResponse.json({ error: 'Failed to upload file to Supabase Storage.' }, { status: 500 });
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
-    const filename = `${timestamp}.${extension}`;
-    const filepath = join(uploadsDir, filename);
+    const publicUrlResponse = supabaseAdmin.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(filePath);
 
-    await writeFile(filepath, buffer);
+    if (!publicUrlResponse.data?.publicUrl) {
+      console.error('Supabase public url response invalid:', publicUrlResponse);
+      return NextResponse.json({ error: 'Failed to generate public URL.' }, { status: 500 });
+    }
 
-    const url = `/uploads/${filename}`;
-
-    return NextResponse.json({ url });
+    return NextResponse.json({ url: publicUrlResponse.data.publicUrl });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Failed to upload file.' }, { status: 500 });
