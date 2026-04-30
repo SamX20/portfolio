@@ -1317,6 +1317,7 @@ export default function AdminPage() {
                           id: Date.now().toString(),
                           name: 'Facebook',
                           url: '',
+                          icon: '',
                           sort_order: socials.length
                         };
                         const updatedSocials = [...socials, newSocial];
@@ -1332,9 +1333,19 @@ export default function AdminPage() {
                       const icons: Record<string, string> = { Facebook: '📘', Instagram: '📸', LinkedIn: '💼', YouTube: '▶️' };
                       return (
                         <div key={s.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                          <span className="text-2xl flex-shrink-0">{icons[s.name] || '🔗'}</span>
-                          <div className="flex-1">
-                            <p className="text-white font-semibold text-sm mb-2">{s.name}</p>
+                          <span className="text-2xl flex-shrink-0">
+                        {s.icon ? (
+                          s.icon.startsWith('/') || s.icon.startsWith('http') ? (
+                            <img src={s.icon} alt={s.name} className="w-8 h-8 object-contain rounded-full" />
+                          ) : (
+                            <span>{s.icon}</span>
+                          )
+                        ) : (
+                          icons[s.name] || '🔗'
+                        )}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-white font-semibold text-sm mb-2">{s.name}</p>
                             <input
                               type="url"
                               value={s.url}
