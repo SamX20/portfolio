@@ -222,6 +222,10 @@ export default function AdminPage() {
     { id: '2', name: 'فاطمة علي', company: 'مدرسة الرياض', content: 'ساعدنا في إنتاج فيديوهات تعليمية ممتازة للطلاب. المونتاج احترافي والمحتوى جذاب.', rating: 5 },
   ]);
   const [sections, setSections] = useState({
+    global: {
+      site_title: 'Portfolio',
+      logo: ''
+    },
     hero: {
       title: 'مرحباً، أنا محمد علي',
       subtitle: 'مصمم ومحرر فيديو احترافي',
@@ -294,6 +298,10 @@ export default function AdminPage() {
         return acc;
       }, {});
       setSections({
+        global: {
+          site_title: sectionsData.global?.site_title || 'Portfolio',
+          logo: sectionsData.global?.logo || ''
+        },
         hero: {
           title: sectionsData.hero?.title || 'مرحباً، أنا محمد علي',
           subtitle: sectionsData.hero?.subtitle || 'مصمم ومحرر فيديو احترافي',
@@ -451,7 +459,7 @@ export default function AdminPage() {
       showToast('Supabase غير متوفر؛ لا يمكن حفظ الرابط عالماً', 'error');
       return;
     }
-    await supabase.from('social_links').update({ url: s.url }).eq('id', s.id);
+    await supabase.from('social_links').update({ url: s.url, icon: s.icon }).eq('id', s.id);
     showToast('تم حفظ الرابط ✓');
     fetchAll();
   };
@@ -497,6 +505,9 @@ export default function AdminPage() {
     }
 
     const sectionsToSave = [
+      // Global section
+      { id: 'global-site_title', section: 'global', key: 'site_title', value: sections.global.site_title },
+      { id: 'global-logo', section: 'global', key: 'logo', value: sections.global.logo },
       // Hero section
       { id: 'hero-title', section: 'hero', key: 'title', value: sections.hero.title },
       { id: 'hero-subtitle', section: 'hero', key: 'subtitle', value: sections.hero.subtitle },
@@ -899,6 +910,38 @@ export default function AdminPage() {
                   <h2 className="text-white font-bold text-lg mb-5">إدارة الأقسام</h2>
                   <p className="text-gray-600 text-sm mb-6">تحكم في محتوى الأقسام المختلفة في الصفحة الرئيسية</p>
 
+                  {/* Global Section */}
+                  <div className="mb-8">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <span className="text-xl">🌐</span>
+                      إعدادات عامة
+                    </h3>
+                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelCls}>عنوان الموقع</label>
+                          <input
+                            type="text"
+                            value={sections.global.site_title}
+                            onChange={e => setSections(prev => ({ ...prev, global: { ...prev.global, site_title: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="Portfolio"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>الشعار (إيموجي أو رمز)</label>
+                          <input
+                            type="text"
+                            value={sections.global.logo}
+                            onChange={e => setSections(prev => ({ ...prev, global: { ...prev.global, logo: e.target.value } }))}
+                            className={inputCls}
+                            placeholder="🎬"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Hero Section */}
                   <div className="mb-8">
                     <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
@@ -1260,6 +1303,13 @@ export default function AdminPage() {
                               onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, url: v } : x)); }}
                               placeholder="https://..."
                               className={inputCls}
+                            />
+                            <input
+                              type="text"
+                              value={s.icon || ''}
+                              onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, icon: v } : x)); }}
+                              placeholder="أيقونة (إيموجي أو رمز)"
+                              className={`${inputCls} mt-2`}
                             />
                           </div>
                           <button

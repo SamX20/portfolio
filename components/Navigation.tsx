@@ -4,8 +4,13 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useDisableMotion from '@/lib/useDisableMotion';
+import { SectionsData } from '@/types';
 
-export default function Navigation() {
+interface NavigationProps {
+  sections?: SectionsData;
+}
+
+export default function Navigation({ sections }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
@@ -56,12 +61,13 @@ export default function Navigation() {
           {/* Logo */}
           <Link href="/">
             <motion.div
-              className="text-xl font-black cursor-pointer relative"
+              className="text-xl font-black cursor-pointer relative flex items-center gap-2"
               whileHover={!disableMotion ? { scale: 1.05 } : undefined}
               whileTap={!disableMotion ? { scale: 0.97 } : undefined}
             >
+              <span className="text-purple-400 text-2xl">🎬</span>
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                Portfolio
+                {sections?.global?.site_title || 'Portfolio'}
               </span>
               <motion.div
                 className="absolute -bottom-1 right-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-400"

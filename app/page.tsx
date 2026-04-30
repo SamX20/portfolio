@@ -89,6 +89,10 @@ async function loadHomeData() {
   }, {});
 
   const sections: SectionsData = {
+    global: {
+      site_title: sectionsMap.global?.site_title || 'Portfolio',
+      logo: sectionsMap.global?.logo || ''
+    },
     hero: {
       title: sectionsMap.hero?.title || 'مرحباً، أنا محمد علي',
       subtitle: sectionsMap.hero?.subtitle || 'مصمم ومحرر فيديو احترافي',
@@ -159,7 +163,7 @@ export default function Home() {
 
   return (
     <main>
-      <Navigation />
+      <Navigation sections={sections} />
       <Hero profile={profile} sections={sections} />
       <Skills skills={skills} />
       <Testimonials testimonials={testimonials} />

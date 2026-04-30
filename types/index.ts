@@ -33,6 +33,7 @@ export interface SocialLink {
   id: string;
   name: string;
   url: string;
+  icon?: string;
   sort_order: number;
 }
 
@@ -68,6 +69,10 @@ export interface Testimonial {
 }
 
 export interface SectionsData {
+  global: {
+    site_title: string;
+    logo: string;
+  };
   hero: {
     title: string;
     subtitle: string;

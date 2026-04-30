@@ -72,14 +72,15 @@ create table if not exists social_links (
   id         text primary key,
   name       text not null,
   url        text not null default '#',
+  icon       text default '',
   sort_order integer default 0
 );
 
-insert into social_links (id, name, url, sort_order) values
-  ('facebook',  'Facebook',  '#', 1),
-  ('instagram', 'Instagram', '#', 2),
-  ('linkedin',  'LinkedIn',  '#', 3),
-  ('youtube',   'YouTube',   '#', 4)
+insert into social_links (id, name, url, icon, sort_order) values
+  ('facebook',  'Facebook',  '#', '📘', 1),
+  ('instagram', 'Instagram', '#', '📷', 2),
+  ('linkedin',  'LinkedIn',  '#', '💼', 3),
+  ('youtube',   'YouTube',   '#', '📺', 4)
 on conflict (id) do nothing;
 
 -- 5. جدول الأقسام (Hero, About, Footer)
@@ -92,17 +93,19 @@ create table if not exists sections (
 );
 
 insert into sections (id, section, key, value) values
-  ('hero-title',       'hero', 'title',       'مرحباً، أنا محمد علي'),
-  ('hero-subtitle',    'hero', 'subtitle',    'مصمم ومحرر فيديو احترافي'),
-  ('hero-description', 'hero', 'description', 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.'),
-  ('hero-cta_text',    'hero', 'cta_text',    'شاهد أعمالي'),
-  ('hero-cta_link',    'hero', 'cta_link',    '#portfolio'),
-  ('about-title',      'about', 'title',      'من أنا'),
-  ('about-content',    'about', 'content',    'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك.'),
-  ('about-exp_years',  'about', 'experience_years', '5+'),
-  ('about-proj_comp',  'about', 'projects_completed', '100+'),
-  ('footer-copyright', 'footer', 'copyright', '© 2024 محمد علي. جميع الحقوق محفوظة.'),
-  ('footer-tagline',   'footer', 'tagline',   'نصنع المحتوى الذي يتحدث عن نفسه')
+  ('global-site_title', 'global', 'site_title', 'Portfolio'),
+  ('global-logo',       'global', 'logo',       ''),
+  ('hero-title',        'hero', 'title',        'مرحباً، أنا محمد علي'),
+  ('hero-subtitle',     'hero', 'subtitle',     'مصمم ومحرر فيديو احترافي'),
+  ('hero-description',  'hero', 'description',  'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.'),
+  ('hero-cta_text',     'hero', 'cta_text',     'شاهد أعمالي'),
+  ('hero-cta_link',     'hero', 'cta_link',     '#portfolio'),
+  ('about-title',       'about', 'title',       'من أنا'),
+  ('about-content',     'about', 'content',     'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك.'),
+  ('about-exp_years',   'about', 'experience_years', '5+'),
+  ('about-proj_comp',   'about', 'projects_completed', '100+'),
+  ('footer-copyright',  'footer', 'copyright',  '© 2024 محمد علي. جميع الحقوق محفوظة.'),
+  ('footer-tagline',    'footer', 'tagline',    'نصنع المحتوى الذي يتحدث عن نفسه')
 on conflict (id) do nothing;
 
 -- 6. جدول الملف الشخصي

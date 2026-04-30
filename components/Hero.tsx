@@ -13,6 +13,9 @@ interface HeroProps {
     resume: string;
   };
   sections?: {
+    global?: {
+      logo: string;
+    };
     hero: {
       title: string;
       subtitle: string;
@@ -121,6 +124,15 @@ export default function Hero({ profile, sections }: HeroProps) {
             ✨ {heroSubtitle}
           </span>
         </motion.div>
+
+        {/* Logo */}
+        {sections?.global?.logo && (
+          <motion.div className="mb-8" variants={itemVariants}>
+            <div className="text-6xl md:text-8xl">
+              {sections.global.logo}
+            </div>
+          </motion.div>
+        )}
 
         {/* Main Heading */}
         <motion.h1

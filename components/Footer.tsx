@@ -7,6 +7,9 @@ import { SocialLink } from '@/types';
 
 interface FooterProps {
   sections?: {
+    global?: {
+      site_title: string;
+    };
     footer: {
       copyright: string;
       tagline: string;
@@ -74,7 +77,7 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
           {/* Brand */}
           <motion.div variants={itemVariants}>
             <h3 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-3">
-              Portfolio
+              {sections?.global?.site_title || 'Portfolio'}
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed">
               {tagline}
@@ -113,7 +116,7 @@ export default function Footer({ sections, socialLinks = [] }: FooterProps) {
                   whileHover={!disableMotion ? { scale: 1.12, y: -3 } : undefined}
                   whileTap={!disableMotion ? { scale: 0.93 } : undefined}
                 >
-                  {getSocialIcon(social.name)}
+                  {social.icon ? <span className="text-lg">{social.icon}</span> : getSocialIcon(social.name)}
                 </motion.a>
               ))}
             </div>
