@@ -1,13 +1,26 @@
+export type Locale = 'en' | 'ar';
+
+export type ProjectCategory =
+  | 'motion-design'
+  | 'social-ads'
+  | 'brand-films'
+  | 'explainer'
+  | 'video-editing';
+
 export interface Project {
   id: string;
   title: string;
+  title_ar?: string;
   description: string;
-  category: 'video-editing' | 'motion-design' | 'promotional' | 'commercial';
+  description_ar?: string;
+  category: ProjectCategory;
+  client?: string;
+  role?: string;
   year: number;
   duration?: string;
   technologies: string[];
-  video_url?: string; // رابط مباشر أو embed URL
-  embed_code?: string; // كود الـ embed الكامل
+  video_url?: string;
+  embed_code?: string;
   thumbnail?: string;
   featured: boolean;
   sort_order: number;
@@ -72,6 +85,7 @@ export interface SectionsData {
   global: {
     site_title: string;
     logo: string;
+    language?: Locale;
   };
   hero: {
     title: string;
@@ -79,22 +93,29 @@ export interface SectionsData {
     description: string;
     cta_text: string;
     cta_link: string;
+    title_ar?: string;
+    subtitle_ar?: string;
+    description_ar?: string;
   };
   about: {
     title: string;
     content: string;
     experience_years: string;
     projects_completed: string;
+    title_ar?: string;
+    content_ar?: string;
   };
   footer: {
     copyright: string;
     tagline: string;
+    tagline_ar?: string;
   };
 }
 
 export const CATEGORIES = [
-  { value: 'video-editing',  label: 'تحرير فيديو' },
-  { value: 'motion-design',  label: 'موشن ديزاين' },
-  { value: 'promotional',    label: 'ترويجي' },
-  { value: 'commercial',     label: 'تجاري' },
+  { value: 'motion-design', label: 'Motion Design', labelAr: 'موشن ديزاين' },
+  { value: 'social-ads', label: 'Social Ads', labelAr: 'إعلانات السوشيال' },
+  { value: 'brand-films', label: 'Brand Films', labelAr: 'أفلام العلامات' },
+  { value: 'explainer', label: 'Explainers', labelAr: 'فيديوهات شرح' },
+  { value: 'video-editing', label: 'Video Editing', labelAr: 'مونتاج فيديو' },
 ] as const;

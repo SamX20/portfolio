@@ -1,0 +1,153 @@
+import { NextResponse } from 'next/server';
+import { isAdminAuthed } from '@/lib/adminAuth';
+import { supabaseAdmin } from '@/lib/supabase';
+
+const TABLES = new Set([
+  'projects',
+  'stats',
+  'contact_info',
+  'social_links',
+  'skills',
+  'testimonials',
+]);
+
+async function requireAdmin() {
+  if (!(await isAdminAuthed())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!supabaseAdmin) {
+    return NextResponse.json(
+      { error: 'Supabase service role key is not configured.' },
+      { status: 500 },
+    );
+  }
+
+  return null;
+}
+
+export async function GET() {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
+  const [projects, stats, contacts, socials, sections, profile, skills, testimonials] =
+    await Promise.all([
+      supabaseAdmin!.from('projects').select('*').order('sort_order'),
+      supabaseAdmin!.from('stats').select('*'),
+      supabaseAdmin!.from('contact_info').select('*'),
+      supabaseAdmin!.from('social_links').select('*').order('sort_order'),
+      supabaseAdmin!.from('sections').select('*'),
+      supabaseAdmin!.from('profile').select('*').eq('id', 'main').single(),
+      supabaseAdmin!.from('skills').select('*'),
+      supabaseAdmin!.from('testimonials').select('*'),
+    ]);
+
+  const error =
+    projects.error ||
+    stats.error ||
+    contacts.error ||
+    socials.error ||
+    sections.error ||
+    profile.error ||
+    skills.error ||
+    testimonials.error;
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    projects: projects.data || [],
+    stats: stats.data || [],
+    contacts: contacts.data || [],
+    socials: socials.data || [],
+    sections: sections.data || [],
+    profile: profile.data || null,
+    skills: skills.data || [],
+    testimonials: testimonials.data || [],
+  });
+}
+
+export async function POST(request: Request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
+  const body = await request.json();
+  const table = String(body.table || '');
+  const record = body.record as Record<string, unknown> | undefined;
+
+  if (!TABLES.has(table) || !record) {
+    return NextResponse.json({ error: 'Invalid table or record.' }, { status: 400 });
+  }
+
+  const payload = {
+    ...record,
+    updated_at: table === 'projects' ? new Date().toISOString() : undefined,
+  };
+
+  const { data, error } = await supabaseAdmin!
+    .from(table)
+    .upsert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ data });
+}
+
+export async function PUT(request: Request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
+  const body = await request.json();
+  const profile = body.profile as Record<string, unknown> | undefined;
+  const sections = body.sections as Record<string, Record<string, string>> | undefined;
+
+  if (profile) {
+    const { error } = await supabaseAdmin!
+      .from('profile')
+      .upsert({ id: 'main', ...profile });
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (sections) {
+    const rows = Object.entries(sections).flatMap(([section, values]) =>
+      Object.entries(values || {}).map(([key, value]) => ({
+        id: `${section}-${key}`.replace(/_/g, '-'),
+        section,
+        key,
+        value: String(value ?? ''),
+      })),
+    );
+
+    const { error } = await supabaseAdmin!.from('sections').upsert(rows);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(request: Request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
+  const body = await request.json();
+  const table = String(body.table || '');
+  const id = String(body.id || '');
+
+  if (!TABLES.has(table) || !id) {
+    return NextResponse.json({ error: 'Invalid table or id.' }, { status: 400 });
+  }
+
+  const { error } = await supabaseAdmin!.from(table).delete().eq('id', id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

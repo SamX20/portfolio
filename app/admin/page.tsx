@@ -1,1408 +1,609 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/lib/supabase';
-import { Project, Stat, ContactInfo, SocialLink, CATEGORIES } from '@/types';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { CATEGORIES, ContactInfo, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
+import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123';
+type Tab = 'content' | 'projects' | 'contacts' | 'skills';
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-const fade = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
-
-const inputCls =
-  'w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/70 focus:ring-1 focus:ring-purple-500/30 transition-all';
-
-const labelCls = 'block text-xs font-semibold text-gray-400 mb-1.5';
-
-// ─── Upload Function ──────────────────────────────────────────────────────────
-const uploadFile = async (file: File): Promise<string | null> => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.url;
-    } else {
-      console.error('Upload failed');
-      return null;
-    }
-  } catch (error) {
-    console.error('Upload error:', error);
-    return null;
-  }
-};
-
-// ─── Login Screen ──────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }: { onLogin: () => void }) {
-  const [pw, setPw] = useState('');
-  const [err, setErr] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      if (pw === ADMIN_PASSWORD) {
-        sessionStorage.setItem('admin_auth', '1');
-        onLogin();
-      } else {
-        setErr(true);
-        setLoading(false);
-      }
-    }, 600);
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0f' }}>
-      <motion.div
-        className="w-full max-w-sm p-8 rounded-2xl border border-white/8"
-        style={{ background: 'rgba(255,255,255,0.03)' }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="text-center mb-8">
-          <div className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-2">
-            تسجيل دخول لإدارة الصفحة
-          </div>
-          <p className="text-gray-500 text-sm">لوحة التحكم</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className={labelCls}>كلمة السر</label>
-            <input
-              type="password"
-              value={pw}
-              onChange={e => { setPw(e.target.value); setErr(false); }}
-              placeholder="••••••••"
-              className={`${inputCls} ${err ? 'border-red-500/60' : ''}`}
-              autoFocus
-            />
-            {err && <p className="text-red-400 text-xs mt-1.5">كلمة السر غير صحيحة</p>}
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !pw}
-            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-bold text-white text-sm disabled:opacity-50 hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-          >
-            {loading ? 'جاري التحقق...' : 'دخول'}
-          </button>
-        </form>
-      </motion.div>
-    </div>
-  );
+interface AdminData {
+  projects: Project[];
+  stats: Stat[];
+  contacts: ContactInfo[];
+  socials: SocialLink[];
+  skills: Skill[];
+  profile: Profile;
+  sections: SectionsData;
 }
 
-// ─── Project Form Modal ────────────────────────────────────────────────────────
-function ProjectModal({
-  project,
-  onSave,
-  onClose,
-}: {
-  project: Partial<Project> | null;
-  onSave: () => void;
-  onClose: () => void;
-}) {
-  const isNew = !project?.id;
-  const [form, setForm] = useState<Partial<Project>>({
-    title: '', description: '', category: 'video-editing',
-    year: new Date().getFullYear(), duration: '',
-    technologies: [], featured: false, sort_order: 0,
-    video_url: '', ...project,
+const emptyProject: Project = {
+  id: '',
+  title: '',
+  title_ar: '',
+  description: '',
+  description_ar: '',
+  category: 'motion-design',
+  client: '',
+  role: '',
+  year: new Date().getFullYear(),
+  duration: '',
+  technologies: [],
+  video_url: '',
+  embed_code: '',
+  thumbnail: '',
+  featured: false,
+  sort_order: 0,
+};
+
+function mapSections(rows: { section: string; key: string; value: string }[] = []): SectionsData {
+  const map = rows.reduce<Record<string, Record<string, string>>>((acc, item) => {
+    acc[item.section] = acc[item.section] || {};
+    acc[item.section][item.key] = item.value;
+    return acc;
+  }, {});
+
+  return {
+    global: { ...defaultSections.global, ...map.global },
+    hero: { ...defaultSections.hero, ...map.hero },
+    about: { ...defaultSections.about, ...map.about },
+    footer: { ...defaultSections.footer, ...map.footer },
+  };
+}
+
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers || {}),
+    },
   });
-  const [techInput, setTechInput] = useState(form.technologies?.join(', ') || '');
-  const [saving, setSaving] = useState(false);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
 
-  const set = (k: keyof Project, v: unknown) => setForm(p => ({ ...p, [k]: v }));
-
-  const handleSave = async () => {
-    if (!supabase) {
-      alert('Supabase غير مكوّن');
-      return;
-    }
-    setSaving(true);
-    const payload = {
-      ...form,
-      technologies: techInput.split(',').map(t => t.trim()).filter(Boolean),
-      updated_at: new Date().toISOString(),
-    };
-    if (isNew) {
-      delete payload.id;
-      await supabase.from('projects').insert(payload);
-    } else {
-      await supabase.from('projects').update(payload).eq('id', form.id!);
-    }
-    setSaving(false);
-    onSave();
-  };
+function Field({
+  label,
+  value,
+  onChange,
+  textarea,
+  type = 'text',
+  placeholder,
+}: {
+  label: string;
+  value: string | number | undefined;
+  onChange: (value: string) => void;
+  textarea?: boolean;
+  type?: string;
+  placeholder?: string;
+}) {
+  const className =
+    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#f2ff5e]/70';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}>
-      <motion.div
-        className="w-full max-w-lg rounded-2xl border border-white/8 overflow-hidden"
-        style={{ background: '#13131f' }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/6">
-          <h3 className="font-bold text-white text-base">{isNew ? 'إضافة مشروع جديد' : 'تعديل المشروع'}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors text-xl leading-none">×</button>
-        </div>
-        {/* Body */}
-        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <label className={labelCls}>عنوان المشروع *</label>
-              <input type="text" value={form.title} onChange={e => set('title', e.target.value)} placeholder="عنوان المشروع" className={inputCls} />
-            </div>
-            <div className="col-span-2">
-              <label className={labelCls}>الوصف *</label>
-              <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} placeholder="وصف المشروع" className={`${inputCls} resize-none`} />
-            </div>
-            <div>
-              <label className={labelCls}>التصنيف *</label>
-              <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls} style={{ appearance: 'none' }}>
-                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>السنة</label>
-              <input type="number" value={form.year} onChange={e => set('year', +e.target.value)} className={inputCls} min={2000} max={2099} />
-            </div>
-            <div>
-              <label className={labelCls}>المدة</label>
-              <input type="text" value={form.duration} onChange={e => set('duration', e.target.value)} placeholder="مثال: 2 دقيقة" className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>الترتيب</label>
-              <input type="number" value={form.sort_order} onChange={e => set('sort_order', +e.target.value)} className={inputCls} min={0} />
-            </div>
-            <div className="col-span-2">
-              <label className={labelCls}>التقنيات (مفصولة بفاصلة)</label>
-              <input type="text" value={techInput} onChange={e => setTechInput(e.target.value)} placeholder="After Effects, Premiere Pro, Cinema 4D" className={inputCls} />
-            </div>
-            <div className="col-span-2">
-              <label className={labelCls}>رابط الفيديو (اختياري)</label>
-              <input type="url" value={form.video_url} onChange={e => set('video_url', e.target.value)} placeholder="https://..." className={inputCls} />
-            </div>
-            <div className="col-span-2 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => set('featured', !form.featured)}
-                className={`w-11 h-6 rounded-full transition-all duration-300 relative ${form.featured ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-white/10'}`}
-              >
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300 ${form.featured ? 'right-0.5' : 'left-0.5'}`} />
-              </button>
-              <label className="text-sm text-gray-300 cursor-pointer" onClick={() => set('featured', !form.featured)}>مشروع مميز ⭐</label>
-            </div>
-          </div>
-        </div>
-        {/* Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-white/6">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-gray-400 text-sm hover:bg-white/5 transition-all">إلغاء</button>
-          <button
-            onClick={handleSave}
-            disabled={saving || !form.title || !form.description}
-            className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm disabled:opacity-50 hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-          >
-            {saving ? 'جاري الحفظ...' : isNew ? 'إضافة المشروع' : 'حفظ التعديلات'}
-          </button>
-        </div>
-      </motion.div>
-    </div>
+    <label className="block">
+      <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{label}</span>
+      {textarea ? (
+        <textarea value={value || ''} onChange={(event) => onChange(event.target.value)} rows={4} placeholder={placeholder} className={`${className} resize-none`} />
+      ) : (
+        <input value={value || ''} onChange={(event) => onChange(event.target.value)} type={type} placeholder={placeholder} className={className} />
+      )}
+    </label>
   );
 }
 
-// ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
-  const [tab, setTab] = useState<'profile' | 'projects' | 'stats' | 'contact' | 'social' | 'skills' | 'testimonials' | 'sections'>('profile');
+  const [configured, setConfigured] = useState(true);
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState<Tab>('content');
+  const [toast, setToast] = useState('');
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [data, setData] = useState<AdminData>({
+    projects: defaultProjects,
+    stats: defaultStats,
+    contacts: defaultContacts,
+    socials: defaultSocials,
+    skills: defaultSkills,
+    profile: defaultProfile,
+    sections: defaultSections,
+  });
 
-  // Data
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [stats, setStats] = useState<Stat[]>([]);
-  const [contacts, setContacts] = useState<ContactInfo[]>([]);
-  const [socials, setSocials] = useState<SocialLink[]>([]);
-  const [skills, setSkills] = useState([
-    { id: '1', name: 'Adobe After Effects', level: 95, category: 'motion-design' },
-    { id: '2', name: 'Adobe Premiere Pro', level: 90, category: 'video-editing' },
-    { id: '3', name: 'Adobe Photoshop', level: 85, category: 'design' },
-    { id: '4', name: 'Cinema 4D', level: 80, category: '3d-modeling' },
-    { id: '5', name: 'NanoBanana 2', level: 80, category: 'AI-tools' },
-  ]);
-  const [testimonials, setTestimonials] = useState([
-    { id: '1', name: 'أحمد محمد', company: 'شركة الإعلانات المتحدة', content: 'عمل رائع جداً في تصميم الفيديو الترويجي لمنتجاتنا. الجودة عالية والإبداع واضح.', rating: 5 },
-    { id: '2', name: 'فاطمة علي', company: 'مدرسة الرياض', content: 'ساعدنا في إنتاج فيديوهات تعليمية ممتازة للطلاب. المونتاج احترافي والمحتوى جذاب.', rating: 5 },
-  ]);
-  const [sections, setSections] = useState({
-    global: {
-      site_title: 'Portfolio',
-      logo: ''
-    },
-    hero: {
-      title: 'مرحباً، أنا محمد علي',
-      subtitle: 'مصمم ومحرر فيديو احترافي',
-      description: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
-      cta_text: 'شاهد أعمالي',
-      cta_link: '#portfolio'
-    },
-    about: {
-      title: 'من أنا',
-      content: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك.',
-      experience_years: '5+',
-      projects_completed: '100+'
-    },
-    footer: {
-      copyright: '© 2024 محمد علي. جميع الحقوق محفوظة.',
-      tagline: 'نصنع المحتوى الذي يتحدث عن نفسه'
+  const notify = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(''), 3200);
+  };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api<{
+        projects: Project[];
+        stats: Stat[];
+        contacts: ContactInfo[];
+        socials: SocialLink[];
+        skills: Skill[];
+        profile: Profile | null;
+        sections: { section: string; key: string; value: string }[];
+      }>('/api/admin/data');
+
+      setData({
+        projects: response.projects.length ? response.projects : defaultProjects,
+        stats: response.stats.length ? response.stats : defaultStats,
+        contacts: response.contacts.length ? response.contacts : defaultContacts,
+        socials: response.socials.length ? response.socials : defaultSocials,
+        skills: response.skills.length ? response.skills : defaultSkills,
+        profile: response.profile || defaultProfile,
+        sections: mapSections(response.sections),
+      });
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Could not load admin data');
+    } finally {
+      setLoading(false);
     }
-  });
-  const [profile, setProfile] = useState({
-    name: 'محمد علي',
-    title: 'مصمم ومحرر فيديو احترافي',
-    description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك بأحدث التقنيات.',
-    avatar: '',
-    resume: ''
-  });
-  const [loading, setLoading] = useState(true);
-
-  // UI state
-  const [projectModal, setProjectModal] = useState<Partial<Project> | null | false>(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  }, []);
 
   useEffect(() => {
-    if (sessionStorage.getItem('admin_auth') === '1') setAuthed(true);
-  }, []);
+    api<{ authed: boolean; configured: boolean }>('/api/admin/session')
+      .then((session) => {
+        setAuthed(session.authed);
+        setConfigured(session.configured);
+        if (session.authed) return load();
+      })
+      .finally(() => setLoading(false));
+  }, [load]);
 
-
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const fetchAll = useCallback(async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const [p, s, c, so, sec, prof, sk, test] = await Promise.all([
-      supabase.from('projects').select('*').order('sort_order'),
-      supabase.from('stats').select('*'),
-      supabase.from('contact_info').select('*'),
-      supabase.from('social_links').select('*').order('sort_order'),
-      supabase.from('sections').select('*'),
-      supabase.from('profile').select('*').eq('id', 'main').single(),
-      supabase.from('skills').select('*'),
-      supabase.from('testimonials').select('*'),
-    ]);
-
-    if (p.data) setProjects(p.data);
-    if (s.data) setStats(s.data);
-    if (c.data) setContacts(c.data);
-    if (so.data) setSocials(so.data);
-
-    // Load sections data
-    if (sec.data) {
-      const sectionsData = sec.data.reduce((acc: any, item: any) => {
-        if (!acc[item.section]) acc[item.section] = {};
-        acc[item.section][item.key] = item.value;
-        return acc;
-      }, {});
-      setSections({
-        global: {
-          site_title: sectionsData.global?.site_title || 'Portfolio',
-          logo: sectionsData.global?.logo || ''
-        },
-        hero: {
-          title: sectionsData.hero?.title || 'مرحباً، أنا محمد علي',
-          subtitle: sectionsData.hero?.subtitle || 'مصمم ومحرر فيديو احترافي',
-          description: sectionsData.hero?.description || 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
-          cta_text: sectionsData.hero?.cta_text || 'شاهد أعمالي',
-          cta_link: sectionsData.hero?.cta_link || '#portfolio'
-        },
-        about: {
-          title: sectionsData.about?.title || 'من أنا',
-          content: sectionsData.about?.content || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-          experience_years: sectionsData.about?.experience_years || '5+',
-          projects_completed: sectionsData.about?.projects_completed || '100+'
-        },
-        footer: {
-          copyright: sectionsData.footer?.copyright || '© 2024 محمد علي. جميع الحقوق محفوظة.',
-          tagline: sectionsData.footer?.tagline || 'نصنع المحتوى الذي يتحدث عن نفسه'
-        }
+  const login = async (event: FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await api('/api/admin/session', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
       });
+      setAuthed(true);
+      await load();
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Login failed');
+    } finally {
+      setSaving(false);
     }
+  };
 
-    // Load profile data
-    if (prof.data) {
-      setProfile({
-        name: prof.data.name || 'محمد علي',
-        title: prof.data.title || 'مصمم ومحرر فيديو احترافي',
-        description: prof.data.description || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-        avatar: prof.data.avatar || '',
-        resume: prof.data.resume || ''
+  const saveContent = async () => {
+    setSaving(true);
+    try {
+      await api('/api/admin/data', {
+        method: 'PUT',
+        body: JSON.stringify({ profile: data.profile, sections: data.sections }),
       });
+      notify('Main page saved');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Save failed');
+    } finally {
+      setSaving(false);
     }
-
-    // Load skills data
-    if (sk.data) setSkills(sk.data);
-
-    // Load testimonials data
-    if (test.data) setTestimonials(test.data);
-
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { if (authed) fetchAll(); }, [authed, fetchAll]);
-
-  const deleteProject = async (id: string) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حذف المشروع عالماً', 'error');
-      setDeleteConfirm(null);
-      return;
-    }
-    await supabase.from('projects').delete().eq('id', id);
-    setDeleteConfirm(null);
-    showToast('تم حذف المشروع');
-    fetchAll();
   };
 
-  const deleteStat = async (id: string) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حذف الإحصائية عالماً', 'error');
-      setDeleteConfirm(null);
-      return;
-    }
-    await supabase.from('stats').delete().eq('id', id);
-    setDeleteConfirm(null);
-    showToast('تم حذف الإحصائية');
-    fetchAll();
-  };
-
-  const deleteContact = async (id: string) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حذف معلومات التواصل عالماً', 'error');
-      setDeleteConfirm(null);
-      return;
-    }
-    await supabase.from('contact_info').delete().eq('id', id);
-    setDeleteConfirm(null);
-    showToast('تم حذف معلومات التواصل');
-    fetchAll();
-  };
-
-  const deleteSocial = async (id: string) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حذف الرابط عالماً', 'error');
-      setDeleteConfirm(null);
-      return;
-    }
-    await supabase.from('social_links').delete().eq('id', id);
-    setDeleteConfirm(null);
-    showToast('تم حذف الرابط');
-    fetchAll();
-  };
-
-  const addProject = () => {
-    setProjectModal({
-      title: '', description: '', category: 'video-editing',
-      year: new Date().getFullYear(), duration: '',
-      technologies: [], featured: false, sort_order: 0,
-      video_url: '',
+  const saveRecord = async (table: string, record: object) => {
+    await api('/api/admin/data', {
+      method: 'POST',
+      body: JSON.stringify({ table, record }),
     });
   };
 
-  const addStat = () => {
-    const newStat: Stat = {
-      id: Date.now().toString(),
-      value: '0',
-      label: 'إحصائية جديدة',
-    };
-    setStats([...stats, newStat]);
-    showToast('تمت إضافة إحصائية جديدة');
-  };
-
-  const addContact = () => {
-    const newContact: ContactInfo = {
-      id: Date.now().toString(),
-      icon: '📧',
-      title: 'معلومات تواصل جديدة',
-      content: '',
-      href: '',
-    };
-    setContacts([...contacts, newContact]);
-    showToast('تمت إضافة معلومات تواصل جديدة');
-  };
-
-  const addSocial = () => {
-    const newSocial: SocialLink = {
-      id: Date.now().toString(),
-      name: 'Facebook',
-      url: '',
-      sort_order: socials.length,
-    };
-    setSocials([...socials, newSocial]);
-    showToast('تمت إضافة رابط جديد');
-  };
-
-  const saveStat = async (s: Stat) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ الإحصائية عالماً', 'error');
-      return;
-    }
-    await supabase.from('stats').update({ value: s.value, label: s.label }).eq('id', s.id);
-    showToast('تم حفظ الإحصائية ✓');
-    fetchAll();
-  };
-
-  const saveContact = async (c: ContactInfo) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ معلومات التواصل عالماً', 'error');
-      return;
-    }
-    await supabase.from('contact_info').update(c).eq('id', c.id);
-    showToast('تم حفظ معلومات التواصل ✓');
-    fetchAll();
-  };
-
-  const saveSocial = async (s: SocialLink) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ الرابط عالماً', 'error');
-      return;
-    }
-    await supabase.from('social_links').update({ url: s.url, icon: s.icon }).eq('id', s.id);
-    showToast('تم حفظ الرابط ✓');
-    fetchAll();
-  };
-
-  const saveProfile = async () => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ الملف الشخصي عالماً', 'error');
-      return;
-    }
-    await supabase.from('profile').upsert({
-      id: 'main',
-      name: profile.name,
-      title: profile.title,
-      description: profile.description,
-      avatar: profile.avatar,
-      resume: profile.resume
+  const deleteRecord = async (table: string, id: string) => {
+    await api('/api/admin/data', {
+      method: 'DELETE',
+      body: JSON.stringify({ table, id }),
     });
-    showToast('تم حفظ الملف الشخصي ✓');
   };
 
-  const saveSkill = async (skill: any) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ المهارة عالماً', 'error');
-      return;
-    }
-    await supabase.from('skills').upsert(skill);
-    showToast('تم حفظ المهارة ✓');
+  const uploadFile = async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await fetch('/api/upload', { method: 'POST', body: form });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Upload failed');
+    return result.url as string;
   };
 
-  const saveTestimonial = async (testimonial: any) => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ الشهادة عالماً', 'error');
-      return;
-    }
-    await supabase.from('testimonials').upsert(testimonial);
-    showToast('تم حفظ الشهادة ✓');
+  const setProfile = (key: keyof Profile, value: string) => {
+    setData((current) => ({ ...current, profile: { ...current.profile, [key]: value } }));
   };
 
-  const saveSections = async () => {
-    if (!supabase) {
-      showToast('Supabase غير متوفر؛ لا يمكن حفظ الأقسام عالماً', 'error');
-      return;
-    }
-
-    const sectionsToSave = [
-      // Global section
-      { id: 'global-site_title', section: 'global', key: 'site_title', value: sections.global.site_title },
-      { id: 'global-logo', section: 'global', key: 'logo', value: sections.global.logo },
-      // Hero section
-      { id: 'hero-title', section: 'hero', key: 'title', value: sections.hero.title },
-      { id: 'hero-subtitle', section: 'hero', key: 'subtitle', value: sections.hero.subtitle },
-      { id: 'hero-description', section: 'hero', key: 'description', value: sections.hero.description },
-      { id: 'hero-cta_text', section: 'hero', key: 'cta_text', value: sections.hero.cta_text },
-      { id: 'hero-cta_link', section: 'hero', key: 'cta_link', value: sections.hero.cta_link },
-      // About section
-      { id: 'about-title', section: 'about', key: 'title', value: sections.about.title },
-      { id: 'about-content', section: 'about', key: 'content', value: sections.about.content },
-      { id: 'about-exp_years', section: 'about', key: 'experience_years', value: sections.about.experience_years },
-      { id: 'about-proj_comp', section: 'about', key: 'projects_completed', value: sections.about.projects_completed },
-      // Footer section
-      { id: 'footer-copyright', section: 'footer', key: 'copyright', value: sections.footer.copyright },
-      { id: 'footer-tagline', section: 'footer', key: 'tagline', value: sections.footer.tagline },
-    ];
-
-    await supabase.from('sections').upsert(sectionsToSave);
-    showToast('تم حفظ الأقسام ✓');
+  const setSection = (section: keyof SectionsData, key: string, value: string) => {
+    setData((current) => ({
+      ...current,
+      sections: {
+        ...current.sections,
+        [section]: { ...current.sections[section], [key]: value },
+      },
+    }));
   };
 
-  if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
+  const projectTech = useMemo(() => editingProject?.technologies?.join(', ') || '', [editingProject]);
 
-  const tabs = [
-    { id: 'profile',     label: 'الملف الشخصي',   icon: '👤', count: 1 },
-    { id: 'sections',    label: 'الأقسام',        icon: '📄', count: 3 },
-    { id: 'skills',      label: 'المهارات',       icon: '⚡', count: skills.length },
-    { id: 'testimonials', label: 'الشهادات',      icon: '⭐', count: testimonials.length },
-    { id: 'projects',    label: 'المشاريع',       icon: '🎬', count: projects.length },
-    { id: 'stats',       label: 'الإحصائيات',     icon: '📊', count: stats.length },
-    { id: 'contact',     label: 'التواصل',         icon: '📞', count: contacts.length },
-    { id: 'social',      label: 'السوشيال ميديا', icon: '🔗', count: socials.length },
-  ] as const;
+  if (loading && !authed) {
+    return <div className="grid min-h-screen place-items-center bg-[#080808] text-white">Loading admin...</div>;
+  }
+
+  if (!authed) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#080808] px-4 text-white">
+        <form onSubmit={login} className="w-full max-w-md border border-white/10 bg-white/[0.03] p-7">
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#f2ff5e]">Sam Admin</p>
+          <h1 className="text-4xl font-black">Control room</h1>
+          <p className="mt-3 text-sm leading-7 text-white/52">
+            Server-protected admin for projects, main page copy, uploads, and contact content.
+          </p>
+          {!configured && (
+            <p className="mt-4 border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">
+              Add ADMIN_PASSWORD to your environment before using admin.
+            </p>
+          )}
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Admin password"
+            className="mt-6 h-12 w-full border border-white/10 bg-black/35 px-4 text-white outline-none focus:border-[#f2ff5e]/70"
+          />
+          <button disabled={saving || !password} className="mt-4 w-full bg-[#f2ff5e] px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-black disabled:opacity-50">
+            {saving ? 'Checking...' : 'Enter'}
+          </button>
+          {toast && <p className="mt-4 text-sm text-red-200">{toast}</p>}
+        </form>
+      </main>
+    );
+  }
 
   return (
-    <div dir="rtl" style={{ background: '#0a0a0f', minHeight: '100vh', fontFamily: 'var(--font-cairo), sans-serif' }}>
-
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            className="fixed top-5 left-1/2 z-50 px-5 py-3 rounded-xl font-semibold text-sm shadow-2xl"
-            style={{
-              transform: 'translateX(-50%)',
-              background: toast.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-              border: `1px solid ${toast.type === 'success' ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
-              color: toast.type === 'success' ? '#4ade80' : '#f87171',
-            }}
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-          >
-            {toast.msg}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirm */}
-      <AnimatePresence>
-        {deleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}>
-            <motion.div
-              className="p-6 rounded-2xl border border-red-500/30 text-center max-w-xs w-full mx-4"
-              style={{ background: '#13131f' }}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <div className="text-3xl mb-3">🗑️</div>
-              <p className="text-white font-bold mb-1">حذف المشروع؟</p>
-              <p className="text-gray-500 text-sm mb-5">هذا الإجراء لا يمكن التراجع عنه</p>
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2.5 rounded-xl border border-white/10 text-gray-400 text-sm hover:bg-white/5 transition-all">إلغاء</button>
-                <button onClick={() => deleteProject(deleteConfirm)} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-500 transition-all">حذف</button>
-              </div>
-            </motion.div>
+    <main className="min-h-screen bg-[#080808] text-white">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#f2ff5e]">Sam Motion Admin</p>
+            <h1 className="text-2xl font-black">Portfolio control panel</h1>
           </div>
-        )}
-      </AnimatePresence>
-
-      {/* Project Modal */}
-      <AnimatePresence>
-        {projectModal !== false && (
-          <ProjectModal
-            project={projectModal}
-            onSave={() => { setProjectModal(false); fetchAll(); showToast(projectModal?.id ? 'تم تعديل المشروع ✓' : 'تمت إضافة المشروع ✓'); }}
-            onClose={() => setProjectModal(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Header */}
-      <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="text-xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Portfolio</div>
-          <span className="text-gray-600 text-sm">/ لوحة التحكم</span>
+          <div className="flex flex-wrap gap-2">
+            {[
+              ['content', 'Main page'],
+              ['projects', 'Projects'],
+              ['contacts', 'Contact / Social'],
+              ['skills', 'Skills / Stats'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => setTab(value as Tab)}
+                className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
+                  tab === value ? 'border-[#f2ff5e] bg-[#f2ff5e] text-black' : 'border-white/10 text-white/55 hover:text-white'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-        <button
-          onClick={() => { sessionStorage.removeItem('admin_auth'); setAuthed(false); }}
-          className="text-gray-600 hover:text-red-400 transition-colors text-sm flex items-center gap-1.5"
-        >
-          خروج ↩
-        </button>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {toast && <div className="mb-5 border border-[#f2ff5e]/40 bg-[#f2ff5e]/10 p-3 text-sm text-[#f2ff5e]">{toast}</div>}
+
+        {tab === 'content' && (
+          <section className="grid gap-5 lg:grid-cols-2">
+            <div className="border border-white/10 bg-white/[0.025] p-5">
+              <h2 className="mb-5 text-xl font-black">Identity</h2>
+              <div className="grid gap-4">
+                <Field label="Display name" value={data.profile.name} onChange={(value) => setProfile('name', value)} />
+                <Field label="Professional title" value={data.profile.title} onChange={(value) => setProfile('title', value)} />
+                <Field label="Bio" value={data.profile.description} onChange={(value) => setProfile('description', value)} textarea />
+                <Field label="Site title" value={data.sections.global.site_title} onChange={(value) => setSection('global', 'site_title', value)} />
+                <Field label="Logo text / image url" value={data.sections.global.logo} onChange={(value) => setSection('global', 'logo', value)} />
+              </div>
+            </div>
+
+            <div className="border border-white/10 bg-white/[0.025] p-5">
+              <h2 className="mb-5 text-xl font-black">Hero EN / AR</h2>
+              <div className="grid gap-4">
+                <Field label="Hero title EN" value={data.sections.hero.title} onChange={(value) => setSection('hero', 'title', value)} />
+                <Field label="Hero title AR" value={data.sections.hero.title_ar} onChange={(value) => setSection('hero', 'title_ar', value)} />
+                <Field label="Subtitle EN" value={data.sections.hero.subtitle} onChange={(value) => setSection('hero', 'subtitle', value)} />
+                <Field label="Subtitle AR" value={data.sections.hero.subtitle_ar} onChange={(value) => setSection('hero', 'subtitle_ar', value)} />
+                <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
+                <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
+              </div>
+            </div>
+
+            <div className="border border-white/10 bg-white/[0.025] p-5 lg:col-span-2">
+              <h2 className="mb-5 text-xl font-black">About / Footer</h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="About title EN" value={data.sections.about.title} onChange={(value) => setSection('about', 'title', value)} />
+                <Field label="About title AR" value={data.sections.about.title_ar} onChange={(value) => setSection('about', 'title_ar', value)} />
+                <Field label="About text EN" value={data.sections.about.content} onChange={(value) => setSection('about', 'content', value)} textarea />
+                <Field label="About text AR" value={data.sections.about.content_ar} onChange={(value) => setSection('about', 'content_ar', value)} textarea />
+                <Field label="Footer tagline EN" value={data.sections.footer.tagline} onChange={(value) => setSection('footer', 'tagline', value)} />
+                <Field label="Footer tagline AR" value={data.sections.footer.tagline_ar} onChange={(value) => setSection('footer', 'tagline_ar', value)} />
+              </div>
+              <button onClick={saveContent} disabled={saving} className="mt-6 bg-[#f2ff5e] px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-black disabled:opacity-50">
+                {saving ? 'Saving...' : 'Save main page'}
+              </button>
+            </div>
+          </section>
+        )}
+
+        {tab === 'projects' && (
+          <section>
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-black">Projects</h2>
+              <button onClick={() => setEditingProject({ ...emptyProject, id: crypto.randomUUID(), sort_order: data.projects.length + 1 })} className="bg-[#f2ff5e] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-black">
+                Add project
+              </button>
+            </div>
+            <div className="grid gap-3">
+              {data.projects.map((project) => (
+                <article key={project.id} className="grid gap-4 border border-white/10 bg-white/[0.025] p-4 md:grid-cols-[96px_1fr_auto] md:items-center">
+                  <div className="aspect-video bg-black">
+                    {project.thumbnail ? <img src={project.thumbnail} alt={project.title} className="h-full w-full object-cover" /> : null}
+                  </div>
+                  <div>
+                    <p className="font-black">{project.title}</p>
+                    <p className="mt-1 line-clamp-1 text-sm text-white/45">{project.description}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#f2ff5e]">{project.category}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingProject(project)} className="border border-white/10 px-3 py-2 text-xs font-bold text-white/70">Edit</button>
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Delete this project?')) return;
+                        await deleteRecord('projects', project.id);
+                        setData((current) => ({ ...current, projects: current.projects.filter((item) => item.id !== project.id) }));
+                        notify('Project deleted');
+                      }}
+                      className="border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {tab === 'contacts' && (
+          <section className="grid gap-5 lg:grid-cols-2">
+            <EditableList
+              title="Contact methods"
+              items={data.contacts}
+              table="contact_info"
+              fields={['icon', 'title', 'content', 'href']}
+              newItem={{ id: '', icon: '@', title: 'Email', content: '', href: '' }}
+              onChange={(contacts) => setData((current) => ({ ...current, contacts: contacts as ContactInfo[] }))}
+              saveRecord={saveRecord}
+              deleteRecord={deleteRecord}
+              notify={notify}
+            />
+            <EditableList
+              title="Social links"
+              items={data.socials}
+              table="social_links"
+              fields={['name', 'url', 'icon', 'sort_order']}
+              newItem={{ id: '', name: 'Instagram', url: '', icon: '', sort_order: data.socials.length + 1 }}
+              onChange={(socials) => setData((current) => ({ ...current, socials: socials as SocialLink[] }))}
+              saveRecord={saveRecord}
+              deleteRecord={deleteRecord}
+              notify={notify}
+            />
+          </section>
+        )}
+
+        {tab === 'skills' && (
+          <section className="grid gap-5 lg:grid-cols-2">
+            <EditableList
+              title="Stats"
+              items={data.stats}
+              table="stats"
+              fields={['value', 'label']}
+              newItem={{ id: '', value: '10+', label: 'Projects' }}
+              onChange={(stats) => setData((current) => ({ ...current, stats: stats as Stat[] }))}
+              saveRecord={saveRecord}
+              deleteRecord={deleteRecord}
+              notify={notify}
+            />
+            <EditableList
+              title="Skills"
+              items={data.skills}
+              table="skills"
+              fields={['name', 'level', 'category']}
+              newItem={{ id: '', name: 'After Effects', level: 90, category: 'Motion' }}
+              onChange={(skills) => setData((current) => ({ ...current, skills: skills as Skill[] }))}
+              saveRecord={saveRecord}
+              deleteRecord={deleteRecord}
+              notify={notify}
+            />
+          </section>
+        )}
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      {editingProject && (
+        <ProjectEditor
+          project={editingProject}
+          uploadFile={uploadFile}
+          onClose={() => setEditingProject(null)}
+          onSave={async (project) => {
+            await saveRecord('projects', project);
+            setData((current) => ({
+              ...current,
+              projects: [...current.projects.filter((item) => item.id !== project.id), project].sort((a, b) => a.sort_order - b.sort_order),
+            }));
+            setEditingProject(null);
+            notify('Project saved');
+          }}
+        />
+      )}
+    </main>
+  );
+}
 
-        {/* Tab Bar */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all ${
-                tab === t.id
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/20'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/8 hover:text-white border border-white/6'
-              }`}
-            >
-              <span>{t.icon}</span>
-              {t.label}
-              <span className={`text-xs px-1.5 py-0.5 rounded-md ${tab === t.id ? 'bg-white/20' : 'bg-white/8'}`}>{t.count}</span>
-            </button>
-          ))}
+function EditableList({
+  title,
+  items,
+  table,
+  fields,
+  newItem,
+  onChange,
+  saveRecord,
+  deleteRecord,
+  notify,
+}: {
+  title: string;
+  items: Array<Record<string, any>>;
+  table: string;
+  fields: string[];
+  newItem: Record<string, any>;
+  onChange: (items: Array<Record<string, any>>) => void;
+  saveRecord: (table: string, record: object) => Promise<void>;
+  deleteRecord: (table: string, id: string) => Promise<void>;
+  notify: (message: string) => void;
+}) {
+  return (
+    <div className="border border-white/10 bg-white/[0.025] p-5">
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-xl font-black">{title}</h2>
+        <button
+          onClick={() => onChange([...items, { ...newItem, id: crypto.randomUUID() }])}
+          className="border border-[#f2ff5e]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f2ff5e]"
+        >
+          Add
+        </button>
+      </div>
+      <div className="space-y-4">
+        {items.map((item) => (
+          <div key={String(item.id)} className="border border-white/10 p-4">
+            <div className="grid gap-3">
+              {fields.map((field) => (
+                <Field
+                  key={field}
+                  label={field.replace(/_/g, ' ')}
+                  value={String(item[field] ?? '')}
+                  type={field === 'level' || field === 'sort_order' ? 'number' : 'text'}
+                  onChange={(value) => onChange(items.map((row) => (row.id === item.id ? { ...row, [field]: field === 'level' || field === 'sort_order' ? Number(value) : value } : row)))}
+                />
+              ))}
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={async () => {
+                  await saveRecord(table, item);
+                  notify(`${title} saved`);
+                }}
+                className="bg-[#f2ff5e] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-black"
+              >
+                Save
+              </button>
+              <button
+                onClick={async () => {
+                  await deleteRecord(table, String(item.id));
+                  onChange(items.filter((row) => row.id !== item.id));
+                  notify(`${title} deleted`);
+                }}
+                className="border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProjectEditor({
+  project,
+  onClose,
+  onSave,
+  uploadFile,
+}: {
+  project: Project;
+  onClose: () => void;
+  onSave: (project: Project) => Promise<void>;
+  uploadFile: (file: File) => Promise<string>;
+}) {
+  const [form, setForm] = useState(project);
+  const [tech, setTech] = useState(project.technologies.join(', '));
+  const [saving, setSaving] = useState(false);
+
+  const set = (key: keyof Project, value: string | number | boolean) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/84 p-4 backdrop-blur-xl">
+      <div className="mx-auto my-8 max-w-4xl border border-white/10 bg-[#101010]">
+        <div className="flex items-center justify-between border-b border-white/10 p-5">
+          <h2 className="text-xl font-black">{project.title ? 'Edit project' : 'New project'}</h2>
+          <button onClick={onClose} className="grid h-10 w-10 place-items-center border border-white/10 text-white/70">×</button>
         </div>
-
-        {loading ? (
-          <div className="text-center py-20 text-gray-600">جاري التحميل...</div>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div key={tab} variants={fade} initial="hidden" animate="visible">
-
-              {/* ── PROFILE TAB ── */}
-              {tab === 'profile' && (
-                <div>
-                  <h2 className="text-white font-bold text-lg mb-5">الملف الشخصي</h2>
-                  <p className="text-gray-600 text-sm mb-6">هذه المعلومات تظهر في قسم Hero وAbout في الصفحة الرئيسية</p>
-                  <div className="space-y-6">
-                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <h3 className="text-white font-semibold mb-4">المعلومات الأساسية</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className={labelCls}>الاسم الكامل</label>
-                          <input
-                            type="text"
-                            value={profile.name}
-                            onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                            className={inputCls}
-                            placeholder="محمد علي"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelCls}>المسمى الوظيفي</label>
-                          <input
-                            type="text"
-                            value={profile.title}
-                            onChange={e => setProfile(prev => ({ ...prev, title: e.target.value }))}
-                            className={inputCls}
-                            placeholder="مصمم ومحرر فيديو احترافي"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <label className={labelCls}>الوصف الشخصي</label>
-                        <textarea
-                          value={profile.description}
-                          onChange={e => setProfile(prev => ({ ...prev, description: e.target.value }))}
-                          className={`${inputCls} h-24 resize-none`}
-                          placeholder="اكتب وصفاً عن نفسك وخبراتك..."
-                        />
-                      </div>
-                    </div>
-
-                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <h3 className="text-white font-semibold mb-4">الوسائط</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className={labelCls}>رابط الصورة الشخصية</label>
-                          <input
-                            type="url"
-                            value={profile.avatar}
-                            onChange={e => setProfile(prev => ({ ...prev, avatar: e.target.value }))}
-                            className={inputCls}
-                            placeholder="https://..."
-                          />
-                        </div>
-                        <div>
-                          <label className={labelCls}>رابط السيرة الذاتية (PDF)</label>
-                          <input
-                            type="url"
-                            value={profile.resume}
-                            onChange={e => setProfile(prev => ({ ...prev, resume: e.target.value }))}
-                            className={inputCls}
-                            placeholder="https://..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={saveProfile}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      حفظ الملف الشخصي
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* ── SKILLS TAB ── */}
-              {tab === 'skills' && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-white font-bold text-lg">المهارات والخبرات ({skills.length})</h2>
-                    <button
-                      onClick={() => {
-                        const newSkill = {
-                          id: Date.now().toString(),
-                          name: '',
-                          level: 80,
-                          category: 'motion-design'
-                        };
-                        const updatedSkills = [...skills, newSkill];
-                        setSkills(updatedSkills);
-                      }}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      + إضافة مهارة
-                    </button>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-6">هذه المهارات تظهر في قسم المهارات في الصفحة الرئيسية</p>
-                  <div className="space-y-4">
-                    {skills.map(skill => (
-                      <div key={skill.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          <div>
-                            <label className={labelCls}>اسم المهارة</label>
-                            <input
-                              type="text"
-                              value={skill.name}
-                              onChange={e => { const v = e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, name: v } : x)); }}
-                              className={inputCls}
-                              placeholder="Adobe After Effects"
-                            />
-                          </div>
-                          <div>
-                            <label className={labelCls}>المستوى (%)</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={skill.level}
-                              onChange={e => { const v = +e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, level: v } : x)); }}
-                              className={inputCls}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelCls}>الفئة</label>
-                            <select
-                              value={skill.category}
-                              onChange={e => { const v = e.target.value; setSkills(prev => prev.map(x => x.id === skill.id ? { ...x, category: v } : x)); }}
-                              className={inputCls}
-                            >
-                              <option value="motion-design">موشن جرافيك</option>
-                              <option value="video-editing">مونتاج فيديو</option>
-                              <option value="design">تصميم</option>
-                              <option value="3d-modeling">نمذجة ثلاثية الأبعاد</option>
-                              <option value="3d-modeling">ادوات الذكاء الإصطناعي</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="mt-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-400">المستوى الحالي</span>
-                            <span className="text-sm text-purple-400 font-semibold">{skill.level}%</span>
-                          </div>
-                          <div className="w-full bg-white/10 rounded-full h-2">
-                            <div
-                              className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${skill.level}%` }}
-                            />
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => saveSkill(skill)}
-                          className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
-                        >
-                          حفظ المهارة
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSkills(prev => prev.filter(x => x.id !== skill.id));
-                            showToast('تم حذف المهارة');
-                          }}
-                          className="mt-4 ml-2 px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
-                        >
-                          حذف
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── TESTIMONIALS TAB ── */}
-              {tab === 'testimonials' && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-white font-bold text-lg">شهادات العملاء ({testimonials.length})</h2>
-                    <button
-                      onClick={() => {
-                        const newTestimonial = {
-                          id: Date.now().toString(),
-                          name: '',
-                          company: '',
-                          content: '',
-                          rating: 5
-                        };
-                        const updatedTestimonials = [...testimonials, newTestimonial];
-                        setTestimonials(updatedTestimonials);
-                      }}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      + إضافة شهادة
-                    </button>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-6">هذه الشهادات تظهر في قسم الشهادات في الصفحة الرئيسية</p>
-                  <div className="space-y-4">
-                    {testimonials.map(testimonial => (
-                      <div key={testimonial.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label className={labelCls}>اسم العميل</label>
-                            <input
-                              type="text"
-                              value={testimonial.name}
-                              onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, name: v } : x)); }}
-                              className={inputCls}
-                              placeholder="أحمد محمد"
-                            />
-                          </div>
-                          <div>
-                            <label className={labelCls}>الشركة/المؤسسة</label>
-                            <input
-                              type="text"
-                              value={testimonial.company}
-                              onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, company: v } : x)); }}
-                              className={inputCls}
-                              placeholder="شركة الإعلانات المتحدة"
-                            />
-                          </div>
-                        </div>
-                        <div className="mb-4">
-                          <label className={labelCls}>محتوى الشهادة</label>
-                          <textarea
-                            value={testimonial.content}
-                            onChange={e => { const v = e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, content: v } : x)); }}
-                            className={`${inputCls} h-20 resize-none`}
-                            placeholder="اكتب محتوى الشهادة..."
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <label className={labelCls}>التقييم:</label>
-                            <select
-                              value={testimonial.rating}
-                              onChange={e => { const v = +e.target.value; setTestimonials(prev => prev.map(x => x.id === testimonial.id ? { ...x, rating: v } : x)); }}
-                              className={`${inputCls} w-20`}
-                            >
-                              <option value={5}>⭐⭐⭐⭐⭐</option>
-                              <option value={4}>⭐⭐⭐⭐</option>
-                              <option value={3}>⭐⭐⭐</option>
-                              <option value={2}>⭐⭐</option>
-                              <option value={1}>⭐</option>
-                            </select>
-                          </div>
-                          <button
-                            onClick={() => saveTestimonial(testimonial)}
-                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
-                          >
-                            حفظ الشهادة
-                          </button>
-                          <button
-                            onClick={() => {
-                              setTestimonials(prev => prev.filter(x => x.id !== testimonial.id));
-                              showToast('تم حذف الشهادة');
-                            }}
-                            className="px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all ml-2"
-                          >
-                            حذف
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── SECTIONS TAB ── */}
-              {tab === 'sections' && (
-                <div>
-                  <h2 className="text-white font-bold text-lg mb-5">إدارة الأقسام</h2>
-                  <p className="text-gray-600 text-sm mb-6">تحكم في محتوى الأقسام المختلفة في الصفحة الرئيسية</p>
-
-                  {/* Global Section */}
-                  <div className="mb-8">
-                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                      <span className="text-xl">🌐</span>
-                      إعدادات عامة
-                    </h3>
-                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className={labelCls}>عنوان الموقع</label>
-                          <input
-                            type="text"
-                            value={sections.global.site_title}
-                            onChange={e => setSections(prev => ({ ...prev, global: { ...prev.global, site_title: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="Portfolio"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelCls}>الشعار (رفع ملف أو رابط)</label>
-                          <input
-                            type="file"
-                            accept="image/*,.svg"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const url = await uploadFile(file);
-                                if (url) {
-                                  setSections(prev => ({ ...prev, global: { ...prev.global, logo: url } }));
-                                }
-                              }
-                            }}
-                            className={`${inputCls} file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700`}
-                          />
-                          <input
-                            type="text"
-                            value={sections.global.logo}
-                            onChange={e => setSections(prev => ({ ...prev, global: { ...prev.global, logo: e.target.value } }))}
-                            className={`${inputCls} mt-2`}
-                            placeholder="أو أدخل رابط الصورة مباشرة"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hero Section */}
-                  <div className="mb-8">
-                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                      <span className="text-xl">🚀</span>
-                      قسم Hero
-                    </h3>
-                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                          <label className={labelCls}>العنوان الرئيسي</label>
-                          <input
-                            type="text"
-                            value={sections.hero.title}
-                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, title: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="مرحباً، أنا محمد علي"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelCls}>العنوان الفرعي</label>
-                          <input
-                            type="text"
-                            value={sections.hero.subtitle}
-                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, subtitle: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="مصمم ومحرر فيديو احترافي"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelCls}>نص الدعوة للعمل</label>
-                          <input
-                            type="text"
-                            value={sections.hero.cta_text}
-                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, cta_text: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="شاهد أعمالي"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className={labelCls}>الوصف</label>
-                          <textarea
-                            value={sections.hero.description}
-                            onChange={e => setSections(prev => ({ ...prev, hero: { ...prev.hero, description: e.target.value } }))}
-                            className={`${inputCls} h-20 resize-none`}
-                            placeholder="اكتب وصفاً جذاباً..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* About Section */}
-                  <div className="mb-8">
-                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                      <span className="text-xl">👨‍💻</span>
-                      قسم من أنا
-                    </h3>
-                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className={labelCls}>عنوان القسم</label>
-                          <input
-                            type="text"
-                            value={sections.about.title}
-                            onChange={e => setSections(prev => ({ ...prev, about: { ...prev.about, title: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="من أنا"
-                          />
-                        </div>
-                        <div>
-                          <label className={labelCls}>سنوات الخبرة</label>
-                          <input
-                            type="text"
-                            value={sections.about.experience_years}
-                            onChange={e => setSections(prev => ({ ...prev, about: { ...prev.about, experience_years: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="5+"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className={labelCls}>المحتوى</label>
-                          <textarea
-                            value={sections.about.content}
-                            onChange={e => setSections(prev => ({ ...prev, about: { ...prev.about, content: e.target.value } }))}
-                            className={`${inputCls} h-24 resize-none`}
-                            placeholder="اكتب محتوى قسم من أنا..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Footer Section */}
-                  <div className="mb-8">
-                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                      <span className="text-xl">📄</span>
-                      قسم Footer
-                    </h3>
-                    <div className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                          <label className={labelCls}>نص حقوق النشر</label>
-                          <input
-                            type="text"
-                            value={sections.footer.copyright}
-                            onChange={e => setSections(prev => ({ ...prev, footer: { ...prev.footer, copyright: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="© 2024 محمد علي. جميع الحقوق محفوظة."
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className={labelCls}>الشعار</label>
-                          <input
-                            type="text"
-                            value={sections.footer.tagline}
-                            onChange={e => setSections(prev => ({ ...prev, footer: { ...prev.footer, tagline: e.target.value } }))}
-                            className={inputCls}
-                            placeholder="نصنع المحتوى الذي يتحدث عن نفسه"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={saveSections}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                  >
-                    حفظ جميع الأقسام
-                  </button>
-                </div>
-              )}
-
-              {/* ── PROJECTS TAB ── */}
-              {tab === 'projects' && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-white font-bold text-lg">المشاريع ({projects.length})</h2>
-                    <button
-                      onClick={() => setProjectModal({})}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      + إضافة مشروع
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {projects.map(p => (
-                      <motion.div
-                        key={p.id}
-                        layout
-                        className="flex items-center gap-4 p-4 rounded-xl border border-white/6 hover:border-purple-500/25 transition-all"
-                        style={{ background: 'rgba(255,255,255,0.02)' }}
-                      >
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                          style={{ background: 'rgba(168,85,247,0.12)' }}
-                        >
-                          {p.category === 'motion-design' ? '🎬' : p.category === 'video-editing' ? '✂️' : p.category === 'promotional' ? '📣' : '🏢'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <p className="text-white font-semibold text-sm truncate">{p.title}</p>
-                            {p.featured && <span className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/25 px-2 py-0.5 rounded-full flex-shrink-0">⭐ مميز</span>}
-                          </div>
-                          <p className="text-gray-600 text-xs truncate">{p.description}</p>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-xs text-purple-400">{CATEGORIES.find(c => c.value === p.category)?.label}</span>
-                            <span className="text-xs text-gray-700">·</span>
-                            <span className="text-xs text-gray-600">{p.year}</span>
-                            {p.duration && <><span className="text-xs text-gray-700">·</span><span className="text-xs text-gray-600">{p.duration}</span></>}
-                          </div>
-                        </div>
-                        <div className="flex gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => setProjectModal(p)}
-                            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-gray-400 hover:text-white hover:bg-white/10 transition-all text-xs font-semibold"
-                          >
-                            تعديل
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(p.id)}
-                            className="px-3 py-1.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 hover:bg-red-500/15 transition-all text-xs font-semibold"
-                          >
-                            حذف
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                    {projects.length === 0 && (
-                      <div className="text-center py-16 text-gray-700">لا توجد مشاريع بعد. أضف مشروعك الأول!</div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ── STATS TAB ── */}
-              {tab === 'stats' && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-white font-bold text-lg">الإحصائيات ({stats.length})</h2>
-                    <button
-                      onClick={() => {
-                        const newStat = {
-                          id: Date.now().toString(),
-                          value: '100+',
-                          label: 'مشروع منجز'
-                        };
-                        const updatedStats = [...stats, newStat];
-                        setStats(updatedStats);
-                      }}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      + إضافة إحصائية
-                    </button>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-6">هذه الأرقام تظهر في قسم Hero في الصفحة الرئيسية</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {stats.map(s => (
-                      <div key={s.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                        <label className={labelCls}>القيمة</label>
-                        <input
-                          type="text"
-                          value={s.value}
-                          onChange={e => { const v = e.target.value; setStats(prev => prev.map(x => x.id === s.id ? { ...x, value: v } : x)); }}
-                          className={`${inputCls} text-2xl font-black mb-3`}
-                          placeholder="100+"
-                        />
-                        <label className={labelCls}>التسمية</label>
-                        <input
-                          type="text"
-                          value={s.label}
-                          onChange={e => { const v = e.target.value; setStats(prev => prev.map(x => x.id === s.id ? { ...x, label: v } : x)); }}
-                          className={inputCls}
-                          placeholder="مشروع منجز"
-                        />
-                        <button
-                          onClick={() => saveStat(s)}
-                          className="w-full mt-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
-                        >
-                          حفظ
-                        </button>
-                        <button
-                          onClick={() => {
-                            setStats(prev => prev.filter(x => x.id !== s.id));
-                            showToast('تم حذف الإحصائية');
-                          }}
-                          className="w-full mt-2 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
-                        >
-                          حذف
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── CONTACT TAB ── */}
-              {tab === 'contact' && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-white font-bold text-lg">معلومات التواصل ({contacts.length})</h2>
-                    <button
-                      onClick={() => {
-                        const newContact = {
-                          id: Date.now().toString(),
-                          title: 'الإيميل',
-                          content: '',
-                          href: '',
-                          icon: '📧'
-                        };
-                        const updatedContacts = [...contacts, newContact];
-                        setContacts(updatedContacts);
-                      }}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      + إضافة معلومات تواصل
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {contacts.map(c => (
-                      <div key={c.id} className="p-5 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="text-2xl">{c.icon}</span>
-                          <span className="text-white font-semibold">{c.title}</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className={labelCls}>المحتوى</label>
-                            <input
-                              type="text"
-                              value={c.content}
-                              onChange={e => { const v = e.target.value; setContacts(prev => prev.map(x => x.id === c.id ? { ...x, content: v } : x)); }}
-                              className={inputCls}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelCls}>الرابط (href)</label>
-                            <input
-                              type="text"
-                              value={c.href}
-                              onChange={e => { const v = e.target.value; setContacts(prev => prev.map(x => x.id === c.id ? { ...x, href: v } : x)); }}
-                              className={inputCls}
-                            />
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => saveContact(c)}
-                          className="mt-3 px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:shadow-lg transition-all"
-                        >
-                          حفظ
-                        </button>
-                        <button
-                          onClick={() => {
-                            setContacts(prev => prev.filter(x => x.id !== c.id));
-                            showToast('تم حذف معلومات التواصل');
-                          }}
-                          className="mt-3 ml-2 px-5 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
-                        >
-                          حذف
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── SOCIAL TAB ── */}
-              {tab === 'social' && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-white font-bold text-lg">روابط السوشيال ميديا ({socials.length})</h2>
-                    <button
-                      onClick={() => {
-                        const newSocial = {
-                          id: Date.now().toString(),
-                          name: 'Facebook',
-                          url: '',
-                          icon: '',
-                          sort_order: socials.length
-                        };
-                        const updatedSocials = [...socials, newSocial];
-                        setSocials(updatedSocials);
-                      }}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                    >
-                      + إضافة موقع تواصل
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {socials.map(s => {
-                      const icons: Record<string, string> = { Facebook: '📘', Instagram: '📸', LinkedIn: '💼', YouTube: '▶️' };
-                      return (
-                        <div key={s.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                          <span className="text-2xl flex-shrink-0">
-                        {s.icon ? (
-                          s.icon.startsWith('/') || s.icon.startsWith('http') ? (
-                            <img src={s.icon} alt={s.name} className="w-8 h-8 object-contain rounded-full" />
-                          ) : (
-                            <span>{s.icon}</span>
-                          )
-                        ) : (
-                          icons[s.name] || '🔗'
-                        )}
-                      </span>
-                      <div className="flex-1">
-                        <p className="text-white font-semibold text-sm mb-2">{s.name}</p>
-                            <input
-                              type="url"
-                              value={s.url}
-                              onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, url: v } : x)); }}
-                              placeholder="https://..."
-                              className={inputCls}
-                            />
-                            <div className="mt-2">
-                              <label className="block text-xs font-semibold text-gray-400 mb-1">الأيقونة</label>
-                              <input
-                                type="file"
-                                accept="image/*,.svg"
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    const url = await uploadFile(file);
-                                    if (url) {
-                                      setSocials(prev => prev.map(x => x.id === s.id ? { ...x, icon: url } : x));
-                                    }
-                                  }
-                                }}
-                                className={`${inputCls} file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700`}
-                              />
-                              <input
-                                type="text"
-                                value={s.icon || ''}
-                                onChange={e => { const v = e.target.value; setSocials(prev => prev.map(x => x.id === s.id ? { ...x, icon: v } : x)); }}
-                                placeholder="أو أدخل رابط الصورة مباشرة"
-                                className={`${inputCls} mt-1`}
-                              />
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => saveSocial(s)}
-                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs flex-shrink-0 hover:shadow-lg transition-all"
-                          >
-                            حفظ
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSocials(prev => prev.filter(x => x.id !== s.id));
-                              showToast('تم حذف الموقع');
-                            }}
-                            className="px-4 py-2 rounded-xl bg-red-500 text-white font-bold text-xs flex-shrink-0 hover:bg-red-600 transition-all ml-2"
-                          >
-                            حذف
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-            </motion.div>
-          </AnimatePresence>
-        )}
+        <div className="grid gap-4 p-5 md:grid-cols-2">
+          <Field label="Title EN" value={form.title} onChange={(value) => set('title', value)} />
+          <Field label="Title AR" value={form.title_ar} onChange={(value) => set('title_ar', value)} />
+          <Field label="Description EN" value={form.description} onChange={(value) => set('description', value)} textarea />
+          <Field label="Description AR" value={form.description_ar} onChange={(value) => set('description_ar', value)} textarea />
+          <label className="block">
+            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Category</span>
+            <select value={form.category} onChange={(event) => set('category', event.target.value)} className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none focus:border-[#f2ff5e]/70">
+              {CATEGORIES.map((category) => (
+                <option key={category.value} value={category.value}>{category.label}</option>
+              ))}
+            </select>
+          </label>
+          <Field label="Client" value={form.client} onChange={(value) => set('client', value)} />
+          <Field label="Role" value={form.role} onChange={(value) => set('role', value)} />
+          <Field label="Year" value={form.year} type="number" onChange={(value) => set('year', Number(value))} />
+          <Field label="Duration" value={form.duration} onChange={(value) => set('duration', value)} />
+          <Field label="Sort order" value={form.sort_order} type="number" onChange={(value) => set('sort_order', Number(value))} />
+          <Field label="Video URL (Drive / YouTube / Vimeo / direct)" value={form.video_url} onChange={(value) => set('video_url', value)} />
+          <Field label="Thumbnail URL" value={form.thumbnail} onChange={(value) => set('thumbnail', value)} />
+          <Field label="Technologies, comma separated" value={tech} onChange={setTech} />
+          <label className="block">
+            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload thumbnail or video</span>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={async (event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                const url = await uploadFile(file);
+                if (file.type.startsWith('image/')) set('thumbnail', url);
+                if (file.type.startsWith('video/')) set('video_url', url);
+              }}
+              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#f2ff5e] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+            />
+          </label>
+          <label className="flex items-center gap-3 border border-white/10 p-3 text-sm text-white/70">
+            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#f2ff5e]" />
+            Featured project
+          </label>
+        </div>
+        <div className="flex justify-end gap-3 border-t border-white/10 p-5">
+          <button onClick={onClose} className="border border-white/10 px-4 py-2 text-sm font-bold text-white/64">Cancel</button>
+          <button
+            disabled={saving || !form.title || !form.description}
+            onClick={async () => {
+              setSaving(true);
+              await onSave({ ...form, technologies: tech.split(',').map((item) => item.trim()).filter(Boolean) });
+              setSaving(false);
+            }}
+            className="bg-[#f2ff5e] px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save project'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,65 +1,49 @@
-import type { Metadata, Viewport } from "next";
-import { Cairo } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Cairo } from 'next/font/google';
+import Script from 'next/script';
+import './globals.css';
 
 const cairo = Cairo({
-  variable: "--font-cairo",
-  subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: '--font-cairo',
+  subsets: ['arabic', 'latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
 export const metadata: Metadata = {
-  title: "سامر جابر - مصمم ومحرر فيديو احترافي | Portfolio",
-  description: "محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك بأحدث التقنيات.",
+  title: 'Sam Motion - Motion Graphics Designer and Video Editor',
+  description:
+    'Sam is a motion graphics designer and video editor creating branded motion, social ads, explainers, and cinematic edits.',
   keywords: [
-    "مونتاج فيديو",
-    "تصميم",
-    "إعلانات تجارية",
-    "محرر فيديو",
-    "موشن ديزاين",
-    "سامر",
-    "سامر جابر",
-    "فيديو ترويجي",
-    "محتوى بصري",
-    "Premiere Pro",
-    "After Effects",
-    "Cinema 4D"
+    'Sam Motion',
+    'motion graphics',
+    'video editor',
+    'After Effects',
+    'Premiere Pro',
+    'موشن جرافيك',
+    'مونتاج فيديو',
+    'سامر',
   ],
-  authors: [{ name: "سامر جابر" }],
-  creator: "سامر جابر",
-  publisher: "سامر جابر",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://samerx.vercel.app'),
+  authors: [{ name: 'Sam' }],
+  creator: 'Sam',
+  metadataBase: new URL('https://xsamer.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: "سامر جابر - مصمم ومحرر فيديو احترافي",
-    description: "محترف في إنتاج المحتوى البصري والمونتاج والتصميم. شاهد أعمالي في مجال الإعلانات والفيديوهات.",
-    url: "https://samerx.vercel.app",
-    siteName: "Portfolio سامر جابر",
-    locale: "ar_SA",
-    type: "website",
-    images: [
-      {
-        url: "/og-image.svg",
-        width: 1200,
-        height: 630,
-        alt: "سامر جابر - مصمم ومحرر فيديو احترافي",
-      },
-    ],
+    title: 'Sam Motion - Motion Graphics Designer and Video Editor',
+    description: 'Motion graphics, video editing, social ads, explainers, and brand films by Sam.',
+    url: 'https://xsamer.com',
+    siteName: 'Sam Motion',
+    locale: 'en_US',
+    alternateLocale: ['ar_JO'],
+    type: 'website',
+    images: [{ url: '/og-image.svg', width: 1200, height: 630, alt: 'Sam Motion portfolio' }],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "سامر جابر - مصمم ومحرر فيديو احترافي",
-    description: "محترف في إنتاج المحتوى البصري والمونتاج والتصميم.",
-    images: ["/og-image.svg"],
-    creator: "@yourusername",
+    card: 'summary_large_image',
+    title: 'Sam Motion',
+    description: 'Motion graphics and video editing portfolio by Sam.',
+    images: ['/og-image.svg'],
   },
   robots: {
     index: true,
@@ -67,38 +51,24 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
-  },
-  verification: {
-    google: "HPgF8T-bkbnXrO1pADTn7F8hDtNlN5s8Kn_tWgeaRM8",
   },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="ar"
-      dir="rtl"
-      className={`${cairo.variable} h-full antialiased scroll-smooth`}
-    >
+    <html lang="en" className={`${cairo.variable} h-full antialiased scroll-smooth`}>
       <head>
         <meta charSet="utf-8" />
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=G-6KLPJVFHEB`}
-          strategy="afterInteractive"
-        />
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-6KLPJVFHEB" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
@@ -108,12 +78,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body
-        className="min-h-full flex flex-col"
-        style={{ backgroundColor: "#0a0a0f" }}
-      >
-        {children}
-      </body>
+      <body className="min-h-full bg-[#080808] text-white">{children}</body>
     </html>
   );
 }

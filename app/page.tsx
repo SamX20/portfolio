@@ -1,175 +1,87 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
-import Hero from '@/components/Hero';
-import Portfolio from '@/components/Portfolio';
-import Contact from '@/components/Contact';
-import Footer from '@/components/Footer';
-import Skills from '@/components/Skills';
-import Testimonials from '@/components/Testimonials';
-import LoadingScreen from '@/components/LoadingScreen';
+import HomeClient, { HomeData } from '@/components/HomeClient';
+import {
+  defaultContacts,
+  defaultProfile,
+  defaultProjects,
+  defaultSections,
+  defaultSkills,
+  defaultSocials,
+  defaultStats,
+  defaultTestimonials,
+} from '@/lib/portfolioDefaults';
 import { supabase } from '@/lib/supabase';
-import { Project, ContactInfo, SocialLink, SectionsData, Profile, Skill, Testimonial } from '@/types';
+import { SectionsData } from '@/types';
 
-interface HomeData {
-  projects: Project[];
-  contacts: ContactInfo[];
-  socials: SocialLink[];
-  sections: SectionsData;
-  profile: Profile;
-  skills: Skill[];
-  testimonials: Testimonial[];
+function fallbackData(): HomeData {
+  return {
+    projects: defaultProjects,
+    stats: defaultStats,
+    contacts: defaultContacts,
+    socials: defaultSocials,
+    sections: defaultSections,
+    profile: defaultProfile,
+    skills: defaultSkills,
+    testimonials: defaultTestimonials,
+  };
 }
 
-async function loadHomeData() {
-  if (!supabase) {
-    return {
-      projects: [] as Project[],
-      contacts: [] as ContactInfo[],
-      socials: [] as SocialLink[],
-      sections: {
-        hero: {
-          title: 'مرحباً، أنا محمد علي',
-          subtitle: 'مصمم ومحرر فيديو احترافي',
-          description: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
-          cta_text: 'شاهد أعمالي',
-          cta_link: '#portfolio'
-        },
-        about: {
-          title: 'من أنا',
-          content: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-          experience_years: '5+',
-          projects_completed: '100+'
-        },
-        footer: {
-          copyright: '© 2024 محمد علي. جميع الحقوق محفوظة.',
-          tagline: 'نصنع المحتوى الذي يتحدث عن نفسه'
-        }
-      } as SectionsData,
-      profile: {
-        id: 'main',
-        name: 'محمد علي',
-        title: 'مصمم ومحرر فيديو احترافي',
-        description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-        avatar: '',
-        resume: ''
-      } as Profile,
-      skills: [] as Skill[],
-      testimonials: [] as Testimonial[]
-    };
-  }
-
-  const [
-    projectsRes,
-    statsRes,
-    contactsRes,
-    socialsRes,
-    sectionsRes,
-    profileRes,
-    skillsRes,
-    testimonialsRes
-  ] = await Promise.all([
-    supabase.from('projects').select('*').order('sort_order'),
-    supabase.from('stats').select('*'),
-    supabase.from('contact_info').select('*'),
-    supabase.from('social_links').select('*').order('sort_order'),
-    supabase.from('sections').select('*'),
-    supabase.from('profile').select('*').eq('id', 'main').single(),
-    supabase.from('skills').select('*'),
-    supabase.from('testimonials').select('*'),
-  ]);
-
-  // Process sections data
-  const sectionsRaw = sectionsRes.data || [];
-  const sectionsMap = sectionsRaw.reduce((acc: any, item: any) => {
-    if (!acc[item.section]) acc[item.section] = {};
+function mapSections(rows: { section: string; key: string; value: string }[]): SectionsData {
+  const map = rows.reduce<Record<string, Record<string, string>>>((acc, item) => {
+    acc[item.section] = acc[item.section] || {};
     acc[item.section][item.key] = item.value;
     return acc;
   }, {});
 
-  const sections: SectionsData = {
-    global: {
-      site_title: sectionsMap.global?.site_title || 'Portfolio',
-      logo: sectionsMap.global?.logo || ''
-    },
-    hero: {
-      title: sectionsMap.hero?.title || 'مرحباً، أنا محمد علي',
-      subtitle: sectionsMap.hero?.subtitle || 'مصمم ومحرر فيديو احترافي',
-      description: sectionsMap.hero?.description || 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
-      cta_text: sectionsMap.hero?.cta_text || 'شاهد أعمالي',
-      cta_link: sectionsMap.hero?.cta_link || '#portfolio'
-    },
-    about: {
-      title: sectionsMap.about?.title || 'من أنا',
-      content: sectionsMap.about?.content || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-      experience_years: sectionsMap.about?.experience_years || '5+',
-      projects_completed: sectionsMap.about?.projects_completed || '100+'
-    },
-    footer: {
-      copyright: sectionsMap.footer?.copyright || '© 2024 محمد علي. جميع الحقوق محفوظة.',
-      tagline: sectionsMap.footer?.tagline || 'نصنع المحتوى الذي يتحدث عن نفسه'
-    }
-  };
-
-  const profile: Profile = profileRes.data ? {
-    id: profileRes.data.id,
-    name: profileRes.data.name || 'محمد علي',
-    title: profileRes.data.title || 'مصمم ومحرر فيديو احترافي',
-    description: profileRes.data.description || 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-    avatar: profileRes.data.avatar || '',
-    resume: profileRes.data.resume || ''
-  } : {
-    id: 'main',
-    name: 'محمد علي',
-    title: 'مصمم ومحرر فيديو احترافي',
-    description: 'محترف في إنتاج المحتوى البصري والمونتاج والتصميم.',
-    avatar: '',
-    resume: ''
-  };
-
   return {
-    projects: projectsRes.data || [],
-    stats: statsRes.data || [],
-    contacts: contactsRes.data || [],
-    socials: socialsRes.data || [],
-    sections,
-    profile,
-    skills: skillsRes.data || [],
-    testimonials: testimonialsRes.data || []
+    global: { ...defaultSections.global, ...map.global },
+    hero: { ...defaultSections.hero, ...map.hero },
+    about: { ...defaultSections.about, ...map.about },
+    footer: { ...defaultSections.footer, ...map.footer },
   };
 }
 
-export default function Home() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
+async function loadHomeData(): Promise<HomeData> {
+  const fallback = fallbackData();
 
-  useEffect(() => {
-    const load = async () => {
-      // Add mobile delay
-      if (typeof window !== 'undefined' && window.innerWidth < 768) {
-        await new Promise(resolve => setTimeout(resolve, 6000));
-      }
-      const result = await loadHomeData();
-      setData(result);
-      setLoading(false);
+  if (!supabase) return fallback;
+
+  try {
+    const query = Promise.all([
+      supabase.from('projects').select('*').order('sort_order'),
+      supabase.from('stats').select('*'),
+      supabase.from('contact_info').select('*'),
+      supabase.from('social_links').select('*').order('sort_order'),
+      supabase.from('sections').select('*'),
+      supabase.from('profile').select('*').eq('id', 'main').single(),
+      supabase.from('skills').select('*'),
+      supabase.from('testimonials').select('*'),
+    ]);
+
+    const timeout = new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), 2500);
+    });
+
+    const result = await Promise.race([query, timeout]);
+    if (!result) return fallback;
+
+    const [projectsRes, statsRes, contactsRes, socialsRes, sectionsRes, profileRes, skillsRes, testimonialsRes] = result;
+
+    return {
+      projects: projectsRes.data?.length ? projectsRes.data : defaultProjects,
+      stats: statsRes.data?.length ? statsRes.data : defaultStats,
+      contacts: contactsRes.data?.length ? contactsRes.data : defaultContacts,
+      socials: socialsRes.data?.length ? socialsRes.data : defaultSocials,
+      sections: sectionsRes.data?.length ? mapSections(sectionsRes.data) : defaultSections,
+      profile: profileRes.data || defaultProfile,
+      skills: skillsRes.data?.length ? skillsRes.data : defaultSkills,
+      testimonials: testimonialsRes.data?.length ? testimonialsRes.data : defaultTestimonials,
     };
-    load();
-  }, []);
+  } catch {
+    return fallback;
+  }
+}
 
-  if (loading || !data) return <LoadingScreen />;
-
-  const { projects, contacts, socials, sections, profile, skills, testimonials } = data;
-
-  return (
-    <main>
-      <Navigation sections={sections} />
-      <Hero profile={profile} sections={sections} />
-      <Skills skills={skills} />
-      <Testimonials testimonials={testimonials} />
-      <Portfolio projects={projects} />
-      <Contact contacts={contacts} socialLinks={socials} />
-      <Footer sections={sections} socialLinks={socials} />
-    </main>
-  );
+export default async function Home() {
+  const data = await loadHomeData();
+  return <HomeClient data={data} />;
 }

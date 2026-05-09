@@ -1,73 +1,175 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import useDisableMotion from '@/lib/useDisableMotion';
-import { Project, CATEGORIES } from '@/types';
+import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CATEGORIES, Locale, Project } from '@/types';
 import ProjectCard from './ProjectCard';
-
-const ALL_CATS = [{ value: 'all', label: 'الكل' }, ...CATEGORIES];
+import ScrollReveal from './ScrollReveal';
 
 interface PortfolioProps {
   projects?: Project[];
+  locale: Locale;
 }
 
-export default function Portfolio({ projects = [] }: PortfolioProps) {
-  const [activeCategory, setActiveCategory] = useState('all');
-  const disableMotion = useDisableMotion();
+function toEmbedUrl(url?: string) {
+  if (!url) return '';
 
-  const filtered = activeCategory === 'all' ? projects : projects.filter(p => p.category === activeCategory);
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('youtube.com')) {
+      const id = parsed.searchParams.get('v');
+      return id ? `https://www.youtube.com/embed/${id}` : url;
+    }
+    if (parsed.hostname.includes('youtu.be')) {
+      return `https://www.youtube.com/embed/${parsed.pathname.replace('/', '')}`;
+    }
+    if (parsed.hostname.includes('drive.google.com')) {
+      const match = url.match(/\/file\/d\/([^/]+)/);
+      return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+    }
+    if (parsed.hostname.includes('vimeo.com')) {
+      const id = parsed.pathname.split('/').filter(Boolean).pop();
+      return id ? `https://player.vimeo.com/video/${id}` : url;
+    }
+  } catch {
+    return url;
+  }
+
+  return url;
+}
+
+export default function Portfolio({ projects = [], locale }: PortfolioProps) {
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [selected, setSelected] = useState<Project | null>(null);
+  const isAr = locale === 'ar';
+
+  const filtered = useMemo(
+    () => (activeCategory === 'all' ? projects : projects.filter((project) => project.category === activeCategory)),
+    [activeCategory, projects],
+  );
+
+  const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
+  const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
+  const embedUrl = toEmbedUrl(selected?.video_url);
 
   return (
-    <section className="min-h-screen py-24 px-4 bg-[#0a0a0f] md:bg-[#0d0d14]" id="projects">
-      <div className="max-w-7xl mx-auto">
-        <motion.div className="text-center mb-16" initial={!disableMotion ? { opacity: 0, y: -16 } : undefined} whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined} viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined} transition={!disableMotion ? { duration: 0.55, ease: [0.22,1,0.36,1] as [number,number,number,number] } : undefined}>
-          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full tracking-widest">PORTFOLIO</span>
-          <h2 className="text-4xl md:text-5xl font-black mb-4">
-            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">مشاريعي</span>
-          </h2>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto">مجموعة من أفضل أعمالي في مجال تحرير الفيديو والموشن ديزاين</p>
-        </motion.div>
+    <section id="projects" className="bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#f2ff5e]">
+              {isAr ? 'معرض الأعمال' : 'Selected Work'}
+            </p>
+            <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
+              {isAr ? 'شغّل العمل. احكم بالإحساس.' : 'A sharp gallery built for motion.'}
+            </h2>
+          </ScrollReveal>
+          <ScrollReveal variant={isAr ? 'left' : 'right'} delay={120}>
+            <p className="max-w-sm text-sm leading-7 text-white/52">
+              {isAr
+                ? 'أضف روابط Google Drive أو فيديوهات محلية من لوحة التحكم، وسيظهر كل عمل هنا كمعرض قابل للتشغيل.'
+                : 'Add Google Drive links or uploaded videos from the admin, and each project becomes playable here.'}
+            </p>
+          </ScrollReveal>
+        </div>
 
-        <motion.div className="flex flex-wrap justify-center gap-3 mb-14" initial={!disableMotion ? { opacity: 0 } : undefined} whileInView={!disableMotion ? { opacity: 1 } : undefined} viewport={!disableMotion ? { once: true, amount: 0.15 } : undefined} transition={!disableMotion ? { delay: 0.2, duration: 0.45, ease: 'easeOut' } : undefined}>
-          <LayoutGroup>
-            {ALL_CATS.map(cat => (
-              <motion.button key={cat.value} onClick={() => setActiveCategory(cat.value)} className={`relative px-6 py-2.5 rounded-full font-semibold transition-colors text-sm ${activeCategory === cat.value ? 'text-white' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`} whileHover={!disableMotion ? { scale: 1.04 } : undefined} whileTap={!disableMotion ? { scale: 0.96 } : undefined}>
-                {activeCategory === cat.value && <motion.div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600 to-pink-600" layoutId="activePill" transition={!disableMotion ? { type: 'spring', stiffness: 400, damping: 35 } : undefined} />}
-                <span className="relative z-10">{cat.label}</span>
-              </motion.button>
-            ))}
-          </LayoutGroup>
-        </motion.div>
+        <ScrollReveal className="mb-10 flex flex-wrap gap-2" delay={180}>
+          {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...CATEGORIES].map((category) => (
+            <button
+              key={category.value}
+              type="button"
+              onClick={() => setActiveCategory(category.value)}
+              className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.16em] transition ${
+                activeCategory === category.value
+                  ? 'border-[#f2ff5e] bg-[#f2ff5e] text-black'
+                  : 'border-white/10 text-white/55 hover:border-white/35 hover:text-white'
+              }`}
+            >
+              {isAr ? category.labelAr : category.label}
+            </button>
+          ))}
+        </ScrollReveal>
 
-        {projects.length === 0 ? (
-          <div className="text-center py-20 text-gray-600">لا توجد مشاريع لعرضها حالياً.</div>
-        ) : disableMotion ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map(project => (
+        <div key={activeCategory} className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((project, index) => (
               <div key={project.id}>
-                <ProjectCard project={project} />
+                <ScrollReveal delay={index * 90} variant="scale">
+                  <ProjectCard project={project} locale={locale} onOpen={setSelected} />
+                </ScrollReveal>
               </div>
             ))}
-          </div>
-        ) : (
-          <AnimatePresence mode="popLayout">
-            <motion.div key={activeCategory} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              {filtered.map((project, index) => (
-                <motion.div key={project.id} initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -16, scale: 0.97 }} transition={{ duration: 0.5, delay: index * 0.07, ease: [0.22,1,0.36,1] as [number,number,number,number] }}>
-                  <ProjectCard project={project} />
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        )}
+        </div>
 
-        <motion.div className="text-center mt-12" initial={!disableMotion ? { opacity: 0 } : undefined} whileInView={!disableMotion ? { opacity: 1 } : undefined} viewport={!disableMotion ? { once: true, amount: 0.15 } : undefined} transition={!disableMotion ? { delay: 0.4, duration: 0.4, ease: 'easeOut' } : undefined}>
-          <p className="text-gray-600 text-sm">
-            عرض <span className="text-purple-400 font-bold">{filtered.length}</span> من <span className="text-pink-400 font-bold">{projects.length}</span> مشروع
-          </p>
-        </motion.div>
+        {filtered.length === 0 && (
+          <div className="border border-white/10 py-16 text-center text-white/45">
+            {isAr ? 'لا توجد أعمال في هذا التصنيف بعد.' : 'No projects in this category yet.'}
+          </div>
+        )}
       </div>
+
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            className="fixed inset-0 z-[80] grid place-items-center bg-black/82 p-4 backdrop-blur-xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-6xl overflow-hidden border border-white/12 bg-[#0d0d0d]"
+              initial={{ scale: 0.96, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.96, opacity: 0, y: 20 }}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[#f2ff5e]">{selected.client || selected.category}</p>
+                  <h3 className="mt-1 text-xl font-black text-white">{modalTitle}</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  className="grid h-10 w-10 place-items-center border border-white/12 text-white/70 transition hover:border-white/40 hover:text-white"
+                  aria-label="Close video"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="aspect-video bg-black">
+                {selected.embed_code ? (
+                  <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: selected.embed_code }} />
+                ) : embedUrl ? (
+                  <iframe
+                    src={embedUrl}
+                    title={modalTitle}
+                    className="h-full w-full"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : selected.thumbnail ? (
+                  <img src={selected.thumbnail} alt={modalTitle} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="grid h-full place-items-center text-white/45">
+                    {isAr ? 'أضف رابط فيديو من لوحة التحكم.' : 'Add a video link from the admin.'}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-5 p-5 md:grid-cols-[1fr_auto] md:items-start">
+                <p className="max-w-3xl text-sm leading-7 text-white/64">{modalDescription}</p>
+                <div className="flex flex-wrap gap-2 md:justify-end">
+                  {selected.technologies?.map((tech) => (
+                    <span key={tech} className="border border-white/10 px-3 py-1.5 text-xs text-white/56">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
