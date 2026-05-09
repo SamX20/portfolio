@@ -12,8 +12,9 @@ const config: Config = {
         cairo: ['var(--font-cairo)', 'sans-serif'],
       },
       colors: {
-        primary: '#a855f7',
-        secondary: '#ec4899',
+        primary: '#8B6B9E',
+        secondary: '#D8A5C4',
+        accent: '#6B9EBD',
       },
     },
   },
