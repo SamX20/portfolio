@@ -19,7 +19,7 @@ const labels = {
   ar: {
     work: 'الأعمال',
     contact: 'التواصل',
-    book: 'ابدأ مشروع',
+    book: 'ابدأ مشروعك',
   },
 };
 

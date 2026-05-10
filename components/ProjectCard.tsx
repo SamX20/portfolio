@@ -40,7 +40,7 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
 
       {project.featured && (
         <span className="accent-gradient absolute right-4 top-4 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#090909]">
-          {isAr ? 'مختار' : 'Featured'}
+          {isAr ? 'عمل مختار' : 'Featured'}
         </span>
       )}
 
@@ -57,7 +57,7 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
         </div>
         <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
           <span className="text-xs font-black uppercase tracking-[0.2em] text-[#b99cff]">
-            {isAr ? 'تشغيل' : 'Play'}
+            {isAr ? 'مشاهدة العمل' : 'Play'}
           </span>
           <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-black transition group-hover:bg-[#d98fcb]">
             ▶

@@ -11,9 +11,10 @@ export const defaultSections: SectionsData = {
     subtitle: 'Motion Graphics / Video Editing',
     description:
       'I turn your ideas into stunning visual content that attracts audiences and achieves your marketing goals.',
-    title_ar: 'مرحباً، أنا سامر جابر',
-    subtitle_ar: 'مصمم ومحرر فيديو احترافي',
-    description_ar: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
+    title_ar: 'أنا سام، أصنع حركة تُعلّق في الذاكرة.',
+    subtitle_ar: 'تصميم حركي / تحرير فيديو',
+    description_ar:
+      'أحوّل الأفكار إلى مشاهد متقنة الإيقاع، مصممة للإعلانات الرقمية، الهويات المتحركة، والفيديوهات التي تستحق أن تُشاهد حتى النهاية.',
     cta_text: 'Watch the reel',
     cta_link: '#projects',
   },
@@ -21,16 +22,16 @@ export const defaultSections: SectionsData = {
     title: 'Who I Am',
     content:
       'A professional in visual content production, editing, and design. Extensive experience in commercial advertising, educational videos, and motion graphics, and I master the use of AI tools and integrating them into my projects.',
-    title_ar: 'من أنا',
+    title_ar: 'إيقاع بصري، قصة واضحة، ونهاية مصقولة.',
     content_ar:
-      'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك، وأتقن التعامل مع ادوات الذكاء الاصطناعي ودمجها في مشاريعي.',
+      'أعمل على بناء فيديوهات تجمع بين الإحساس التحريري، التصميم الحركي، واللمسة النهائية النظيفة. من الإعلان القصير إلى فيديو الهوية، هدفي أن يبدو كل مشهد مقصوداً، سريع القراءة، وقابلاً للتذكّر.',
     experience_years: '4+',
     projects_completed: '100+',
   },
   footer: {
     copyright: '© 2026 Sam. All rights reserved.',
     tagline: 'Motion with taste. Edits with pulse.',
-    tagline_ar: 'حركة بذوق. مونتاج بإحساس.',
+    tagline_ar: 'تصميم يتحرك بإحساس. مونتاج يترك أثراً.',
   },
 };
 
@@ -48,11 +49,11 @@ export const defaultProjects: Project[] = [
   {
     id: 'sample-identity',
     title: 'Kinetic Brand Opener',
-    title_ar: 'افتتاحية هوية متحركة',
+    title_ar: 'افتتاحية هوية حركية',
     description:
       'A punchy logo reveal and brand opener built around fast typography, timing, and clean transitions.',
     description_ar:
-      'ريڤيل شعار وافتتاحية براند بإيقاع سريع، تايبوجرافي متحرك، وانتقالات نظيفة.',
+      'افتتاحية بصرية قصيرة تكشف الهوية بإيقاع سريع، تايبوجرافي حركي، وانتقالات مصممة بعناية.',
     category: 'motion-design',
     client: 'Concept',
     role: 'Motion direction, animation, edit',
@@ -65,11 +66,11 @@ export const defaultProjects: Project[] = [
   {
     id: 'sample-social',
     title: 'Vertical Social Ad Pack',
-    title_ar: 'حزمة إعلانات سوشيال عمودية',
+    title_ar: 'حزمة إعلانات رقمية عمودية',
     description:
       'A fast-cut campaign system for Reels and TikTok with modular scenes and animated product moments.',
     description_ar:
-      'نظام إعلاني سريع لريلز وتيك توك بمشاهد قابلة للتعديل ولقطات منتج متحركة.',
+      'نظام إعلاني مخصص للريلز وتيك توك، بمشاهد مرنة، حركة منتج واضحة، وإيقاع مناسب للمشاهدة السريعة.',
     category: 'social-ads',
     client: 'Concept',
     role: 'Edit, motion graphics',
@@ -82,11 +83,11 @@ export const defaultProjects: Project[] = [
   {
     id: 'sample-explainer',
     title: 'Explainer Motion System',
-    title_ar: 'نظام فيديو شرح متحرك',
+    title_ar: 'نظام فيديو توضيحي متحرك',
     description:
       'A clean explainer style with animated icons, transitions, and visual pacing for complex ideas.',
     description_ar:
-      'ستايل شرح واضح بأيقونات متحركة، انتقالات، وإيقاع بصري يبسّط الأفكار المعقدة.',
+      'أسلوب شرح بصري يعتمد على أيقونات متحركة، انتقالات دقيقة، وتسلسل واضح يبسّط الأفكار المعقدة.',
     category: 'explainer',
     client: 'Concept',
     role: 'Storyboard, animation, edit',

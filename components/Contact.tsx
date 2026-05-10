@@ -41,14 +41,14 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.9fr_1.1fr]">
         <ScrollReveal variant={isAr ? 'right' : 'left'}>
           <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]">
-            {isAr ? 'تواصل' : 'Contact'}
+            {isAr ? 'ابدأ مشروعك' : 'Contact'}
           </p>
           <h2 className="text-4xl font-black leading-none text-white sm:text-6xl">
-            {isAr ? 'عندك فكرة تحتاج حركة؟' : 'Have a frame that needs a pulse?'}
+            {isAr ? 'لديك فكرة تحتاج إلى حركة؟' : 'Have a frame that needs a pulse?'}
           </h2>
           <p className="mt-6 max-w-xl text-base leading-8 text-white/60">
             {isAr
-              ? 'أرسل تفاصيل المشروع، رابط الريفرنس، أو نوع الفيديو المطلوب. لوحة التحكم الجديدة ستخليك تحدّث كل تفاصيل الصفحة بسهولة.'
+              ? 'أرسل تفاصيل المشروع، نوع الفيديو، المدة المتوقعة، وأي مراجع بصرية تحبها. سأعود إليك برد واضح وخطوة عملية.'
               : 'Send the project idea, references, or video type. The new admin lets you keep this entire page updated without touching code.'}
           </p>
 
@@ -89,20 +89,20 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
           transition={{ duration: 0.65, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <input name="name" required placeholder={isAr ? 'الاسم' : 'Name'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
-            <input name="email" type="email" required placeholder={isAr ? 'الإيميل' : 'Email'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
+            <input name="name" required placeholder={isAr ? 'الاسم الكامل' : 'Name'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
+            <input name="email" type="email" required placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
           </div>
-          <input name="subject" required placeholder={isAr ? 'نوع المشروع' : 'Project type'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
-          <textarea name="message" required rows={7} placeholder={isAr ? 'احكيلي عن الفيديو، المدة، الموعد، والستايل...' : 'Tell me about the video, length, deadline, and style...'} className="resize-none border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
+          <input name="subject" required placeholder={isAr ? 'نوع العمل المطلوب' : 'Project type'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
+          <textarea name="message" required rows={7} placeholder={isAr ? 'اكتب نبذة عن الفكرة، المنصة، المدة، الموعد النهائي، والاتجاه البصري المطلوب...' : 'Tell me about the video, length, deadline, and style...'} className="resize-none border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
           <button
             type="submit"
             disabled={status === 'sending'}
             className="accent-gradient h-13 px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-[#090909] transition hover:brightness-110 disabled:opacity-50"
           >
-            {status === 'sending' ? (isAr ? 'جاري الإرسال...' : 'Sending...') : isAr ? 'إرسال' : 'Send brief'}
+            {status === 'sending' ? (isAr ? 'جاري الإرسال...' : 'Sending...') : isAr ? 'إرسال الطلب' : 'Send brief'}
           </button>
-          {status === 'sent' && <p className="text-sm text-[#b99cff]">{isAr ? 'وصلت الرسالة. رح أرجعلك قريب.' : 'Message sent. Sam will get back to you soon.'}</p>}
-          {status === 'error' && <p className="text-sm text-red-300">{isAr ? 'صار خطأ. جرّب مرة ثانية.' : 'Something went wrong. Please try again.'}</p>}
+          {status === 'sent' && <p className="text-sm text-[#b99cff]">{isAr ? 'وصلت الرسالة. سأعود إليك قريباً.' : 'Message sent. Sam will get back to you soon.'}</p>}
+          {status === 'error' && <p className="text-sm text-red-300">{isAr ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'Something went wrong. Please try again.'}</p>}
         </motion.form>
       </div>
     </section>

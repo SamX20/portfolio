@@ -58,16 +58,16 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
             <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]">
-              {isAr ? 'معرض الأعمال' : 'Selected Work'}
+              {isAr ? 'أعمال مختارة' : 'Selected Work'}
             </p>
             <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
-              {isAr ? 'شغّل العمل. احكم بالإحساس.' : 'A sharp gallery built for motion.'}
+              {isAr ? 'معرض حاد الإيقاع، مصمم للحركة.' : 'A sharp gallery built for motion.'}
             </h2>
           </ScrollReveal>
           <ScrollReveal variant={isAr ? 'left' : 'right'} delay={120}>
             <p className="max-w-sm text-sm leading-7 text-white/52">
               {isAr
-                ? 'أضف روابط Google Drive أو فيديوهات محلية من لوحة التحكم، وسيظهر كل عمل هنا كمعرض قابل للتشغيل.'
+                ? 'أضف روابط Google Drive أو ملفات الفيديو من لوحة التحكم، وسيظهر كل عمل هنا بشكل أنيق وقابل للتشغيل.'
                 : 'Add Google Drive links or uploaded videos from the admin, and each project becomes playable here.'}
             </p>
           </ScrollReveal>
@@ -102,7 +102,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
 
         {filtered.length === 0 && (
           <div className="border border-white/10 py-16 text-center text-white/45">
-            {isAr ? 'لا توجد أعمال في هذا التصنيف بعد.' : 'No projects in this category yet.'}
+            {isAr ? 'لا توجد أعمال ضمن هذا التصنيف حالياً.' : 'No projects in this category yet.'}
           </div>
         )}
       </div>
@@ -151,7 +151,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
                   <img src={selected.thumbnail} alt={modalTitle} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full place-items-center text-white/45">
-                    {isAr ? 'أضف رابط فيديو من لوحة التحكم.' : 'Add a video link from the admin.'}
+                    {isAr ? 'أضف رابط الفيديو من لوحة التحكم لعرضه هنا.' : 'Add a video link from the admin.'}
                   </div>
                 )}
               </div>

@@ -113,9 +113,9 @@ export interface SectionsData {
 }
 
 export const CATEGORIES = [
-  { value: 'motion-design', label: 'Motion Design', labelAr: 'موشن ديزاين' },
-  { value: 'social-ads', label: 'Social Ads', labelAr: 'إعلانات السوشيال' },
-  { value: 'brand-films', label: 'Brand Films', labelAr: 'أفلام العلامات' },
-  { value: 'explainer', label: 'Explainers', labelAr: 'فيديوهات شرح' },
-  { value: 'video-editing', label: 'Video Editing', labelAr: 'مونتاج فيديو' },
+  { value: 'motion-design', label: 'Motion Design', labelAr: 'تصميم حركي' },
+  { value: 'social-ads', label: 'Social Ads', labelAr: 'إعلانات رقمية' },
+  { value: 'brand-films', label: 'Brand Films', labelAr: 'أفلام للعلامات التجارية' },
+  { value: 'explainer', label: 'Explainers', labelAr: 'فيديوهات توضيحية' },
+  { value: 'video-editing', label: 'Video Editing', labelAr: 'تحرير ومونتاج' },
 ] as const;
