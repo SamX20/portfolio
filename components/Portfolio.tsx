@@ -57,7 +57,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#f2ff5e]">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]">
               {isAr ? 'معرض الأعمال' : 'Selected Work'}
             </p>
             <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
@@ -81,7 +81,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
               onClick={() => setActiveCategory(category.value)}
               className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.16em] transition ${
                 activeCategory === category.value
-                  ? 'border-[#f2ff5e] bg-[#f2ff5e] text-black'
+                  ? 'accent-gradient border-[#d98fcb] text-[#090909]'
                   : 'border-white/10 text-white/55 hover:border-white/35 hover:text-white'
               }`}
             >
@@ -123,7 +123,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
             >
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-[#f2ff5e]">{selected.client || selected.category}</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[#b99cff]">{selected.client || selected.category}</p>
                   <h3 className="mt-1 text-xl font-black text-white">{modalTitle}</h3>
                 </div>
                 <button

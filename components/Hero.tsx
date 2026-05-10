@@ -30,7 +30,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
       <div className="absolute inset-0 opacity-35">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:72px_72px]" />
         <motion.div
-          className="absolute inset-y-0 left-[-20%] w-[42%] bg-[#f2ff5e]/12 blur-2xl"
+          className="absolute inset-y-0 left-[-20%] w-[42%] bg-[#8f7cff]/16 blur-2xl"
           animate={{ x: ['0%', '210%', '0%'] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -50,7 +50,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
       <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-start gap-10 px-4 pb-16 pt-10 sm:px-6 sm:pt-12 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pt-16">
         <div className={isAr ? 'text-right' : 'text-left'}>
           <p
-            className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#f2ff5e]"
+            className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]"
           >
             {subtitle}
           </p>
@@ -68,7 +68,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           <div
             className="mt-8 flex flex-wrap items-center gap-3"
           >
-            <a href="#projects" className="rounded-full bg-[#f2ff5e] px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:bg-white">
+            <a href="#projects" className="accent-gradient rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] transition hover:brightness-110">
               {isAr ? 'شاهد الأعمال' : sections.hero.cta_text}
             </a>
             <a href="#contact" className="rounded-full border border-white/16 px-6 py-3 text-sm font-bold text-white/88 transition hover:border-white/40">
@@ -80,10 +80,10 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         <div
           className="relative mx-auto aspect-[4/5] w-full max-w-[520px]"
         >
-          <div className="absolute inset-0 border border-white/14 bg-[radial-gradient(circle_at_50%_20%,rgba(242,255,94,.18),transparent_34%),linear-gradient(145deg,#161616,#090909)]" />
+          <div className="absolute inset-0 border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(185,156,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(115,167,255,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]" />
           <div className="absolute inset-5 overflow-hidden border border-white/10 bg-black">
             <motion.div
-              className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(242,255,94,.92)_36%,rgba(242,255,94,.92)_43%,transparent_44%,transparent_100%)]"
+              className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
               animate={{ x: ['-120%', '120%'] }}
               transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
             />
@@ -98,7 +98,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
               ))}
             </div>
             <div className="absolute bottom-6 left-6 right-6">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#f2ff5e]">{profile.name}</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#b99cff]">{profile.name}</p>
               <p className="mt-2 text-3xl font-black uppercase leading-none text-white sm:text-5xl">Edit<br />Frame<br />Move</p>
             </div>
           </div>

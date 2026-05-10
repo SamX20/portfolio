@@ -90,7 +90,7 @@ function Field({
   placeholder?: string;
 }) {
   const className =
-    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#f2ff5e]/70';
+    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#b99cff]/70';
 
   return (
     <label className="block">
@@ -249,7 +249,7 @@ export default function AdminPage() {
     return (
       <main className="grid min-h-screen place-items-center bg-[#080808] px-4 text-white">
         <form onSubmit={login} className="w-full max-w-md border border-white/10 bg-white/[0.03] p-7">
-          <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#f2ff5e]">Sam Admin</p>
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]">Sam Admin</p>
           <h1 className="text-4xl font-black">Control room</h1>
           <p className="mt-3 text-sm leading-7 text-white/52">
             Server-protected admin for projects, main page copy, uploads, and contact content.
@@ -264,9 +264,9 @@ export default function AdminPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Admin password"
-            className="mt-6 h-12 w-full border border-white/10 bg-black/35 px-4 text-white outline-none focus:border-[#f2ff5e]/70"
+            className="mt-6 h-12 w-full border border-white/10 bg-black/35 px-4 text-white outline-none focus:border-[#b99cff]/70"
           />
-          <button disabled={saving || !password} className="mt-4 w-full bg-[#f2ff5e] px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-black disabled:opacity-50">
+          <button disabled={saving || !password} className="accent-gradient mt-4 w-full px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-[#090909] disabled:opacity-50">
             {saving ? 'Checking...' : 'Enter'}
           </button>
           {toast && <p className="mt-4 text-sm text-red-200">{toast}</p>}
@@ -280,7 +280,7 @@ export default function AdminPage() {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#f2ff5e]">Sam Motion Admin</p>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#b99cff]">Sam Motion Admin</p>
             <h1 className="text-2xl font-black">Portfolio control panel</h1>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -294,7 +294,7 @@ export default function AdminPage() {
                 key={value}
                 onClick={() => setTab(value as Tab)}
                 className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
-                  tab === value ? 'border-[#f2ff5e] bg-[#f2ff5e] text-black' : 'border-white/10 text-white/55 hover:text-white'
+                  tab === value ? 'accent-gradient border-[#d98fcb] text-[#090909]' : 'border-white/10 text-white/55 hover:text-white'
                 }`}
               >
                 {label}
@@ -305,7 +305,7 @@ export default function AdminPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {toast && <div className="mb-5 border border-[#f2ff5e]/40 bg-[#f2ff5e]/10 p-3 text-sm text-[#f2ff5e]">{toast}</div>}
+        {toast && <div className="mb-5 border border-[#b99cff]/40 bg-[#b99cff]/10 p-3 text-sm text-[#b99cff]">{toast}</div>}
 
         {tab === 'content' && (
           <section className="grid gap-5 lg:grid-cols-2">
@@ -342,7 +342,7 @@ export default function AdminPage() {
                 <Field label="Footer tagline EN" value={data.sections.footer.tagline} onChange={(value) => setSection('footer', 'tagline', value)} />
                 <Field label="Footer tagline AR" value={data.sections.footer.tagline_ar} onChange={(value) => setSection('footer', 'tagline_ar', value)} />
               </div>
-              <button onClick={saveContent} disabled={saving} className="mt-6 bg-[#f2ff5e] px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-black disabled:opacity-50">
+              <button onClick={saveContent} disabled={saving} className="accent-gradient mt-6 px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-[#090909] disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save main page'}
               </button>
             </div>
@@ -353,7 +353,7 @@ export default function AdminPage() {
           <section>
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-xl font-black">Projects</h2>
-              <button onClick={() => setEditingProject({ ...emptyProject, id: crypto.randomUUID(), sort_order: data.projects.length + 1 })} className="bg-[#f2ff5e] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-black">
+              <button onClick={() => setEditingProject({ ...emptyProject, id: crypto.randomUUID(), sort_order: data.projects.length + 1 })} className="accent-gradient px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#090909]">
                 Add project
               </button>
             </div>
@@ -366,7 +366,7 @@ export default function AdminPage() {
                   <div>
                     <p className="font-black">{project.title}</p>
                     <p className="mt-1 line-clamp-1 text-sm text-white/45">{project.description}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#f2ff5e]">{project.category}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#b99cff]">{project.category}</p>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setEditingProject(project)} className="border border-white/10 px-3 py-2 text-xs font-bold text-white/70">Edit</button>
@@ -490,7 +490,7 @@ function EditableList({
         <h2 className="text-xl font-black">{title}</h2>
         <button
           onClick={() => onChange([...items, { ...newItem, id: crypto.randomUUID() }])}
-          className="border border-[#f2ff5e]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f2ff5e]"
+          className="border border-[#b99cff]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#b99cff]"
         >
           Add
         </button>
@@ -515,7 +515,7 @@ function EditableList({
                   await saveRecord(table, item);
                   notify(`${title} saved`);
                 }}
-                className="bg-[#f2ff5e] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-black"
+                className="accent-gradient px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
               >
                 Save
               </button>
@@ -570,7 +570,7 @@ function ProjectEditor({
           <Field label="Description AR" value={form.description_ar} onChange={(value) => set('description_ar', value)} textarea />
           <label className="block">
             <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Category</span>
-            <select value={form.category} onChange={(event) => set('category', event.target.value)} className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none focus:border-[#f2ff5e]/70">
+            <select value={form.category} onChange={(event) => set('category', event.target.value)} className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none focus:border-[#b99cff]/70">
               {CATEGORIES.map((category) => (
                 <option key={category.value} value={category.value}>{category.label}</option>
               ))}
@@ -596,11 +596,11 @@ function ProjectEditor({
                 if (file.type.startsWith('image/')) set('thumbnail', url);
                 if (file.type.startsWith('video/')) set('video_url', url);
               }}
-              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#f2ff5e] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#d98fcb] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
           </label>
           <label className="flex items-center gap-3 border border-white/10 p-3 text-sm text-white/70">
-            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#f2ff5e]" />
+            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#b99cff]" />
             Featured project
           </label>
         </div>
@@ -613,7 +613,7 @@ function ProjectEditor({
               await onSave({ ...form, technologies: tech.split(',').map((item) => item.trim()).filter(Boolean) });
               setSaving(false);
             }}
-            className="bg-[#f2ff5e] px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black disabled:opacity-50"
+            className="accent-gradient px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#090909] disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save project'}
           </button>

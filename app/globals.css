@@ -4,6 +4,10 @@
   :root {
     --background: #080808;
     --foreground: #ffffff;
+    --accent: #b99cff;
+    --accent-pink: #d98fcb;
+    --accent-blue: #73a7ff;
+    --accent-gradient: linear-gradient(135deg, #8f7cff 0%, #d98fcb 48%, #73a7ff 100%);
   }
 
   html {
@@ -33,8 +37,8 @@
 }
 
 ::selection {
-  background: #f2ff5e;
-  color: #000000;
+  background: #d98fcb;
+  color: #080808;
 }
 
 ::-webkit-scrollbar {
@@ -46,7 +50,19 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #f2ff5e;
+  background: linear-gradient(180deg, #8f7cff, #d98fcb, #73a7ff);
+}
+
+.accent-gradient {
+  background: var(--accent-gradient);
+}
+
+.accent-gradient-text {
+  background: var(--accent-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .line-clamp-1 {

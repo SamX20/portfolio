@@ -40,7 +40,7 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
     <section id="contact" className="border-t border-white/10 bg-[#0b0b0b] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.9fr_1.1fr]">
         <ScrollReveal variant={isAr ? 'right' : 'left'}>
-          <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#f2ff5e]">
+          <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]">
             {isAr ? 'تواصل' : 'Contact'}
           </p>
           <h2 className="text-4xl font-black leading-none text-white sm:text-6xl">
@@ -57,7 +57,7 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
               <a
                 key={item.id}
                 href={item.href || '#'}
-                className="flex items-center justify-between border border-white/10 px-4 py-4 text-white/68 transition hover:border-[#f2ff5e]/55 hover:text-white"
+                className="flex items-center justify-between border border-white/10 px-4 py-4 text-white/68 transition hover:border-[#b99cff]/55 hover:text-white"
               >
                 <span className="text-sm font-bold">{item.title}</span>
                 <span className="text-sm" dir={item.id === 'phone' ? 'ltr' : undefined}>{item.content}</span>
@@ -89,19 +89,19 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
           transition={{ duration: 0.65, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <input name="name" required placeholder={isAr ? 'الاسم' : 'Name'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#f2ff5e]/70" />
-            <input name="email" type="email" required placeholder={isAr ? 'الإيميل' : 'Email'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#f2ff5e]/70" />
+            <input name="name" required placeholder={isAr ? 'الاسم' : 'Name'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
+            <input name="email" type="email" required placeholder={isAr ? 'الإيميل' : 'Email'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
           </div>
-          <input name="subject" required placeholder={isAr ? 'نوع المشروع' : 'Project type'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#f2ff5e]/70" />
-          <textarea name="message" required rows={7} placeholder={isAr ? 'احكيلي عن الفيديو، المدة، الموعد، والستايل...' : 'Tell me about the video, length, deadline, and style...'} className="resize-none border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#f2ff5e]/70" />
+          <input name="subject" required placeholder={isAr ? 'نوع المشروع' : 'Project type'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
+          <textarea name="message" required rows={7} placeholder={isAr ? 'احكيلي عن الفيديو، المدة، الموعد، والستايل...' : 'Tell me about the video, length, deadline, and style...'} className="resize-none border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#b99cff]/70" />
           <button
             type="submit"
             disabled={status === 'sending'}
-            className="h-13 bg-[#f2ff5e] px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-white disabled:opacity-50"
+            className="accent-gradient h-13 px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-[#090909] transition hover:brightness-110 disabled:opacity-50"
           >
             {status === 'sending' ? (isAr ? 'جاري الإرسال...' : 'Sending...') : isAr ? 'إرسال' : 'Send brief'}
           </button>
-          {status === 'sent' && <p className="text-sm text-[#f2ff5e]">{isAr ? 'وصلت الرسالة. رح أرجعلك قريب.' : 'Message sent. Sam will get back to you soon.'}</p>}
+          {status === 'sent' && <p className="text-sm text-[#b99cff]">{isAr ? 'وصلت الرسالة. رح أرجعلك قريب.' : 'Message sent. Sam will get back to you soon.'}</p>}
           {status === 'error' && <p className="text-sm text-red-300">{isAr ? 'صار خطأ. جرّب مرة ثانية.' : 'Something went wrong. Please try again.'}</p>}
         </motion.form>
       </div>
