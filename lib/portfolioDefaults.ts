@@ -11,10 +11,9 @@ export const defaultSections: SectionsData = {
     subtitle: 'Motion Graphics / Video Editing',
     description:
       'A cinematic portfolio for branded motion, social ads, explainers, and high-energy edits.',
-    title_ar: 'سام يحوّل الحركة إلى تجربة تُتذكر.',
+    title_ar: 'مرحبا, انا سامر جابر',
     subtitle_ar: 'موشن جرافيك / مونتاج فيديو',
-    description_ar:
-      'بورتفوليو سينمائي للأعمال الإعلانية، فيديوهات السوشيال، الشرح البصري، والمونتاج الإبداعي.',
+    description_ar: 'من انا ايضا بالعربي',
     cta_text: 'Watch the reel',
     cta_link: '#projects',
   },
