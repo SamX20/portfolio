@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Locale, Profile, SectionsData, Skill, Stat } from '@/types';
 import ScrollReveal from './ScrollReveal';
+import usePortableMotion from '@/lib/usePortableMotion';
 
 interface HeroProps {
   locale: Locale;
@@ -15,6 +16,7 @@ interface HeroProps {
 
 export default function Hero({ locale, profile, sections, stats, skills }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const isPortable = usePortableMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], [0, 140]);
   const isAr = locale === 'ar';
@@ -31,14 +33,14 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:72px_72px]" />
         <motion.div
           className="absolute inset-y-0 left-[-20%] w-[42%] bg-[#8f7cff]/16 blur-2xl"
-          animate={{ x: ['0%', '210%', '0%'] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          animate={isPortable ? undefined : { x: ['0%', '210%', '0%'] }}
+          transition={isPortable ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
       <motion.div
-        className="absolute bottom-12 left-0 right-0 flex rotate-[-4deg] gap-4 overflow-hidden border-y border-white/10 bg-white/[0.03] py-3 text-xs font-black uppercase tracking-[0.3em] text-white/38"
-        style={{ y }}
+        className="absolute bottom-12 left-0 right-0 hidden rotate-[-4deg] gap-4 overflow-hidden border-y border-white/10 bg-white/[0.03] py-3 text-xs font-black uppercase tracking-[0.3em] text-white/38 lg:flex"
+        style={isPortable ? undefined : { y }}
       >
         {[...Array(8)].map((_, index) => (
           <span key={index} className="shrink-0">
@@ -84,16 +86,16 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           <div className="absolute inset-5 overflow-hidden border border-white/10 bg-black">
             <motion.div
               className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
-              animate={{ x: ['-120%', '120%'] }}
-              transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
+              animate={isPortable ? { x: '18%' } : { x: ['-120%', '120%'] }}
+              transition={isPortable ? { duration: 0 } : { duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
             />
             <div className="absolute inset-0 grid grid-rows-6">
               {[...Array(6)].map((_, index) => (
                 <motion.div
                   key={index}
                   className="border-b border-white/10 bg-white/[0.02]"
-                  animate={{ opacity: [0.12, 0.48, 0.12] }}
-                  transition={{ duration: 1.4 + index * 0.18, repeat: Infinity, delay: index * 0.12 }}
+                  animate={isPortable ? { opacity: 0.22 } : { opacity: [0.12, 0.48, 0.12] }}
+                  transition={isPortable ? { duration: 0 } : { duration: 1.4 + index * 0.18, repeat: Infinity, delay: index * 0.12 }}
                 />
               ))}
             </div>

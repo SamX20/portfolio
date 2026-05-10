@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CATEGORIES, Locale, Project } from '@/types';
+import usePortableMotion from '@/lib/usePortableMotion';
 
 interface ProjectCardProps {
   project: Project;
@@ -10,6 +11,7 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, locale, onOpen }: ProjectCardProps) {
+  const isPortable = usePortableMotion();
   const isAr = locale === 'ar';
   const category = CATEGORIES.find((item) => item.value === project.category);
   const title = isAr ? project.title_ar || project.title : project.title;
@@ -19,9 +21,9 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
     <motion.button
       type="button"
       onClick={() => onOpen(project)}
-      className="group relative min-h-[430px] overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[#d98fcb]/70"
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative min-h-[360px] overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[#d98fcb]/70 lg:min-h-[430px]"
+      whileHover={isPortable ? undefined : { y: -8 }}
+      transition={isPortable ? undefined : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       dir={isAr ? 'rtl' : 'ltr'}
     >
       <div className="absolute inset-0">
@@ -33,8 +35,8 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/42 to-black/12" />
         <motion.div
           className="absolute inset-y-0 w-1/2 bg-[#d98fcb]/14 blur-xl"
-          animate={{ x: ['-120%', '230%'] }}
-          transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
+          animate={isPortable ? { x: '40%' } : { x: ['-120%', '230%'] }}
+          transition={isPortable ? { duration: 0 } : { duration: 3.2, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
         />
       </div>
 
@@ -44,7 +46,7 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
         </span>
       )}
 
-      <div className="relative z-10 flex min-h-[430px] flex-col justify-end p-5">
+      <div className="relative z-10 flex min-h-[360px] flex-col justify-end p-5 lg:min-h-[430px]">
         <span className="mb-3 w-fit border border-white/16 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/70 backdrop-blur">
           {isAr ? category?.labelAr : category?.label}
         </span>
