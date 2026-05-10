@@ -124,7 +124,17 @@ export async function PUT(request: Request) {
       })),
     );
 
-    const { error } = await supabaseAdmin!.from('sections').upsert(rows);
+    const uniqueRows = Array.from(
+      rows.reduce<Map<string, typeof rows[number]>>((acc, row) => {
+        acc.set(`${row.section}:${row.key}`, row);
+        return acc;
+      }, new Map()).values(),
+    );
+
+    const { error } = await supabaseAdmin!
+      .from('sections')
+      .upsert(uniqueRows, { onConflict: ['section', 'key'] });
+
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
