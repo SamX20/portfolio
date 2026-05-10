@@ -55,7 +55,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
             {subtitle}
           </p>
           <h1
-            className="max-w-5xl text-[clamp(3.2rem,10vw,9rem)] font-black leading-[0.86] tracking-normal text-white"
+            className="max-w-5xl text-[clamp(3rem,10vw,8.5rem)] font-black leading-[1.05] tracking-normal text-white"
           >
             {title}
           </h1>

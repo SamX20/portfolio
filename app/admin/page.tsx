@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { CATEGORIES, ContactInfo, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
+import { CATEGORIES, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
 import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
 
 type Tab = 'content' | 'projects' | 'contacts' | 'skills';
@@ -42,8 +42,16 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
     return acc;
   }, {});
 
+  const isValidLocale = (value: string | undefined): value is Locale => {
+    return value === 'en' || value === 'ar';
+  };
+
   return {
-    global: { ...defaultSections.global, ...map.global },
+    global: {
+      ...defaultSections.global,
+      ...map.global,
+      language: isValidLocale(map.global?.language) ? map.global.language : defaultSections.global.language,
+    },
     hero: { ...defaultSections.hero, ...map.hero },
     about: { ...defaultSections.about, ...map.about },
     footer: { ...defaultSections.footer, ...map.footer },
