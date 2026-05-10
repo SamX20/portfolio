@@ -566,9 +566,11 @@ function ProjectEditor({
   uploadFile: (file: File) => Promise<string>;
 }) {
   const [form, setForm] = useState(project);
-  const [tech, setTech] = useState(project.technologies.join(', '));
+  const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>(project.technologies);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const availableTechnologies = ['After Effects', 'AI tools', 'Illustrator', 'Photoshop', 'Blender3D', 'Premier Pro'];
 
   const set = (key: keyof Project, value: string | number | boolean) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -601,7 +603,28 @@ function ProjectEditor({
           <Field label="Sort order" value={form.sort_order} type="number" onChange={(value) => set('sort_order', Number(value))} />
           <Field label="Video URL (Drive / YouTube / Vimeo / direct)" value={form.video_url} onChange={(value) => set('video_url', value)} />
           <Field label="Thumbnail URL" value={form.thumbnail} onChange={(value) => set('thumbnail', value)} />
-          <Field label="Technologies, comma separated" value={tech} onChange={setTech} />
+          <label className="block md:col-span-2">
+            <span className="mb-3 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Technologies</span>
+            <div className="grid gap-2 grid-cols-2 md:grid-cols-3">
+              {availableTechnologies.map((tech) => (
+                <label key={tech} className="flex items-center gap-2 border border-white/10 p-3 text-sm text-white/70 cursor-pointer hover:bg-white/5">
+                  <input
+                    type="checkbox"
+                    checked={selectedTechnologies.includes(tech)}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        setSelectedTechnologies([...selectedTechnologies, tech]);
+                      } else {
+                        setSelectedTechnologies(selectedTechnologies.filter((t) => t !== tech));
+                      }
+                    }}
+                    className="h-4 w-4 accent-[#b99cff] cursor-pointer"
+                  />
+                  {tech}
+                </label>
+              ))}
+            </div>
+          </label>
           <label className="block">
             <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload thumbnail or video</span>
             <input
@@ -638,7 +661,7 @@ function ProjectEditor({
               setSaving(true);
               setError('');
               try {
-                await onSave({ ...form, technologies: tech.split(',').map((item) => item.trim()).filter(Boolean) });
+                await onSave({ ...form, technologies: selectedTechnologies });
               } catch (saveError) {
                 const message = saveError instanceof Error ? saveError.message : 'Project save failed';
                 setError(message);
