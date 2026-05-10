@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 const BUCKET_NAME = 'uploads';
 
 export async function POST(request: NextRequest) {
   try {
+    if (!(await isAdminAuthed())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Supabase admin client is not configured.' }, { status: 500 });
     }
