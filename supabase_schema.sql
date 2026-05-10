@@ -40,7 +40,7 @@ end $$;
 
 alter table projects
   add constraint projects_category_check
-  check (category in ('motion-design','social-ads','brand-films','explainer','video-editing'));
+  check (category in ('motion-design','social-ads','brand-films','explainer','video-editing','logo-animation'));
 
 create table if not exists stats (
   id text primary key,
