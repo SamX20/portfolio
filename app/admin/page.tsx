@@ -62,13 +62,25 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
 }
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15000);
+
   const response = await fetch(url, {
     ...init,
+    signal: controller.signal,
     headers: {
       'Content-Type': 'application/json',
       ...(init?.headers || {}),
     },
+  }).catch((error) => {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Request timed out. Check Supabase env variables and schema.');
+    }
+    throw error;
   });
+
+  window.clearTimeout(timeout);
+
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -238,8 +250,6 @@ export default function AdminPage() {
       },
     }));
   };
-
-  const projectTech = useMemo(() => editingProject?.technologies?.join(', ') || '', [editingProject]);
 
   if (loading && !authed) {
     return <div className="grid min-h-screen place-items-center bg-[#080808] text-white">Loading admin...</div>;
@@ -457,6 +467,7 @@ export default function AdminPage() {
             setEditingProject(null);
             notify('Project saved');
           }}
+          onError={notify}
         />
       )}
     </main>
@@ -541,16 +552,19 @@ function ProjectEditor({
   project,
   onClose,
   onSave,
+  onError,
   uploadFile,
 }: {
   project: Project;
   onClose: () => void;
   onSave: (project: Project) => Promise<void>;
+  onError: (message: string) => void;
   uploadFile: (file: File) => Promise<string>;
 }) {
   const [form, setForm] = useState(project);
   const [tech, setTech] = useState(project.technologies.join(', '));
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const set = (key: keyof Project, value: string | number | boolean) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -592,9 +606,16 @@ function ProjectEditor({
               onChange={async (event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
-                const url = await uploadFile(file);
-                if (file.type.startsWith('image/')) set('thumbnail', url);
-                if (file.type.startsWith('video/')) set('video_url', url);
+                try {
+                  setError('');
+                  const url = await uploadFile(file);
+                  if (file.type.startsWith('image/')) set('thumbnail', url);
+                  if (file.type.startsWith('video/')) set('video_url', url);
+                } catch (uploadError) {
+                  const message = uploadError instanceof Error ? uploadError.message : 'Upload failed';
+                  setError(message);
+                  onError(message);
+                }
               }}
               className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#d98fcb] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
@@ -605,13 +626,22 @@ function ProjectEditor({
           </label>
         </div>
         <div className="flex justify-end gap-3 border-t border-white/10 p-5">
+          {error && <p className="mr-auto max-w-md text-sm leading-6 text-red-300">{error}</p>}
           <button onClick={onClose} className="border border-white/10 px-4 py-2 text-sm font-bold text-white/64">Cancel</button>
           <button
             disabled={saving || !form.title || !form.description}
             onClick={async () => {
               setSaving(true);
-              await onSave({ ...form, technologies: tech.split(',').map((item) => item.trim()).filter(Boolean) });
-              setSaving(false);
+              setError('');
+              try {
+                await onSave({ ...form, technologies: tech.split(',').map((item) => item.trim()).filter(Boolean) });
+              } catch (saveError) {
+                const message = saveError instanceof Error ? saveError.message : 'Project save failed';
+                setError(message);
+                onError(message);
+              } finally {
+                setSaving(false);
+              }
             }}
             className="accent-gradient px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#090909] disabled:opacity-50"
           >
