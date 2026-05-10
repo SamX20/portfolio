@@ -131,11 +131,11 @@ export async function PUT(request: Request) {
       }, new Map()).values(),
     );
 
-    const { error: deleteError } = await supabaseAdmin!.from('sections').delete().neq('id', '');
-    if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
-
-    const { error: insertError } = await supabaseAdmin!.from('sections').insert(uniqueRows);
-    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+    // Use upsert instead of delete + insert to avoid constraint violations
+    const { error: upsertError } = await supabaseAdmin!.from('sections').upsert(uniqueRows, {
+      onConflict: 'section,key'
+    });
+    if (upsertError) return NextResponse.json({ error: upsertError.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
