@@ -106,6 +106,9 @@ export async function PUT(request: Request) {
   const profile = body.profile as Record<string, unknown> | undefined;
   const sections = body.sections as Record<string, Record<string, string>> | undefined;
 
+  console.log('PUT request body:', body); // Debug log
+  console.log('Sections:', sections); // Debug log
+
   if (profile) {
     const { error } = await supabaseAdmin!
       .from('profile')
@@ -116,13 +119,15 @@ export async function PUT(request: Request) {
 
   if (sections) {
     const rows = Object.entries(sections).flatMap(([section, values]) =>
-      Object.entries(values || {}).map(([key, value]) => ({
+      Object.entries(values || {}).filter(([key]) => key && key.trim() !== '').map(([key, value]) => ({
         id: `${section}-${key}`.replace(/_/g, '-'),
         section,
         key,
         value: String(value ?? ''),
       })),
-    );
+    ).filter(row => row.value.trim() !== ''); // Filter out empty values
+
+    console.log('Sections rows (filtered):', rows); // Debug log
 
     const uniqueRows = Array.from(
       rows.reduce<Map<string, typeof rows[number]>>((acc, row) => {
@@ -131,11 +136,30 @@ export async function PUT(request: Request) {
       }, new Map()).values(),
     );
 
-    // Use upsert instead of delete + insert to avoid constraint violations
-    const { error: upsertError } = await supabaseAdmin!.from('sections').upsert(uniqueRows, {
-      onConflict: 'section,key'
-    });
-    if (upsertError) return NextResponse.json({ error: upsertError.message }, { status: 500 });
+    console.log('Unique rows:', uniqueRows); // Debug log
+
+    // Check for duplicates
+    const duplicates = uniqueRows.filter((row, index, arr) =>
+      arr.findIndex(r => r.section === row.section && r.key === row.key) !== index
+    );
+    if (duplicates.length > 0) {
+      console.error('Found duplicates:', duplicates);
+      return NextResponse.json({ error: 'Duplicate section-key pairs found' }, { status: 400 });
+    }
+
+    // Delete all existing sections first
+    const { error: deleteError } = await supabaseAdmin!.from('sections').delete();
+    if (deleteError) {
+      console.error('Delete error:', deleteError); // Debug log
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    // Then insert the new ones
+    const { error: insertError } = await supabaseAdmin!.from('sections').insert(uniqueRows);
+    if (insertError) {
+      console.error('Insert error:', insertError); // Debug log
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ ok: true });
