@@ -156,11 +156,11 @@ export default function AdminPage() {
       console.log('Loaded sections from DB:', response.sections); // Debug log
 
       setData({
-        projects: response.projects.length ? response.projects : defaultProjects,
-        stats: response.stats.length ? response.stats : defaultStats,
-        contacts: response.contacts.length ? response.contacts : defaultContacts,
-        socials: response.socials.length ? response.socials : defaultSocials,
-        skills: response.skills.length ? response.skills : defaultSkills,
+        projects: response.projects,
+        stats: response.stats,
+        contacts: response.contacts,
+        socials: response.socials,
+        skills: response.skills,
         profile: response.profile || defaultProfile,
         sections: mapSections(response.sections),
       });

@@ -111,14 +111,14 @@ async function loadHomeData(): Promise<HomeData> {
     const [projectsRes, statsRes, contactsRes, socialsRes, sectionsRes, profileRes, skillsRes, testimonialsRes] = result;
 
     return {
-      projects: projectsRes.data?.length ? projectsRes.data : defaultProjects,
-      stats: statsRes.data?.length ? statsRes.data : defaultStats,
-      contacts: contactsRes.data?.length ? contactsRes.data : defaultContacts,
-      socials: socialsRes.data?.length ? socialsRes.data : defaultSocials,
+      projects: projectsRes.data ?? defaultProjects,
+      stats: statsRes.data ?? defaultStats,
+      contacts: contactsRes.data ?? defaultContacts,
+      socials: socialsRes.data ?? defaultSocials,
       sections: sectionsRes.data?.length ? mapSections(sectionsRes.data) : defaultSections,
       profile: profileRes.data || defaultProfile,
-      skills: skillsRes.data?.length ? skillsRes.data : defaultSkills,
-      testimonials: testimonialsRes.data?.length ? testimonialsRes.data : defaultTestimonials,
+      skills: skillsRes.data ?? defaultSkills,
+      testimonials: testimonialsRes.data ?? defaultTestimonials,
     };
   } catch {
     return fallback;
