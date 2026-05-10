@@ -7,24 +7,24 @@ export const defaultSections: SectionsData = {
     language: 'en',
   },
   hero: {
-    title: 'Sam turns motion into memory.',
+    title: 'Professional Video Designer and Editor',
     subtitle: 'Motion Graphics / Video Editing',
     description:
-      'A cinematic portfolio for branded motion, social ads, explainers, and high-energy edits.',
-    title_ar: 'مرحبا, انا سامر جابر',
-    subtitle_ar: 'موشن جرافيك / مونتاج فيديو',
-    description_ar: 'من انا ايضا بالعربي',
+      'I turn your ideas into stunning visual content that attracts audiences and achieves your marketing goals.',
+    title_ar: 'مرحباً، أنا سامر جابر',
+    subtitle_ar: 'مصمم ومحرر فيديو احترافي',
+    description_ar: 'أحول أفكارك إلى محتوى بصري مذهل يجذب الجمهور ويحقق أهدافك التسويقية.',
     cta_text: 'Watch the reel',
     cta_link: '#projects',
   },
   about: {
-    title: 'Direction, rhythm, finish.',
+    title: 'Who I Am',
     content:
-      'I build motion pieces with a sharp edit, clear visual hierarchy, and a finish that feels ready for screens, campaigns, and clients.',
-    title_ar: 'إخراج، إيقاع، ولمسة نهائية.',
+      'A professional in visual content production, editing, and design. Extensive experience in commercial advertising, educational videos, and motion graphics, and I master the use of AI tools and integrating them into my projects.',
+    title_ar: 'من أنا',
     content_ar:
-      'أصمم أعمال موشن بإيقاع واضح، ترتيب بصري ذكي، ولمسة نهائية جاهزة للشاشات والحملات والعملاء.',
-    experience_years: '5+',
+      'محترف في إنتاج المحتوى البصري والمونتاج والتصميم. خبرة واسعة في مجال الإعلانات التجارية، الفيديوهات التعليمية، والموشن جرافيك، وأتقن التعامل مع ادوات الذكاء الاصطناعي ودمجها في مشاريعي.',
+    experience_years: '4+',
     projects_completed: '100+',
   },
   footer: {
@@ -36,7 +36,7 @@ export const defaultSections: SectionsData = {
 
 export const defaultProfile: Profile = {
   id: 'main',
-  name: 'Sam',
+  name: 'Samer Jaber',
   title: 'Motion Graphics Designer and Video Editor',
   description:
     'I design animated stories, brand moments, and scroll-stopping video systems for digital campaigns.',
@@ -99,14 +99,16 @@ export const defaultProjects: Project[] = [
 ];
 
 export const defaultStats: Stat[] = [
-  { id: 'projects_count', label: 'Motion pieces', value: '100+' },
   { id: 'clients_count', label: 'Happy clients', value: '50+' },
-  { id: 'years_exp', label: 'Years editing', value: '5+' },
+  { id: 'projects_count', label: 'Completed projects', value: '100+' },
+  { id: 'years_exp', label: 'Years experience', value: '4+' },
 ];
 
 export const defaultContacts: ContactInfo[] = [
-  { id: 'email', icon: '@', title: 'Email', content: 'hello@xsamer.com', href: 'mailto:hello@xsamer.com' },
-  { id: 'location', icon: 'JO', title: 'Base', content: 'Amman, Jordan', href: '#' },
+  { id: 'email', icon: '@', title: 'Email', content: 'Samer.jaber001@gmail.com', href: 'mailto:Samer.jaber001@gmail.com' },
+  { id: 'phone', icon: '📞', title: 'Phone', content: '+962 795137282', href: 'tel:+962795137282' },
+  { id: 'location', icon: '📍', title: 'Location', content: 'Jordan — Amman', href: '#' },
+  { id: 'hours', icon: '🕒', title: 'Working Hours', content: '9:00 AM – 6:00 PM (Sun–Thu)', href: '#' },
 ];
 
 export const defaultSocials: SocialLink[] = [
@@ -118,8 +120,8 @@ export const defaultSocials: SocialLink[] = [
 export const defaultSkills: Skill[] = [
   { id: 'skill-after-effects', name: 'Adobe After Effects', level: 96, category: 'Motion' },
   { id: 'skill-premiere', name: 'Adobe Premiere Pro', level: 92, category: 'Editing' },
-  { id: 'skill-illustrator', name: 'Adobe Illustrator', level: 86, category: 'Design' },
-  { id: 'skill-c4d', name: 'Cinema 4D', level: 78, category: '3D' },
+  { id: 'skill-ai-tools', name: 'AI Tools', level: 88, category: 'AI' },
+  { id: 'skill-blender', name: 'Blender 3D', level: 78, category: '3D' },
 ];
 
 export const defaultTestimonials: Testimonial[] = [];
