@@ -60,7 +60,6 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
   console.log('Mapped sections:', result); // Debug log
   return result;
 }
-}
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
