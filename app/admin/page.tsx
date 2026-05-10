@@ -46,7 +46,7 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
     return value === 'en' || value === 'ar';
   };
 
-  return {
+  const result = {
     global: {
       ...defaultSections.global,
       ...map.global,
@@ -56,6 +56,10 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
     about: { ...defaultSections.about, ...map.about },
     footer: { ...defaultSections.footer, ...map.footer },
   };
+
+  console.log('Mapped sections:', result); // Debug log
+  return result;
+}
 }
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
@@ -138,6 +142,8 @@ export default function AdminPage() {
         sections: { section: string; key: string; value: string }[];
       }>('/api/admin/data');
 
+      console.log('Loaded sections from DB:', response.sections); // Debug log
+
       setData({
         projects: response.projects.length ? response.projects : defaultProjects,
         stats: response.stats.length ? response.stats : defaultStats,
@@ -184,6 +190,7 @@ export default function AdminPage() {
   const saveContent = async () => {
     setSaving(true);
     try {
+      console.log('Saving sections:', data.sections); // Debug log
       await api('/api/admin/data', {
         method: 'PUT',
         body: JSON.stringify({ profile: data.profile, sections: data.sections }),
