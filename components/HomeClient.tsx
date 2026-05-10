@@ -20,7 +20,7 @@ export interface HomeData {
 }
 
 export default function HomeClient({ data }: { data: HomeData }) {
-  const [locale, setLocale] = useState<Locale>('en'); // Force English as default
+  const [locale, setLocale] = useState<Locale>((data.sections.global.language as Locale) || 'en');
 
   return (
     <main className="bg-[#080808] text-white">

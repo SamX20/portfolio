@@ -32,11 +32,34 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
     return acc;
   }, {});
 
+  // Force English text to prevent encoding issues
   return {
-    global: { ...defaultSections.global, ...map.global },
-    hero: { ...defaultSections.hero, ...map.hero },
-    about: { ...defaultSections.about, ...map.about },
-    footer: { ...defaultSections.footer, ...map.footer },
+    global: { ...defaultSections.global, ...map.global, language: 'en' },
+    hero: {
+      ...defaultSections.hero,
+      title: defaultSections.hero.title,
+      subtitle: defaultSections.hero.subtitle,
+      description: defaultSections.hero.description,
+      title_ar: defaultSections.hero.title_ar,
+      subtitle_ar: defaultSections.hero.subtitle_ar,
+      description_ar: defaultSections.hero.description_ar,
+      ...map.hero
+    },
+    about: {
+      ...defaultSections.about,
+      title: defaultSections.about.title,
+      content: defaultSections.about.content,
+      title_ar: defaultSections.about.title_ar,
+      content_ar: defaultSections.about.content_ar,
+      ...map.about
+    },
+    footer: {
+      ...defaultSections.footer,
+      copyright: defaultSections.footer.copyright,
+      tagline: defaultSections.footer.tagline,
+      tagline_ar: defaultSections.footer.tagline_ar,
+      ...map.footer
+    },
   };
 }
 
