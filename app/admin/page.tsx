@@ -42,8 +42,16 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
     return acc;
   }, {});
 
+  const isValidLocale = (value: string | undefined): value is Locale => {
+    return value === 'en' || value === 'ar';
+  };
+
   return {
-    global: { ...defaultSections.global, ...map.global },
+    global: {
+      ...defaultSections.global,
+      ...map.global,
+      language: isValidLocale(map.global?.language) ? map.global.language : defaultSections.global.language,
+    },
     hero: { ...defaultSections.hero, ...map.hero },
     about: { ...defaultSections.about, ...map.about },
     footer: { ...defaultSections.footer, ...map.footer },
