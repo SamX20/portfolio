@@ -25,6 +25,14 @@ function fallbackData(): HomeData {
   };
 }
 
+function isArabicText(text?: string) {
+  return typeof text === 'string' && /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text);
+}
+
+function resolveText(primary: string | undefined, fallback: string) {
+  return primary && !isArabicText(primary) ? primary : fallback;
+}
+
 function mapSections(rows: { section: string; key: string; value: string }[]): SectionsData {
   const map = rows.reduce<Record<string, Record<string, string>>>((acc, item) => {
     acc[item.section] = acc[item.section] || {};
@@ -32,33 +40,37 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
     return acc;
   }, {});
 
-  // Force English text to prevent encoding issues
+  const heroMap = map.hero || {};
+  const aboutMap = map.about || {};
+  const footerMap = map.footer || {};
+
   return {
-    global: { ...defaultSections.global, ...map.global, language: 'en' },
+    global: { ...defaultSections.global, ...map.global },
     hero: {
       ...defaultSections.hero,
-      title: defaultSections.hero.title,
-      subtitle: defaultSections.hero.subtitle,
-      description: defaultSections.hero.description,
-      title_ar: defaultSections.hero.title_ar,
-      subtitle_ar: defaultSections.hero.subtitle_ar,
-      description_ar: defaultSections.hero.description_ar,
-      ...map.hero
+      title: resolveText(heroMap.title, defaultSections.hero.title),
+      subtitle: resolveText(heroMap.subtitle, defaultSections.hero.subtitle),
+      description: resolveText(heroMap.description, defaultSections.hero.description),
+      title_ar: heroMap.title_ar || defaultSections.hero.title_ar,
+      subtitle_ar: heroMap.subtitle_ar || defaultSections.hero.subtitle_ar,
+      description_ar: heroMap.description_ar || defaultSections.hero.description_ar,
+      cta_text: resolveText(heroMap.cta_text, defaultSections.hero.cta_text),
+      cta_link: heroMap.cta_link || defaultSections.hero.cta_link,
     },
     about: {
       ...defaultSections.about,
-      title: defaultSections.about.title,
-      content: defaultSections.about.content,
-      title_ar: defaultSections.about.title_ar,
-      content_ar: defaultSections.about.content_ar,
-      ...map.about
+      title: resolveText(aboutMap.title, defaultSections.about.title),
+      content: resolveText(aboutMap.content, defaultSections.about.content),
+      title_ar: aboutMap.title_ar || defaultSections.about.title_ar,
+      content_ar: aboutMap.content_ar || defaultSections.about.content_ar,
+      experience_years: aboutMap.experience_years || defaultSections.about.experience_years,
+      projects_completed: aboutMap.projects_completed || defaultSections.about.projects_completed,
     },
     footer: {
       ...defaultSections.footer,
-      copyright: defaultSections.footer.copyright,
-      tagline: defaultSections.footer.tagline,
-      tagline_ar: defaultSections.footer.tagline_ar,
-      ...map.footer
+      copyright: footerMap.copyright || defaultSections.footer.copyright,
+      tagline: resolveText(footerMap.tagline, defaultSections.footer.tagline),
+      tagline_ar: footerMap.tagline_ar || defaultSections.footer.tagline_ar,
     },
   };
 }
