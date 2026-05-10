@@ -147,18 +147,14 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Duplicate section-key pairs found' }, { status: 400 });
     }
 
-    // Delete all existing sections first
-    const { error: deleteError } = await supabaseAdmin!.from('sections').delete();
-    if (deleteError) {
-      console.error('Delete error:', deleteError); // Debug log
-      return NextResponse.json({ error: deleteError.message }, { status: 500 });
-    }
+    // Use upsert to update or insert sections
+    const { error: upsertError } = await supabaseAdmin!.from('sections').upsert(uniqueRows, {
+      onConflict: 'section,key'
+    });
 
-    // Then insert the new ones
-    const { error: insertError } = await supabaseAdmin!.from('sections').insert(uniqueRows);
-    if (insertError) {
-      console.error('Insert error:', insertError); // Debug log
-      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    if (upsertError) {
+      console.error('Upsert error:', upsertError); // Debug log
+      return NextResponse.json({ error: upsertError.message }, { status: 500 });
     }
   }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { CATEGORIES, ContactInfo, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
+import { CATEGORIES, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
 import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
 
 type Tab = 'content' | 'projects' | 'contacts' | 'skills';

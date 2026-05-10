@@ -171,4 +171,25 @@ create policy "public_read_profile" on profile for select using (true);
 create policy "public_read_skills" on skills for select using (true);
 create policy "public_read_testimonials" on testimonials for select using (true);
 
+-- Function to update sections safely
+create or replace function update_sections(sections_data jsonb)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  -- Truncate the sections table
+  truncate table sections;
+  
+  -- Insert new data
+  insert into sections (id, section, key, value)
+  select 
+    (data->>'id')::text,
+    (data->>'section')::text,
+    (data->>'key')::text,
+    (data->>'value')::text
+  from jsonb_array_elements(sections_data) as data;
+end;
+$$;
+
 -- No public write policies. Admin writes go through Next.js API routes with SUPABASE_SERVICE_ROLE_KEY.
