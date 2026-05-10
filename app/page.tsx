@@ -10,7 +10,7 @@ import {
   defaultTestimonials,
 } from '@/lib/portfolioDefaults';
 import { supabase } from '@/lib/supabase';
-import { SectionsData } from '@/types';
+import { Locale, SectionsData } from '@/types';
 
 function fallbackData(): HomeData {
   return {
@@ -40,6 +40,10 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
     return acc;
   }, {});
 
+  const isValidLocale = (value: string | undefined): value is Locale => {
+    return value === 'en' || value === 'ar';
+  };
+
   const heroMap = map.hero || {};
   const aboutMap = map.about || {};
   const footerMap = map.footer || {};
@@ -49,7 +53,7 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
       ...defaultSections.global,
       site_title: resolveText(map.global?.site_title, defaultSections.global.site_title),
       logo: map.global?.logo || defaultSections.global.logo,
-      language: map.global?.language || defaultSections.global.language,
+      language: isValidLocale(map.global?.language) ? map.global.language : defaultSections.global.language,
     },
     hero: {
       ...defaultSections.hero,
