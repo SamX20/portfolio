@@ -11,6 +11,48 @@ const TABLES = new Set([
   'testimonials',
 ]);
 
+function withoutMissingColumn(record: Record<string, unknown>, message: string) {
+  const match = message.match(/Could not find the '([^']+)' column/);
+  const column = match?.[1];
+
+  if (!column || !(column in record)) return null;
+
+  const next = { ...record };
+  delete next[column];
+  return { record: next, column };
+}
+
+async function upsertWithSchemaFallback(table: string, record: Record<string, unknown>) {
+  const missingColumns: string[] = [];
+  let payload = { ...record };
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = await supabaseAdmin!
+      .from(table)
+      .upsert(payload)
+      .select()
+      .single();
+
+    if (!result.error) {
+      return { ...result, missingColumns };
+    }
+
+    const fallback = withoutMissingColumn(payload, result.error.message);
+    if (!fallback) {
+      return { ...result, missingColumns };
+    }
+
+    missingColumns.push(fallback.column);
+    payload = fallback.record;
+  }
+
+  return {
+    data: null,
+    error: { message: 'Could not save record because several database columns are missing.' },
+    missingColumns,
+  };
+}
+
 async function requireAdmin() {
   if (!(await isAdminAuthed())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -85,17 +127,13 @@ export async function POST(request: Request) {
     updated_at: table === 'projects' ? new Date().toISOString() : undefined,
   };
 
-  const { data, error } = await supabaseAdmin!
-    .from(table)
-    .upsert(payload)
-    .select()
-    .single();
+  const { data, error, missingColumns } = await upsertWithSchemaFallback(table, payload);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ data });
+  return NextResponse.json({ data, missingColumns });
 }
 
 export async function PUT(request: Request) {

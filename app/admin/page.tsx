@@ -215,10 +215,14 @@ export default function AdminPage() {
   };
 
   const saveRecord = async (table: string, record: object) => {
-    await api('/api/admin/data', {
+    const result = await api<{ missingColumns?: string[] }>('/api/admin/data', {
       method: 'POST',
       body: JSON.stringify({ table, record }),
     });
+
+    if (result.missingColumns?.length) {
+      notify(`Saved, but missing DB columns were skipped: ${result.missingColumns.join(', ')}`);
+    }
   };
 
   const deleteRecord = async (table: string, id: string) => {
