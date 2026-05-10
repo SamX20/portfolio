@@ -45,7 +45,12 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
   const footerMap = map.footer || {};
 
   return {
-    global: { ...defaultSections.global, ...map.global },
+    global: {
+      ...defaultSections.global,
+      site_title: resolveText(map.global?.site_title, defaultSections.global.site_title),
+      logo: map.global?.logo || defaultSections.global.logo,
+      language: map.global?.language || defaultSections.global.language,
+    },
     hero: {
       ...defaultSections.hero,
       title: resolveText(heroMap.title, defaultSections.hero.title),
