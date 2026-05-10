@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CATEGORIES, Locale, Project } from '@/types';
 import ProjectCard from './ProjectCard';
 import ScrollReveal from './ScrollReveal';
+import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
 
 interface PortfolioProps {
   projects?: Project[];
@@ -51,6 +52,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
   const embedUrl = toEmbedUrl(selected?.video_url);
+  const selectedThumbnail = selected?.thumbnail || getGoogleDriveThumbnail(selected?.video_url);
 
   return (
     <section id="projects" className="bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
@@ -147,8 +149,8 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
                     allow="autoplay; fullscreen; picture-in-picture"
                     allowFullScreen
                   />
-                ) : selected.thumbnail ? (
-                  <img src={selected.thumbnail} alt={modalTitle} className="h-full w-full object-cover" />
+                ) : selectedThumbnail ? (
+                  <img src={selectedThumbnail} alt={modalTitle} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full place-items-center text-white/45">
                     {isAr ? 'أضف رابط الفيديو من لوحة التحكم لعرضه هنا.' : 'Add a video link from the admin.'}

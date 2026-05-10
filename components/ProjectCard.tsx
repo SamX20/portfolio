@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { CATEGORIES, Locale, Project } from '@/types';
 import usePortableMotion from '@/lib/usePortableMotion';
+import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
 
 interface ProjectCardProps {
   project: Project;
@@ -16,6 +17,7 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
   const category = CATEGORIES.find((item) => item.value === project.category);
   const title = isAr ? project.title_ar || project.title : project.title;
   const description = isAr ? project.description_ar || project.description : project.description;
+  const thumbnailUrl = project.thumbnail || getGoogleDriveThumbnail(project.video_url);
 
   return (
     <motion.button
@@ -27,8 +29,8 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
       dir={isAr ? 'rtl' : 'ltr'}
     >
       <div className="absolute inset-0">
-        {project.thumbnail ? (
-          <img src={project.thumbnail} alt={title} className="h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-100" />
+        {thumbnailUrl ? (
+          <img src={thumbnailUrl} alt={title} className="h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-100" />
         ) : (
           <div className="h-full w-full bg-[radial-gradient(circle_at_24%_28%,rgba(185,156,255,.28),transparent_34%),radial-gradient(circle_at_76%_64%,rgba(115,167,255,.18),transparent_30%),linear-gradient(135deg,#191919,#0b0b0b_52%,#171225)]" />
         )}
