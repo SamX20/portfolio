@@ -21,43 +21,50 @@ const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 function HeroLoadingOverlay({
   started,
   onStartWithSound,
+  onStartWithoutSound,
   fading,
+  isAr,
 }: {
   started: boolean;
   onStartWithSound: () => void;
+  onStartWithoutSound: () => void;
   fading: boolean;
+  isAr: boolean;
 }) {
   return (
-    <>
-      <input
-        id="hero-start-toggle"
-        type="checkbox"
-        className="hero-start-toggle sr-only"
-        onChange={onStartWithSound}
-      />
-      <label
-        htmlFor="hero-start-toggle"
-        onPointerDown={onStartWithSound}
-        className={`hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl ${started ? 'hero-loader-started' : ''} ${fading ? 'hero-loader-fading' : ''}`}
-      >
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
-          <div className="absolute left-1/2 top-1/2 h-[44vw] max-h-[520px] w-[44vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#4aa3ff]/18 blur-3xl" />
-        </div>
+    <div
+      className={`hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl ${started ? 'hero-loader-started' : ''} ${fading ? 'hero-loader-fading' : ''}`}
+    >
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute left-1/2 top-1/2 h-[44vw] max-h-[520px] w-[44vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#4aa3ff]/18 blur-3xl" />
+      </div>
 
-        <div className="relative text-center">
-          <p className="hero-loader-name mx-auto w-[11ch] overflow-hidden whitespace-nowrap border-r-2 border-[#8ed8ff] font-mono text-[clamp(2.4rem,9vw,7rem)] font-black leading-none tracking-normal text-white">
-            SAMER JABER
-          </p>
-          <p className="mt-7 text-sm font-black uppercase tracking-[0.34em] text-white/58">
-            Loading<span className="loading-dots" aria-hidden="true" />
-          </p>
-          <span className="accent-gradient mt-8 inline-flex rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#06111f] transition">
-            Tap to start with sound
-          </span>
+      <div className="relative text-center">
+        <p className="hero-loader-name mx-auto w-[11ch] overflow-hidden whitespace-nowrap border-r-2 border-[#8ed8ff] font-mono text-[clamp(2.4rem,9vw,7rem)] font-black leading-none tracking-normal text-white">
+          SAMER JABER
+        </p>
+        <p className="mt-7 text-sm font-black uppercase tracking-[0.34em] text-white/58">
+          {isAr ? 'اختر كيف تبدأ' : 'Choose how to continue'}
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <button
+            type="button"
+            onClick={onStartWithSound}
+            className="rounded-full bg-[#8ed8ff] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#06111f] transition hover:bg-[#71bfff]"
+          >
+            {isAr ? 'استمرار بالموسيقى' : 'Continue with music'}
+          </button>
+          <button
+            type="button"
+            onClick={onStartWithoutSound}
+            className="rounded-full border border-white/15 bg-black/60 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:border-white/30 hover:bg-white/5"
+          >
+            {isAr ? 'استمرار بدون موسيقى' : 'Continue without music'}
+          </button>
         </div>
-      </label>
-    </>
+      </div>
+    </div>
   );
 }
 
@@ -110,19 +117,17 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
     };
   }, [hasHeroVideo, introStarted]);
 
-  const startHeroWithSound = () => {
+  const beginHeroIntro = (mute: boolean) => {
     manuallyStartedRef.current = true;
     setIntroStarted(true);
-    setHeroMuted(false);
+    setHeroMuted(mute);
     window.dispatchEvent(new Event(HERO_START_EVENT));
     if (revealTimerRef.current) {
       window.clearTimeout(revealTimerRef.current);
     }
 
-    // Start fade animation after 3 seconds
-    const fadeTimer = window.setTimeout(() => {
+    window.setTimeout(() => {
       setHeroLoaderFading(true);
-      // After 2 seconds of fading, hide completely
       window.setTimeout(() => {
         setHeroVideoReady(true);
       }, 2000);
@@ -133,13 +138,18 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
     }, 5000);
   };
 
+  const startHeroWithSound = () => beginHeroIntro(false);
+  const startHeroWithoutSound = () => beginHeroIntro(true);
+
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden bg-[#080808] pt-16" dir={isAr ? 'rtl' : 'ltr'}>
       {showHeroLoader ? (
         <HeroLoadingOverlay
           started={introStarted}
           onStartWithSound={startHeroWithSound}
+          onStartWithoutSound={startHeroWithoutSound}
           fading={heroLoaderFading}
+          isAr={isAr}
         />
       ) : null}
 
