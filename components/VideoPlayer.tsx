@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { SyntheticEvent } from 'react';
 import { getGoogleDriveFileId } from '@/lib/videoUtils';
 
 interface VideoPlayerProps {
@@ -90,11 +91,20 @@ export default function VideoPlayer({
   startEventName,
 }: VideoPlayerProps) {
   const [showVideo, setShowVideo] = useState(autoPlay);
+  const [aspectRatio, setAspectRatio] = useState(3 / 4);
   const videoRef = useRef<HTMLVideoElement>(null);
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
   const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay, muted) : undefined;
   const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
+  const wrapperStyle = { aspectRatio, maxHeight: '80vh', maxWidth: '100%' };
+
+  const handleThumbnailLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    if (img.naturalWidth && img.naturalHeight) {
+      setAspectRatio(img.naturalWidth / img.naturalHeight);
+    }
+  };
 
   const markReady = () => {
     if (readyCalledRef.current) return;
@@ -158,7 +168,7 @@ export default function VideoPlayer({
 
   if (embedCode) {
     return (
-      <div className={`relative aspect-video w-full overflow-hidden rounded-xl bg-black ${className}`}>
+      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
         <div dangerouslySetInnerHTML={{ __html: embedCode }} />
       </div>
     );
@@ -166,7 +176,7 @@ export default function VideoPlayer({
 
   if (videoUrl && videoUrl.startsWith('/')) {
     return (
-      <div className={`relative aspect-video w-full overflow-hidden rounded-xl bg-black ${className}`}>
+      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
         <video
           ref={videoRef}
           controls={!autoPlay}
@@ -185,6 +195,10 @@ export default function VideoPlayer({
             if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedMetadata={() => {
+            const video = videoRef.current;
+            if (video?.videoWidth && video?.videoHeight) {
+              setAspectRatio(video.videoWidth / video.videoHeight);
+            }
             if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedData={() => {
@@ -206,7 +220,7 @@ export default function VideoPlayer({
 
     if (isEmbedVideo) {
       return (
-        <div className={`relative aspect-video w-full overflow-hidden rounded-xl bg-black ${className}`}>
+        <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
           <iframe
             src={resolvedVideoUrl}
             title={title}
@@ -220,7 +234,7 @@ export default function VideoPlayer({
     }
 
     return (
-      <div className={`relative aspect-video w-full overflow-hidden rounded-xl bg-black ${className}`}>
+      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
         <video
           ref={videoRef}
           controls={!autoPlay}
@@ -239,6 +253,10 @@ export default function VideoPlayer({
             if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedMetadata={() => {
+            const video = videoRef.current;
+            if (video?.videoWidth && video?.videoHeight) {
+              setAspectRatio(video.videoWidth / video.videoHeight);
+            }
             if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedData={() => {
@@ -255,21 +273,31 @@ export default function VideoPlayer({
     );
   }
 
-  if (videoUrl && thumbnail) {
+  if (videoUrl && thumbnail && !showVideo) {
     return (
-      <div className={`relative aspect-video w-full cursor-pointer overflow-hidden rounded-xl bg-black ${className}`} onClick={() => setShowVideo(true)}>
+      <div
+        className={`relative w-full cursor-pointer overflow-hidden rounded-xl bg-black ${className}`}
+        style={wrapperStyle}
+        onClick={() => setShowVideo(true)}
+      >
         <img
           src={thumbnail}
           alt={title}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
+          onLoad={handleThumbnailLoad}
         />
-        <div className="absolute inset-0 bg-black/20 transition-opacity" />
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/40 text-white shadow-lg shadow-black/30">
+            <span className="text-3xl leading-none">▶</span>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-sky-900/20 to-blue-900/20 ${className}`}>
+    <div className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-sky-900/20 to-blue-900/20 ${className}`} style={wrapperStyle}>
       <div className="text-center text-white/60">
         <svg className="mx-auto mb-4 h-16 w-16 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />

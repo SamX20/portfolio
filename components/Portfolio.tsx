@@ -18,6 +18,7 @@ interface PortfolioProps {
 export default function Portfolio({ projects = [], locale }: PortfolioProps) {
   const [activeCategory, setActiveCategory] = useState<ProjectCategory | 'all'>('all');
   const [selected, setSelected] = useState<Project | null>(null);
+  const [showModalDescriptionExpanded, setShowModalDescriptionExpanded] = useState(false);
   const isAr = locale === 'ar';
 
   const filtered = useMemo(
@@ -28,10 +29,15 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
   const selectedThumbnail = selected?.thumbnail || getGoogleDriveThumbnail(selected?.video_url);
+  const descriptionIsLong = modalDescription.length > 150;
+  const displayedModalDescription = descriptionIsLong && !showModalDescriptionExpanded ? `${modalDescription.slice(0, 150).trim()}...` : modalDescription;
+  const descriptionToggleText = showModalDescriptionExpanded ? (isAr ? 'عرض أقل' : 'See less') : (isAr ? 'عرض المزيد..' : 'See more..');
 
   const openProject = (project: Project) => {
+    setShowModalDescriptionExpanded(false);
     window.dispatchEvent(new CustomEvent(HERO_MUTE_EVENT, { detail: { muted: true } }));
     setSelected(project);
+    setShowModalDescriptionExpanded(false);
   };
 
   const closeProject = () => {
@@ -126,13 +132,24 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
                   videoUrl={selected.video_url || undefined}
                   thumbnail={selectedThumbnail}
                   title={modalTitle}
-                  className="rounded-none"
+                  className="inline-block w-auto rounded-none"
                   objectFit="contain"
                 />
               </div>
 
               <div className="grid gap-5 p-5 md:grid-cols-[1fr_auto] md:items-start">
-                <p className="max-w-3xl text-sm leading-7 text-white/64">{modalDescription}</p>
+                <div className="max-w-3xl">
+                  <p className="text-sm leading-7 text-white/64">{displayedModalDescription}</p>
+                  {descriptionIsLong && (
+                    <button
+                      type="button"
+                      onClick={() => setShowModalDescriptionExpanded((current) => !current)}
+                      className="mt-3 text-sm font-semibold text-sky-300 hover:text-sky-200"
+                    >
+                      {descriptionToggleText}
+                    </button>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
                   {selected.technologies?.map((tech) => (
                     <span key={tech} className="border border-white/10 px-3 py-1.5 text-xs text-white/56">

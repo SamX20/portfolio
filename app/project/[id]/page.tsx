@@ -17,6 +17,7 @@ const catLabel = (cat: string | string[]) => {
 export default function ProjectPage({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -52,6 +53,12 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     );
   }
 
+  const projectDescription = project ? project.description_ar || project.description : '';
+  const projectDescriptionLong = projectDescription.length > 220;
+  const displayedProjectDescription = projectDescriptionLong && !showFullDescription
+    ? `${projectDescription.slice(0, 220).trim()}...`
+    : projectDescription;
+
   if (!project) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#0a0a0f' }}>
@@ -77,7 +84,16 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               {catLabel(project.category)}
             </span>
             <h1 className="text-3xl md:text-4xl font-black text-white mb-4">{project.title_ar || project.title}</h1>
-            <p className="text-gray-400 text-lg leading-relaxed">{project.description_ar || project.description}</p>
+            <p className="text-gray-400 text-lg leading-relaxed">{displayedProjectDescription}</p>
+            {projectDescriptionLong && (
+              <button
+                type="button"
+                onClick={() => setShowFullDescription((current) => !current)}
+                className="mt-3 text-sm font-semibold text-sky-300 hover:text-sky-200"
+              >
+                {showFullDescription ? 'See less' : 'See more..'}
+              </button>
+            )}
           </div>
 
           {/* Video Player */}
