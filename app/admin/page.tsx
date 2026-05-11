@@ -344,6 +344,26 @@ export default function AdminPage() {
                 <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
                 <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
                 <Field label="Hero video URL" value={data.sections.hero.video_url} onChange={(value) => setSection('hero', 'video_url', value)} placeholder="YouTube, Vimeo, or direct video link" />
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload hero video</span>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const url = await uploadFile(file);
+                        setSection('hero', 'video_url', url);
+                        notify('Hero video uploaded successfully');
+                      } catch (uploadError) {
+                        const message = uploadError instanceof Error ? uploadError.message : 'Hero video upload failed';
+                        notify(message);
+                      }
+                    }}
+                    className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
+                  />
+                </label>
               </div>
             </div>
 
