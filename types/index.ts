@@ -7,7 +7,8 @@ export type ProjectCategory =
   | 'explainer'
   | 'video-editing'
   | 'logo-animation'
-  | '3d-modelling';
+  | '3d-modelling'
+  | 'anime-edit';
 
 export interface Project {
   id: string;
@@ -123,4 +124,5 @@ export const CATEGORIES = [
   { value: 'video-editing', label: 'Video Editing', labelAr: 'تحرير ومونتاج' },
   { value: 'logo-animation', label: 'Logo Animation', labelAr: 'شعار متحرك' },
   { value: '3d-modelling', label: '3D Modelling', labelAr: 'نمذجة ثلاثية الأبعاد' },
+  { value: 'anime-edit', label: 'Anime Edit', labelAr: 'تحرير أنمي' },
 ] as const;
