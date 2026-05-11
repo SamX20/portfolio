@@ -243,11 +243,12 @@ export default function AdminPage() {
       throw new Error('Supabase environment variables are not configured.');
     }
 
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'uploads';
     const timestamp = Date.now();
     const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
     const filePath = `${timestamp}-${sanitized}`;
     const encodedPath = encodeURIComponent(filePath).replace(/%2F/g, '/');
-    const uploadUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/uploads/${encodedPath}`;
+    const uploadUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/${bucketName}/${encodedPath}`;
 
     return new Promise<string>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -267,7 +268,7 @@ export default function AdminPage() {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const result = JSON.parse(xhr.responseText);
-            const publicUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/public/uploads/${encodedPath}`;
+            const publicUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucketName}/${encodedPath}`;
             return resolve(publicUrl);
           } catch (parseError) {
             console.error('Failed to parse Supabase upload response JSON:', parseError);

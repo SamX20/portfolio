@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-const BUCKET_NAME = 'uploads';
+const BUCKET_NAME = process.env.SUPABASE_STORAGE_BUCKET || 'uploads';
 
 export const runtime = 'nodejs';
 
@@ -27,9 +27,30 @@ export async function POST(request: NextRequest) {
     const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
     const filePath = `${timestamp}-${sanitized}`;
 
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from(BUCKET_NAME)
-      .upload(filePath, file, { contentType: file.type, upsert: true });
+    const uploadFile = async () => {
+      return await supabaseAdmin!.storage.from(BUCKET_NAME).upload(filePath, file, {
+        contentType: file.type,
+        upsert: true,
+      });
+    };
+
+    let { error: uploadError } = await uploadFile();
+
+    if (uploadError) {
+      const isBucketMissing = String(uploadError.message).toLowerCase().includes('bucket');
+      if (isBucketMissing) {
+        const { error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, {
+          public: true,
+        });
+        if (createError && !String(createError.message).toLowerCase().includes('already exists')) {
+          console.error('Supabase bucket creation error:', createError);
+          return NextResponse.json({ error: 'Failed to create storage bucket.' }, { status: 500 });
+        }
+
+        const retryResult = await uploadFile();
+        uploadError = retryResult.error;
+      }
+    }
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
