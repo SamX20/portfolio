@@ -106,7 +106,34 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         />
       ) : null}
 
-      <div className="absolute inset-0 opacity-35">
+      {sections.hero.video_url ? (
+        <div className="absolute inset-0 z-0">
+          <VideoPlayer
+            embedCode=""
+            videoUrl={sections.hero.video_url}
+            thumbnail=""
+            title="Hero Video"
+            autoPlay
+            loop
+            muted={false}
+            onReady={() => {
+              setHeroVideoReady(true);
+              setAutoPlayBlocked(false);
+            }}
+            onAutoPlayBlocked={() => {
+              if (!manuallyStartedRef.current) {
+                setAutoPlayBlocked(true);
+              }
+            }}
+            startEventName={HERO_START_EVENT}
+            className="absolute inset-0 h-full w-full rounded-none opacity-95"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,.86)_0%,rgba(8,8,8,.58)_42%,rgba(8,8,8,.22)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_30%,rgba(185,156,255,.18),transparent_34%),linear-gradient(180deg,rgba(8,8,8,.14)_0%,rgba(8,8,8,.12)_48%,#080808_100%)]" />
+        </div>
+      ) : null}
+
+      <div className={`absolute inset-0 ${sections.hero.video_url ? 'opacity-22' : 'opacity-35'}`}>
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:72px_72px]" />
         <motion.div
           className="absolute inset-y-0 left-[-20%] w-[42%] bg-[#8f7cff]/16 blur-2xl"
@@ -126,85 +153,54 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         ))}
       </motion.div>
 
-      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-start gap-10 px-4 pb-16 pt-10 sm:px-6 sm:pt-12 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pt-16">
-        <div className={isAr ? 'text-right' : 'text-left'}>
-          <p
-            className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]"
-          >
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col justify-center px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:px-8 lg:pt-32">
+        <div className={`max-w-4xl ${isAr ? 'text-right' : 'text-left'}`}>
+          <p className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#d8c9ff]">
             {subtitle}
           </p>
-          <h1
-            className="max-w-5xl text-[clamp(3rem,10vw,8.5rem)] font-black leading-[1.05] tracking-normal text-white"
-          >
+          <h1 className="max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black leading-[1.02] tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)]">
             {title}
           </h1>
-          <p
-            className="mt-7 max-w-2xl text-base leading-8 text-white/68 sm:text-lg"
-          >
+          <p className="mt-7 max-w-2xl text-base leading-8 text-white/78 drop-shadow-[0_8px_24px_rgba(0,0,0,.68)] sm:text-lg">
             {description}
           </p>
 
-          <div
-            className="mt-8 flex flex-wrap items-center gap-3"
-          >
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <a href="#projects" className="accent-gradient rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] transition hover:brightness-110">
               {isAr ? 'شاهد الأعمال' : sections.hero.cta_text}
             </a>
-            <a href="#contact" className="rounded-full border border-white/16 px-6 py-3 text-sm font-bold text-white/88 transition hover:border-white/40">
+            <a href="#contact" className="rounded-full border border-white/20 bg-black/20 px-6 py-3 text-sm font-bold text-white/90 backdrop-blur transition hover:border-white/45">
               {isAr ? 'تواصل معي' : 'Book Sam'}
             </a>
           </div>
         </div>
 
-        <div className="relative mx-auto aspect-video w-full max-w-[860px]">
-          {sections.hero.video_url ? (
-            <VideoPlayer
-              embedCode=""
-              videoUrl={sections.hero.video_url}
-              thumbnail=""
-              title="Hero Video"
-              autoPlay
-              loop
-              muted={false}
-              onReady={() => {
-                setHeroVideoReady(true);
-                setAutoPlayBlocked(false);
-              }}
-              onAutoPlayBlocked={() => {
-                if (!manuallyStartedRef.current) {
-                  setAutoPlayBlocked(true);
-                }
-              }}
-              startEventName={HERO_START_EVENT}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <>
-              <div className="absolute inset-0 border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(185,156,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(115,167,255,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]" />
-              <div className="absolute inset-5 overflow-hidden border border-white/10 bg-black">
-                <motion.div
-                  className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
-                  animate={isPortable ? { x: '18%' } : { x: ['-120%', '120%'] }}
-                  transition={isPortable ? { duration: 0 } : { duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
-                />
-                <div className="absolute inset-0 grid grid-rows-6">
-                  {[...Array(6)].map((_, index) => (
-                    <motion.div
-                      key={index}
-                      className="border-b border-white/10 bg-white/[0.02]"
-                      animate={isPortable ? { opacity: 0.22 } : { opacity: [0.12, 0.48, 0.12] }}
-                      transition={isPortable ? { duration: 0 } : { duration: 1.4 + index * 0.18, repeat: Infinity, delay: index * 0.12 }}
-                    />
-                  ))}
-                </div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[#b99cff]">{profile.name}</p>
-                  <p className="mt-2 text-3xl font-black uppercase leading-none text-white sm:text-5xl">Edit<br />Frame<br />Move</p>
-                </div>
+        <div className="mt-12 max-w-xl">
+          {!sections.hero.video_url ? (
+            <div className="relative aspect-video overflow-hidden border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(185,156,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(115,167,255,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]">
+              <motion.div
+                className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
+                animate={isPortable ? { x: '18%' } : { x: ['-120%', '120%'] }}
+                transition={isPortable ? { duration: 0 } : { duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
+              />
+              <div className="absolute inset-0 grid grid-rows-6">
+                {[...Array(6)].map((_, index) => (
+                  <motion.div
+                    key={index}
+                    className="border-b border-white/10 bg-white/[0.02]"
+                    animate={isPortable ? { opacity: 0.22 } : { opacity: [0.12, 0.48, 0.12] }}
+                    transition={isPortable ? { duration: 0 } : { duration: 1.4 + index * 0.18, repeat: Infinity, delay: index * 0.12 }}
+                  />
+                ))}
               </div>
-            </>
-          )}
-          <div className="absolute -bottom-5 left-6 right-6 border border-white/12 bg-[#101010]/95 p-4 backdrop-blur">
+              <div className="absolute bottom-6 left-6 right-6">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#b99cff]">{profile.name}</p>
+                <p className="mt-2 text-3xl font-black uppercase leading-none text-white sm:text-5xl">Edit<br />Frame<br />Move</p>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="border border-white/12 bg-[#101010]/82 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl">
             <p className="text-xs uppercase tracking-[0.22em] text-white/42">{aboutTitle}</p>
             <p className="mt-2 text-sm leading-6 text-white/72">{about}</p>
           </div>
@@ -213,7 +209,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
 
       <ScrollReveal className="relative z-10 mx-auto grid max-w-7xl gap-px border-y border-white/10 bg-white/10 sm:grid-cols-3">
         {stats.slice(0, 3).map((stat) => (
-          <div key={stat.id} className="bg-[#080808] px-4 py-5 text-center">
+          <div key={stat.id} className="bg-[#080808]/92 px-4 py-5 text-center backdrop-blur">
             <p className="text-3xl font-black text-white">{stat.value}</p>
             <p className="mt-1 text-xs uppercase tracking-[0.2em] text-white/42">{stat.label}</p>
           </div>
@@ -222,7 +218,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
 
       <ScrollReveal className="relative z-10 mx-auto flex max-w-7xl flex-wrap gap-2 px-4 py-6 sm:px-6 lg:px-8" delay={120}>
         {skills.slice(0, 6).map((skill) => (
-          <span key={skill.id} className="border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white/56">
+          <span key={skill.id} className="border border-white/10 bg-black/20 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white/62 backdrop-blur">
             {skill.name}
           </span>
         ))}
