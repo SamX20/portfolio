@@ -3,7 +3,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { CATEGORIES, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
 import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
-import { supabase } from '@/lib/supabase';
 
 type Tab = 'content' | 'projects' | 'contacts' | 'skills';
 
@@ -237,77 +236,63 @@ export default function AdminPage() {
   };
 
   const uploadFile = async (file: File, onProgress?: (percent: number) => void) => {
-    const MAX_ROUTE_UPLOAD_SIZE = 4 * 1024 * 1024; // 4MB
+    const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (file.size <= MAX_ROUTE_UPLOAD_SIZE) {
-      return new Promise<string>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/upload');
-
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            onProgress?.(percent);
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const result = JSON.parse(xhr.responseText);
-              if (!result.url) {
-                return reject(new Error(result.error || 'Upload failed'));
-              }
-              return resolve(result.url as string);
-            } catch (parseError) {
-              console.error('Failed to parse upload response JSON:', parseError);
-              return reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
-            }
-          }
-          let message = 'Upload failed';
-          try {
-            const result = JSON.parse(xhr.responseText);
-            message = result.error || message;
-          } catch {
-            message = `Upload failed: ${xhr.status} ${xhr.statusText}`;
-          }
-          reject(new Error(message));
-        };
-
-        xhr.onerror = () => reject(new Error('Upload failed due to a network error.'));
-        xhr.onabort = () => reject(new Error('Upload was aborted.'));
-
-        const form = new FormData();
-        form.append('file', file);
-        xhr.send(form);
-      });
-    }
-
-    if (!supabase) {
-      throw new Error('Supabase client is not configured.');
+    if (!projectUrl || !anonKey) {
+      throw new Error('Supabase environment variables are not configured.');
     }
 
     const timestamp = Date.now();
     const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
     const filePath = `${timestamp}-${sanitized}`;
+    const encodedPath = encodeURIComponent(filePath).replace(/%2F/g, '/');
+    const uploadUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/uploads/${encodedPath}`;
 
-    const { error } = await supabase.storage.from('uploads').upload(filePath, file, {
-      contentType: file.type,
-      upsert: true,
+    return new Promise<string>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('apikey', anonKey);
+      xhr.setRequestHeader('Authorization', `Bearer ${anonKey}`);
+      xhr.setRequestHeader('x-upsert', 'true');
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress?.(percent);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const result = JSON.parse(xhr.responseText);
+            const publicUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/public/uploads/${encodedPath}`;
+            return resolve(publicUrl);
+          } catch (parseError) {
+            console.error('Failed to parse Supabase upload response JSON:', parseError);
+            return reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+          }
+        }
+
+        let message = 'Upload failed';
+        try {
+          const result = JSON.parse(xhr.responseText);
+          message = result.error || message;
+        } catch {
+          message = `Upload failed: ${xhr.status} ${xhr.statusText}`;
+        }
+        reject(new Error(message));
+      };
+
+      xhr.onerror = () => reject(new Error('Upload failed due to a network error.'));
+      xhr.onabort = () => reject(new Error('Upload was aborted.'));
+
+      const form = new FormData();
+      form.append('cacheControl', '3600');
+      form.append('', file);
+      xhr.send(form);
     });
-
-    if (error) {
-      throw new Error(error.message || 'Supabase upload failed');
-    }
-
-    const publicUrlResponse = supabase.storage.from('uploads').getPublicUrl(filePath);
-    const publicUrl = publicUrlResponse.data?.publicUrl;
-    if (!publicUrl) {
-      throw new Error('Failed to generate public URL');
-    }
-
-    onProgress?.(100);
-    return publicUrl;
   };
 
   const setProfile = (key: keyof Profile, value: string) => {
