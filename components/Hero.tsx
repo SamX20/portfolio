@@ -16,6 +16,7 @@ interface HeroProps {
 }
 
 const HERO_START_EVENT = 'sam:start-hero-video';
+const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 
 function HeroLoadingOverlay({
   started,
@@ -97,6 +98,16 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
     }, 3000);
     return () => window.clearTimeout(fallback);
   }, [hasHeroVideo, introStarted]);
+
+  useEffect(() => {
+    const handleHeroMute = (event: Event) => {
+      const shouldMute = event instanceof CustomEvent ? Boolean(event.detail?.muted) : true;
+      setHeroMuted(shouldMute);
+    };
+
+    window.addEventListener(HERO_MUTE_EVENT, handleHeroMute);
+    return () => window.removeEventListener(HERO_MUTE_EVENT, handleHeroMute);
+  }, []);
 
   const startHeroWithSound = () => {
     manuallyStartedRef.current = true;
