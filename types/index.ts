@@ -15,7 +15,7 @@ export interface Project {
   title_ar?: string;
   description: string;
   description_ar?: string;
-  category: ProjectCategory;
+  category: ProjectCategory[];
   client?: string;
   role?: string;
   year: number;

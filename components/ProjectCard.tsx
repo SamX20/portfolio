@@ -14,7 +14,7 @@ interface ProjectCardProps {
 export default function ProjectCard({ project, locale, onOpen }: ProjectCardProps) {
   const isPortable = usePortableMotion();
   const isAr = locale === 'ar';
-  const category = CATEGORIES.find((item) => item.value === project.category);
+  const categoryLabels = CATEGORIES.filter((item) => project.category.includes(item.value)).map((item) => (isAr ? item.labelAr : item.label));
   const title = isAr ? project.title_ar || project.title : project.title;
   const description = isAr ? project.description_ar || project.description : project.description;
   const thumbnailUrl = project.thumbnail || getGoogleDriveThumbnail(project.video_url);
@@ -50,7 +50,7 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
 
       <div className="relative z-10 flex min-h-[360px] flex-col justify-end p-5 lg:min-h-[430px]">
         <span className="mb-3 w-fit border border-white/16 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/70 backdrop-blur">
-          {isAr ? category?.labelAr : category?.label}
+          {categoryLabels.length > 0 ? categoryLabels.join(' / ') : project.category.join(', ')}
         </span>
         <h3 className="text-2xl font-black leading-tight text-white">{title}</h3>
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/62">{description}</p>

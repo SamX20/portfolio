@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CATEGORIES, Locale, Project } from '@/types';
+import { CATEGORIES, Locale, Project, ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
 import ScrollReveal from './ScrollReveal';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
@@ -40,12 +40,12 @@ function toEmbedUrl(url?: string) {
 }
 
 export default function Portfolio({ projects = [], locale }: PortfolioProps) {
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState<ProjectCategory | 'all'>('all');
   const [selected, setSelected] = useState<Project | null>(null);
   const isAr = locale === 'ar';
 
   const filtered = useMemo(
-    () => (activeCategory === 'all' ? projects : projects.filter((project) => project.category === activeCategory)),
+    () => (activeCategory === 'all' ? projects : projects.filter((project) => project.category.includes(activeCategory))),
     [activeCategory, projects],
   );
 
@@ -80,7 +80,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
             <button
               key={category.value}
               type="button"
-              onClick={() => setActiveCategory(category.value)}
+              onClick={() => setActiveCategory(category.value as ProjectCategory)}
               className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.16em] transition ${
                 activeCategory === category.value
                   ? 'accent-gradient border-[#d98fcb] text-[#090909]'
@@ -125,7 +125,9 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
             >
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-[#b99cff]">{selected.client || selected.category}</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[#b99cff]">
+                    {selected.client || selected.category.join(' / ')}
+                  </p>
                   <h3 className="mt-1 text-xl font-black text-white">{modalTitle}</h3>
                 </div>
                 <button

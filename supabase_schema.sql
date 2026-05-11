@@ -7,7 +7,7 @@ create table if not exists projects (
   title_ar text,
   description text not null,
   description_ar text,
-  category text not null default 'motion-design',
+  category text[] not null default array['motion-design'],
   client text,
   role text,
   year integer not null default extract(year from now())::integer,
@@ -40,7 +40,10 @@ end $$;
 
 alter table projects
   add constraint projects_category_check
-  check (category in ('motion-design','social-ads','brand-films','explainer','video-editing','logo-animation','3d-modelling'));
+  check (
+    category <@ array['motion-design','social-ads','brand-films','explainer','video-editing','logo-animation','3d-modelling']::text[]
+    and array_length(category, 1) > 0
+  );
 
 create table if not exists stats (
   id text primary key,

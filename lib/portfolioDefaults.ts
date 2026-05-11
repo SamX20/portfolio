@@ -54,7 +54,7 @@ export const defaultProjects: Project[] = [
       'A punchy logo reveal and brand opener built around fast typography, timing, and clean transitions.',
     description_ar:
       'افتتاحية بصرية قصيرة تكشف الهوية بإيقاع سريع، تايبوجرافي حركي، وانتقالات مصممة بعناية.',
-    category: 'motion-design',
+    category: ['motion-design'],
     client: 'Concept',
     role: 'Motion direction, animation, edit',
     year: 2026,
@@ -71,7 +71,7 @@ export const defaultProjects: Project[] = [
       'A fast-cut campaign system for Reels and TikTok with modular scenes and animated product moments.',
     description_ar:
       'نظام إعلاني مخصص للريلز وتيك توك، بمشاهد مرنة، حركة منتج واضحة، وإيقاع مناسب للمشاهدة السريعة.',
-    category: 'social-ads',
+    category: ['social-ads'],
     client: 'Concept',
     role: 'Edit, motion graphics',
     year: 2026,
@@ -88,7 +88,7 @@ export const defaultProjects: Project[] = [
       'A clean explainer style with animated icons, transitions, and visual pacing for complex ideas.',
     description_ar:
       'أسلوب شرح بصري يعتمد على أيقونات متحركة، انتقالات دقيقة، وتسلسل واضح يبسّط الأفكار المعقدة.',
-    category: 'explainer',
+    category: ['explainer'],
     client: 'Concept',
     role: 'Storyboard, animation, edit',
     year: 2026,

@@ -7,8 +7,12 @@ import { supabase } from '@/lib/supabase';
 import { Project, CATEGORIES } from '@/types';
 import VideoPlayer from '@/components/VideoPlayer';
 
-const catLabel = (cat: string) =>
-  CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
+const catLabel = (cat: string | string[]) => {
+  const values = Array.isArray(cat) ? cat : [cat];
+  return values
+    .map((value) => CATEGORIES.find((c) => c.value === value)?.label ?? value)
+    .join(' / ');
+};
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<Project | null>(null);

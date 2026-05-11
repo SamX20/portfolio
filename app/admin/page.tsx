@@ -22,7 +22,7 @@ const emptyProject: Project = {
   title_ar: '',
   description: '',
   description_ar: '',
-  category: 'motion-design',
+  category: ['motion-design'],
   client: '',
   role: '',
   year: new Date().getFullYear(),
@@ -380,7 +380,11 @@ export default function AdminPage() {
                   <div>
                     <p className="font-black">{project.title}</p>
                     <p className="mt-1 line-clamp-1 text-sm text-white/45">{project.description}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#b99cff]">{project.category}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#b99cff]">
+                      {project.category
+                        .map((cat) => CATEGORIES.find((item) => item.value === cat)?.label ?? cat)
+                        .join(' / ')}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setEditingProject(project)} className="border border-white/10 px-3 py-2 text-xs font-bold text-white/70">Edit</button>
@@ -572,7 +576,7 @@ function ProjectEditor({
 
   const availableTechnologies = ['After Effects', 'AI tools', 'Illustrator', 'Photoshop', 'Blender3D', 'Premier Pro'];
 
-  const set = (key: keyof Project, value: string | number | boolean) => {
+  const set = (key: keyof Project, value: string | number | boolean | string[]) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
@@ -588,13 +592,27 @@ function ProjectEditor({
           <Field label="Title AR" value={form.title_ar} onChange={(value) => set('title_ar', value)} />
           <Field label="Description EN" value={form.description} onChange={(value) => set('description', value)} textarea />
           <Field label="Description AR" value={form.description_ar} onChange={(value) => set('description_ar', value)} textarea />
-          <label className="block">
-            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Category</span>
-            <select value={form.category} onChange={(event) => set('category', event.target.value)} className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none focus:border-[#b99cff]/70">
+          <label className="block md:col-span-2">
+            <span className="mb-3 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Category</span>
+            <div className="grid gap-2 grid-cols-2 md:grid-cols-3">
               {CATEGORIES.map((category) => (
-                <option key={category.value} value={category.value}>{category.label}</option>
+                <label key={category.value} className="flex items-center gap-2 border border-white/10 p-3 text-sm text-white/70 cursor-pointer hover:bg-white/5">
+                  <input
+                    type="checkbox"
+                    checked={form.category.includes(category.value)}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        set('category', [...form.category, category.value]);
+                      } else {
+                        set('category', form.category.filter((value) => value !== category.value));
+                      }
+                    }}
+                    className="h-4 w-4 accent-[#b99cff] cursor-pointer"
+                  />
+                  {category.label}
+                </label>
               ))}
-            </select>
+            </div>
           </label>
           <Field label="Client" value={form.client} onChange={(value) => set('client', value)} />
           <Field label="Role" value={form.role} onChange={(value) => set('role', value)} />
