@@ -71,23 +71,23 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
             <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#8ed8ff]">
-              {isAr ? 'Ø£Ø¹Ù…Ø§Ù„ Ù…Ø®ØªØ§Ø±Ø©' : 'Selected Work'}
+              {isAr ? 'أعمال مختارة' : 'Selected Work'}
             </p>
             <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
-              {isAr ? 'Ù…Ø¹Ø±Ø¶ Ø­Ø§Ø¯ Ø§Ù„Ø¥ÙŠÙ‚Ø§Ø¹ØŒ Ù…ØµÙ…Ù… Ù„Ù„Ø­Ø±ÙƒØ©.' : 'A sharp gallery built for motion.'}
+              {isAr ? 'معرض حد الإيقاع، مصمم للحركة.' : 'A sharp gallery built for motion.'}
             </h2>
           </ScrollReveal>
           <ScrollReveal variant={isAr ? 'left' : 'right'} delay={120}>
             <p className="max-w-sm text-sm leading-7 text-white/52">
               {isAr
-                ? 'Ø£Ø¶Ù Ø±ÙˆØ§Ø¨Ø· Google Drive Ø£Ùˆ Ù…Ù„ÙØ§Øª Ø§Ù„ÙÙŠØ¯ÙŠÙˆ Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…ØŒ ÙˆØ³ÙŠØ¸Ù‡Ø± ÙƒÙ„ Ø¹Ù…Ù„ Ù‡Ù†Ø§ Ø¨Ø´ÙƒÙ„ Ø£Ù†ÙŠÙ‚ ÙˆÙ‚Ø§Ø¨Ù„ Ù„Ù„ØªØ´ØºÙŠÙ„.'
+                ? 'أضف روابط Google Drive أو ملفات الفيديو من لوحة التحكم، وسيظهر كل عمل هنا بشكل أنيق وقابل للتشغيل.'
                 : 'Add Google Drive links or uploaded videos from the admin, and each project becomes playable here.'}
             </p>
           </ScrollReveal>
         </div>
 
         <ScrollReveal className="mb-10 flex flex-wrap gap-2" delay={180}>
-          {[{ value: 'all', label: 'All', labelAr: 'Ø§Ù„ÙƒÙ„' }, ...CATEGORIES].map((category) => (
+          {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...CATEGORIES].map((category) => (
             <button
               key={category.value}
               type="button"
@@ -115,7 +115,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
 
         {filtered.length === 0 && (
           <div className="border border-white/10 py-16 text-center text-white/45">
-            {isAr ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø¹Ù…Ø§Ù„ Ø¶Ù…Ù† Ù‡Ø°Ø§ Ø§Ù„ØªØµÙ†ÙŠÙ Ø­Ø§Ù„ÙŠØ§Ù‹.' : 'No projects in this category yet.'}
+            {isAr ? 'لا توجد أعمال ضمن هذا التصنيف حالياً.' : 'No projects in this category yet.'}
           </div>
         )}
       </div>
@@ -177,7 +177,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
                   <img src={selectedThumbnail} alt={modalTitle} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full place-items-center text-white/45">
-                    {isAr ? 'Ø£Ø¶Ù Ø±Ø§Ø¨Ø· Ø§Ù„ÙÙŠØ¯ÙŠÙˆ Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… Ù„Ø¹Ø±Ø¶Ù‡ Ù‡Ù†Ø§.' : 'Add a video link from the admin.'}
+                    {isAr ? 'أضف رابط الفيديو من لوحة التحكم لعرضه هنا.' : 'Add a video link from the admin.'}
                   </div>
                 )}
               </div>
