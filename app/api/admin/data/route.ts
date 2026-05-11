@@ -156,43 +156,53 @@ export async function PUT(request: Request) {
   }
 
   if (sections) {
-    const rows = Object.entries(sections).flatMap(([section, values]) =>
-      Object.entries(values || {}).filter(([key]) => key && key.trim() !== '').map(([key, value]) => ({
+    const allRows = Object.entries(sections).flatMap(([section, values]) =>
+      Object.entries(values || {}).map(([key, value]) => ({
         id: `${section}-${key}`.replace(/_/g, '-'),
         section,
         key,
         value: String(value ?? ''),
       })),
-    ).filter(row => row.value.trim() !== ''); // Filter out empty values
+    );
 
-    console.log('Sections rows (filtered):', rows); // Debug log
+    const rowsToUpsert = allRows.filter((row) => row.value.trim() !== '');
+    const rowsToDelete = allRows.filter((row) => row.value.trim() === '');
 
-    const uniqueRows = Array.from(
-      rows.reduce<Map<string, typeof rows[number]>>((acc, row) => {
+    console.log('Sections rows to upsert:', rowsToUpsert); // Debug log
+    console.log('Sections rows to delete:', rowsToDelete); // Debug log
+
+    const uniqueUpsertRows = Array.from(
+      rowsToUpsert.reduce<Map<string, typeof rowsToUpsert[number]>>((acc, row) => {
         acc.set(`${row.section}:${row.key}`, row);
         return acc;
       }, new Map()).values(),
     );
 
-    console.log('Unique rows:', uniqueRows); // Debug log
-
-    // Check for duplicates
-    const duplicates = uniqueRows.filter((row, index, arr) =>
-      arr.findIndex(r => r.section === row.section && r.key === row.key) !== index
+    const duplicates = uniqueUpsertRows.filter((row, index, arr) =>
+      arr.findIndex((r) => r.section === row.section && r.key === row.key) !== index
     );
     if (duplicates.length > 0) {
       console.error('Found duplicates:', duplicates);
       return NextResponse.json({ error: 'Duplicate section-key pairs found' }, { status: 400 });
     }
 
-    // Use upsert to update or insert sections
-    const { error: upsertError } = await supabaseAdmin!.from('sections').upsert(uniqueRows, {
-      onConflict: 'section,key'
-    });
+    if (uniqueUpsertRows.length > 0) {
+      const { error: upsertError } = await supabaseAdmin!.from('sections').upsert(uniqueUpsertRows, {
+        onConflict: 'section,key',
+      });
 
-    if (upsertError) {
-      console.error('Upsert error:', upsertError); // Debug log
-      return NextResponse.json({ error: upsertError.message }, { status: 500 });
+      if (upsertError) {
+        console.error('Upsert error:', upsertError); // Debug log
+        return NextResponse.json({ error: upsertError.message }, { status: 500 });
+      }
+    }
+
+    if (rowsToDelete.length > 0) {
+      await Promise.all(
+        rowsToDelete.map((row) =>
+          supabaseAdmin!.from('sections').delete().match({ section: row.section, key: row.key }),
+        ),
+      );
     }
   }
 

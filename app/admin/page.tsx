@@ -122,6 +122,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingHeroVideo, setUploadingHeroVideo] = useState(false);
+  const [selectedHeroVideoFile, setSelectedHeroVideoFile] = useState<File | null>(null);
   const [tab, setTab] = useState<Tab>('content');
   const [toast, setToast] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -343,27 +345,60 @@ export default function AdminPage() {
                 <Field label="Subtitle AR" value={data.sections.hero.subtitle_ar} onChange={(value) => setSection('hero', 'subtitle_ar', value)} />
                 <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
                 <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
-                <Field label="Hero video URL" value={data.sections.hero.video_url} onChange={(value) => setSection('hero', 'video_url', value)} placeholder="YouTube, Vimeo, or direct video link" />
-                <label className="block">
-                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload hero video</span>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={async (event) => {
-                      const file = event.target.files?.[0];
-                      if (!file) return;
+                <div className="grid gap-3">
+                  <div className="flex flex-col gap-2">
+                    <Field label="Hero video URL" value={data.sections.hero.video_url} onChange={(value) => setSection('hero', 'video_url', value)} placeholder="YouTube, Vimeo, or direct video link" />
+                    {data.sections.hero.video_url ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSection('hero', 'video_url', '');
+                          notify('Hero video link cleared. Save to apply the change.');
+                        }}
+                        className="self-start rounded-full border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm font-bold uppercase tracking-[0.12em] text-red-200 hover:bg-red-500/15"
+                      >
+                        حذف رابط الفيديو
+                      </button>
+                    ) : null}
+                  </div>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Select hero video file</span>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        setSelectedHeroVideoFile(file || null);
+                        if (file) {
+                          notify('File selected. اضغط Upload لرفع الملف إلى التخزين.');
+                        }
+                      }}
+                      className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={!selectedHeroVideoFile || uploadingHeroVideo}
+                    onClick={async () => {
+                      if (!selectedHeroVideoFile) return;
                       try {
-                        const url = await uploadFile(file);
+                        setUploadingHeroVideo(true);
+                        const url = await uploadFile(selectedHeroVideoFile);
                         setSection('hero', 'video_url', url);
-                        notify('Hero video uploaded successfully');
+                        setSelectedHeroVideoFile(null);
+                        notify('تم رفع الفيديو بنجاح. اضغط save لحفظ التغييرات.');
                       } catch (uploadError) {
                         const message = uploadError instanceof Error ? uploadError.message : 'Hero video upload failed';
                         notify(message);
+                      } finally {
+                        setUploadingHeroVideo(false);
                       }
                     }}
-                    className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
-                  />
-                </label>
+                    className="w-full rounded-full bg-[#b99cff] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] disabled:opacity-50"
+                  >
+                    {uploadingHeroVideo ? 'Uploading...' : 'Upload hero video'}
+                  </button>
+                </div>
               </div>
             </div>
 
