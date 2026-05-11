@@ -35,7 +35,7 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
 
       const embed = new URL(`https://www.youtube.com/embed/${id}`);
       embed.searchParams.set('rel', '0');
-      embed.searchParams.set('controls', '0');
+      embed.searchParams.set('controls', autoplay ? '0' : '1');
       embed.searchParams.set('playsinline', '1');
       embed.searchParams.set('mute', muted ? '1' : '0');
       embed.searchParams.set('loop', '1');
@@ -52,7 +52,7 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
       const embed = new URL(`https://player.vimeo.com/video/${id}`);
       embed.searchParams.set('muted', muted ? '1' : '0');
       embed.searchParams.set('loop', '1');
-      embed.searchParams.set('background', muted ? '1' : '0');
+      embed.searchParams.set('background', autoplay && muted ? '1' : '0');
       embed.searchParams.set('title', '0');
       embed.searchParams.set('byline', '0');
       embed.searchParams.set('portrait', '0');
@@ -164,7 +164,7 @@ export default function VideoPlayer({
 
     window.addEventListener(startEventName, handleStart);
     return () => window.removeEventListener(startEventName, handleStart);
-  });
+  }, [startEventName]);
 
   if (embedCode) {
     return (
