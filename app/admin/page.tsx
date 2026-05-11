@@ -238,7 +238,15 @@ export default function AdminPage() {
     const form = new FormData();
     form.append('file', file);
     const response = await fetch('/api/upload', { method: 'POST', body: form });
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      const text = await response.text();
+      console.error('Response text:', text);
+      throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+    }
     if (!response.ok) throw new Error(result.error || 'Upload failed');
     return result.url as string;
   };

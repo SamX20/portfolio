@@ -4,6 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 const BUCKET_NAME = 'uploads';
 
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     if (!(await isAdminAuthed())) {
@@ -21,14 +23,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file received.' }, { status: 400 });
     }
 
-    const fileData = await file.arrayBuffer();
     const timestamp = Date.now();
     const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
     const filePath = `${timestamp}-${sanitized}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from(BUCKET_NAME)
-      .upload(filePath, Buffer.from(fileData), { contentType: file.type, upsert: true });
+      .upload(filePath, file, { contentType: file.type, upsert: true });
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
