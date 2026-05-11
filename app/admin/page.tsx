@@ -243,7 +243,7 @@ export default function AdminPage() {
       result = await response.json();
     } catch (parseError) {
       console.error('Failed to parse response as JSON:', parseError);
-      const text = await response.text();
+      const text = await response.clone().text();
       console.error('Response text:', text);
       throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
     }
