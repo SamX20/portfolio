@@ -206,3 +206,37 @@ section:has(.hero-start-toggle:checked) .hero-loader-overlay,
     transform: translate3d(0, 18px, 0) scale(0.985);
   }
 }
+
+/* Fix Arabic text spacing issues */
+[dir="rtl"] {
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+}
+
+[dir="rtl"] p,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6,
+[dir="rtl"] span,
+[dir="rtl"] button,
+[dir="rtl"] a {
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+}
+
+/* Remove tracking for Arabic text on mobile */
+@media (max-width: 768px) {
+  [dir="rtl"] .tracking-\[0\.34em\],
+  [dir="rtl"] .tracking-\[0\.3em\],
+  [dir="rtl"] .tracking-\[0\.3em\],
+  [dir="rtl"] .tracking-\[0\.22em\],
+  [dir="rtl"] .tracking-\[0\.2em\],
+  [dir="rtl"] .tracking-\[0\.16em\],
+  [dir="rtl"] .tracking-\[0\.14em\],
+  [dir="rtl"] .uppercase {
+    letter-spacing: normal !important;
+  }
+}

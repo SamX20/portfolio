@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
@@ -21,6 +21,13 @@ export interface HomeData {
 
 export default function HomeClient({ data }: { data: HomeData }) {
   const [locale, setLocale] = useState<Locale>('en'); // Default to English
+
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    htmlElement.lang = locale;
+    htmlElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+    document.body.dir = locale === 'ar' ? 'rtl' : 'ltr';
+  }, [locale]);
 
   return (
     <main className="bg-[#080808] text-white">
