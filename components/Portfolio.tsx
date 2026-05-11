@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CATEGORIES, Locale, Project, ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
 import ScrollReveal from './ScrollReveal';
+import VideoPlayer from './VideoPlayer';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
 
 const HERO_MUTE_EVENT = 'sam:set-hero-muted';
@@ -12,33 +13,6 @@ const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 interface PortfolioProps {
   projects?: Project[];
   locale: Locale;
-}
-
-function toEmbedUrl(url?: string) {
-  if (!url) return '';
-
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes('youtube.com')) {
-      const id = parsed.searchParams.get('v');
-      return id ? `https://www.youtube.com/embed/${id}` : url;
-    }
-    if (parsed.hostname.includes('youtu.be')) {
-      return `https://www.youtube.com/embed/${parsed.pathname.replace('/', '')}`;
-    }
-    if (parsed.hostname.includes('drive.google.com')) {
-      const match = url.match(/\/file\/d\/([^/]+)/);
-      return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
-    }
-    if (parsed.hostname.includes('vimeo.com')) {
-      const id = parsed.pathname.split('/').filter(Boolean).pop();
-      return id ? `https://player.vimeo.com/video/${id}` : url;
-    }
-  } catch {
-    return url;
-  }
-
-  return url;
 }
 
 export default function Portfolio({ projects = [], locale }: PortfolioProps) {
@@ -53,7 +27,6 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
 
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
-  const embedUrl = toEmbedUrl(selected?.video_url);
   const selectedThumbnail = selected?.thumbnail || getGoogleDriveThumbnail(selected?.video_url);
 
   const openProject = (project: Project) => {
@@ -139,40 +112,23 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
                 ×
               </button>
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <div className="pr-14">
+                <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-[#8ed8ff]">
                     {selected.client || selected.category.join(' / ')}
                   </p>
                   <h3 className="mt-1 text-xl font-black text-white">{modalTitle}</h3>
                 </div>
-                <button
-                  type="button"
-                  onClick={closeProject}
-                  className="hidden h-10 w-10 place-items-center border border-white/12 text-white/70 transition hover:border-white/40 hover:text-white sm:grid"
-                  aria-label="Close video"
-                >
-                  ×
-                </button>
               </div>
 
-              <div className="aspect-video bg-black">
-                {selected.embed_code ? (
-                  <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: selected.embed_code }} />
-                ) : embedUrl ? (
-                  <iframe
-                    src={embedUrl}
-                    title={modalTitle}
-                    className="h-full w-full"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : selectedThumbnail ? (
-                  <img src={selectedThumbnail} alt={modalTitle} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="grid h-full place-items-center text-white/45">
-                    {isAr ? 'أضف رابط الفيديو من لوحة التحكم لعرضه هنا.' : 'Add a video link from the admin.'}
-                  </div>
-                )}
+              <div className="bg-black">
+                <VideoPlayer
+                  embedCode={selected.embed_code || undefined}
+                  videoUrl={selected.video_url || undefined}
+                  thumbnail={selectedThumbnail}
+                  title={modalTitle}
+                  className="rounded-none"
+                  objectFit="contain"
+                />
               </div>
 
               <div className="grid gap-5 p-5 md:grid-cols-[1fr_auto] md:items-start">

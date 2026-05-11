@@ -87,6 +87,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               videoUrl={project.video_url}
               thumbnail={project.thumbnail}
               title={project.title}
+              objectFit="contain"
             />
           </div>
 

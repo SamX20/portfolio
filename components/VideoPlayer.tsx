@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { getGoogleDriveFileId } from '@/lib/videoUtils';
 
 interface VideoPlayerProps {
   embedCode?: string;
@@ -8,6 +9,7 @@ interface VideoPlayerProps {
   thumbnail?: string;
   title: string;
   className?: string;
+  objectFit?: 'contain' | 'cover';
   autoPlay?: boolean;
   loop?: boolean;
   muted?: boolean;
@@ -58,12 +60,9 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
     }
 
     if (parsed.hostname.includes('drive.google.com')) {
-      const match = videoUrl.match(/\/file\/d\/([^/]+)/);
-      if (match) {
-        const id = match[1];
-        const embed = new URL(`https://drive.google.com/file/d/${id}/preview`);
-        if (autoplay) embed.searchParams.set('autoplay', '1');
-        return embed.toString();
+      const id = getGoogleDriveFileId(videoUrl);
+      if (id) {
+        return `https://drive.google.com/uc?export=download&id=${id}`;
       }
     }
   } catch {
@@ -79,6 +78,7 @@ export default function VideoPlayer({
   thumbnail,
   title,
   className = '',
+  objectFit = 'cover',
   autoPlay = false,
   loop = false,
   muted = false,
@@ -94,6 +94,7 @@ export default function VideoPlayer({
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
   const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay, muted) : undefined;
+  const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
 
   const markReady = () => {
     if (readyCalledRef.current) return;
@@ -170,7 +171,7 @@ export default function VideoPlayer({
           ref={videoRef}
           controls={!autoPlay}
           poster={thumbnail}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${objectFitClass}`}
           preload="auto"
           autoPlay={autoPlay}
           muted={muted}
@@ -224,7 +225,7 @@ export default function VideoPlayer({
           ref={videoRef}
           controls={!autoPlay}
           poster={thumbnail}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${objectFitClass}`}
           preload="auto"
           autoPlay={autoPlay}
           muted={muted}
