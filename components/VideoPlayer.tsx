@@ -134,22 +134,13 @@ export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, cla
   // إذا كان رابط خارجي، أظهر thumbnail مع زر تشغيل
   if (videoUrl && thumbnail) {
     return (
-      <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-black cursor-pointer group ${className}`} onClick={() => setShowVideo(true)}>
+      <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-black cursor-pointer ${className}`} onClick={() => setShowVideo(true)}>
         <img
           src={thumbnail}
           alt={title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-            <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </div>
-        </div>
-        <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-lg text-sm backdrop-blur-sm">
-          اضغط للمشاهدة
-        </div>
+        <div className="absolute inset-0 bg-black/20 transition-opacity" />
       </div>
     );
   }
