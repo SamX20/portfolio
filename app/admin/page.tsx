@@ -236,26 +236,14 @@ export default function AdminPage() {
   };
 
   const uploadFile = async (file: File, onProgress?: (percent: number) => void) => {
-    const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!projectUrl || !anonKey) {
-      throw new Error('Supabase environment variables are not configured.');
-    }
-
-    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'uploads';
-    const timestamp = Date.now();
-    const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-    const filePath = `${timestamp}-${sanitized}`;
-    const encodedPath = encodeURIComponent(filePath).replace(/%2F/g, '/');
-    const uploadUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/${bucketName}/${encodedPath}`;
+    // Use server-side upload route which handles bucket creation
+    const formData = new FormData();
+    formData.append('file', file);
 
     return new Promise<string>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', uploadUrl);
-      xhr.setRequestHeader('apikey', anonKey);
-      xhr.setRequestHeader('Authorization', `Bearer ${anonKey}`);
-      xhr.setRequestHeader('x-upsert', 'true');
+      xhr.open('POST', '/api/upload');
+      xhr.setRequestHeader('Accept', 'application/json');
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -268,10 +256,13 @@ export default function AdminPage() {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const result = JSON.parse(xhr.responseText);
-            const publicUrl = `${projectUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucketName}/${encodedPath}`;
-            return resolve(publicUrl);
+            if (result.url) {
+              return resolve(result.url);
+            } else {
+              return reject(new Error('Upload response missing URL'));
+            }
           } catch (parseError) {
-            console.error('Failed to parse Supabase upload response JSON:', parseError);
+            console.error('Failed to parse upload response JSON:', parseError);
             return reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
           }
         }
@@ -289,10 +280,7 @@ export default function AdminPage() {
       xhr.onerror = () => reject(new Error('Upload failed due to a network error.'));
       xhr.onabort = () => reject(new Error('Upload was aborted.'));
 
-      const form = new FormData();
-      form.append('cacheControl', '3600');
-      form.append('', file);
-      xhr.send(form);
+      xhr.send(formData);
     });
   };
 

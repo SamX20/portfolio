@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-const BUCKET_NAME = process.env.SUPABASE_STORAGE_BUCKET || 'uploads';
+const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'uploads';
 
 export const runtime = 'nodejs';
 
