@@ -21,9 +21,11 @@ const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 function HeroLoadingOverlay({
   started,
   onStartWithSound,
+  fading,
 }: {
   started: boolean;
   onStartWithSound: () => void;
+  fading: boolean;
 }) {
   return (
     <>
@@ -36,7 +38,7 @@ function HeroLoadingOverlay({
       <label
         htmlFor="hero-start-toggle"
         onPointerDown={onStartWithSound}
-        className={`hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl ${started ? 'hero-loader-started' : ''}`}
+        className={`hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl ${started ? 'hero-loader-started' : ''} ${fading ? 'hero-loader-fading' : ''}`}
       >
         <div className="absolute inset-0 opacity-40">
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
@@ -69,6 +71,8 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
   const manuallyStartedRef = useRef(false);
   const revealTimerRef = useRef<number | null>(null);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [heroLoaderOpacity, setHeroLoaderOpacity] = useState(1);
+  const [heroLoaderFading, setHeroLoaderFading] = useState(false);
   const [introStarted, setIntroStarted] = useState(!hasHeroVideo);
   const [heroMuted, setHeroMuted] = useState(false);
 
@@ -93,21 +97,18 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
   useEffect(() => {
     if (!introStarted || !hasHeroVideo) return undefined;
 
-    const fallback = window.setTimeout(() => {
-      setHeroVideoReady(true);
+    const fadeTimer = window.setTimeout(() => {
+      setHeroLoaderFading(true);
+      // After 2 seconds of fading, hide completely
+      window.setTimeout(() => {
+        setHeroVideoReady(true);
+      }, 2000);
     }, 3000);
-    return () => window.clearTimeout(fallback);
-  }, [hasHeroVideo, introStarted]);
 
-  useEffect(() => {
-    const handleHeroMute = (event: Event) => {
-      const shouldMute = event instanceof CustomEvent ? Boolean(event.detail?.muted) : true;
-      setHeroMuted(shouldMute);
+    return () => {
+      window.clearTimeout(fadeTimer);
     };
-
-    window.addEventListener(HERO_MUTE_EVENT, handleHeroMute);
-    return () => window.removeEventListener(HERO_MUTE_EVENT, handleHeroMute);
-  }, []);
+  }, [hasHeroVideo, introStarted]);
 
   const startHeroWithSound = () => {
     manuallyStartedRef.current = true;
@@ -117,10 +118,19 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
     if (revealTimerRef.current) {
       window.clearTimeout(revealTimerRef.current);
     }
-    revealTimerRef.current = window.setTimeout(() => {
-      setHeroVideoReady(true);
-      revealTimerRef.current = null;
+
+    // Start fade animation after 3 seconds
+    const fadeTimer = window.setTimeout(() => {
+      setHeroLoaderFading(true);
+      // After 2 seconds of fading, hide completely
+      window.setTimeout(() => {
+        setHeroVideoReady(true);
+      }, 2000);
     }, 3000);
+
+    revealTimerRef.current = window.setTimeout(() => {
+      revealTimerRef.current = null;
+    }, 5000);
   };
 
   return (
@@ -129,6 +139,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         <HeroLoadingOverlay
           started={introStarted}
           onStartWithSound={startHeroWithSound}
+          fading={heroLoaderFading}
         />
       ) : null}
 

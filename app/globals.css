@@ -74,7 +74,16 @@
 section:has(.hero-start-toggle:checked) .hero-loader-overlay,
 .hero-loader-started,
 .hero-loader-overlay:focus {
-  animation: hero-loader-release 680ms cubic-bezier(0.22, 1, 0.36, 1) 3s forwards;
+  animation: hero-loader-release 2000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-loader-overlay.hero-loader-started {
+  animation-fill-mode: forwards;
+}
+
+.hero-loader-overlay.hero-loader-fading {
+  opacity: 0;
+  transition: opacity 2s ease-out;
 }
 
 .hero-loader-name {
@@ -120,10 +129,17 @@ section:has(.hero-start-toggle:checked) .hero-loader-overlay,
 }
 
 @keyframes hero-loader-release {
-  to {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  99% {
+    opacity: 0;
+    visibility: visible;
+  }
+  100% {
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
   }
 }
 
