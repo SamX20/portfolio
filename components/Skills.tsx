@@ -60,11 +60,11 @@ export default function Skills({ skills = [] }: SkillsProps) {
           viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
-          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full tracking-widest">
+          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-full tracking-widest">
             المهارات
           </span>
           <h2 className="text-4xl md:text-5xl font-black mb-4">
-            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">مهاراتي</span>
+            <span className="bg-gradient-to-r from-sky-300 to-blue-600 bg-clip-text text-transparent">مهاراتي</span>
           </h2>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">تجربة عميقة في مختلف جوانب الإنتاج البصري والتصميم</p>
         </motion.div>
@@ -83,7 +83,7 @@ export default function Skills({ skills = [] }: SkillsProps) {
             return (
               <motion.div key={category.value} variants={itemVariants}>
                 <h3 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+                  <span className="w-1 h-6 bg-gradient-to-b from-sky-500 to-blue-600 rounded-full" />
                   {category.label}
                 </h3>
 
@@ -92,11 +92,11 @@ export default function Skills({ skills = [] }: SkillsProps) {
                     <motion.div key={skill.id} variants={!disableMotion ? itemVariants : undefined} className="group">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-white font-semibold text-sm">{skill.name}</span>
-                        <span className="text-purple-400 text-sm font-bold">{skill.level}%</span>
+                        <span className="text-sky-300 text-sm font-bold">{skill.level}%</span>
                       </div>
                       <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
                         <motion.div
-                          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                          className="h-full bg-gradient-to-r from-sky-500 to-blue-600 rounded-full"
                           initial={!disableMotion ? { width: 0 } : undefined}
                           whileInView={!disableMotion ? { width: `${skill.level}%` } : undefined}
                           viewport={!disableMotion ? { once: true, amount: 0.15 } : undefined}

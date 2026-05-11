@@ -18,41 +18,43 @@ interface HeroProps {
 const HERO_START_EVENT = 'sam:start-hero-video';
 
 function HeroLoadingOverlay({
-  waitingForSound,
+  started,
   onStartWithSound,
 }: {
-  waitingForSound: boolean;
+  started: boolean;
   onStartWithSound: () => void;
 }) {
   return (
-    <motion.div
-      className="hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <div className="absolute inset-0 opacity-40">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
-        <div className="absolute left-1/2 top-1/2 h-[44vw] max-h-[520px] w-[44vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#d98fcb]/18 blur-3xl" />
-      </div>
+    <>
+      <input
+        id="hero-start-toggle"
+        type="checkbox"
+        className="hero-start-toggle sr-only"
+        onChange={onStartWithSound}
+      />
+      <label
+        htmlFor="hero-start-toggle"
+        onPointerDown={onStartWithSound}
+        className={`hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl ${started ? 'hero-loader-started' : ''}`}
+      >
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
+          <div className="absolute left-1/2 top-1/2 h-[44vw] max-h-[520px] w-[44vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#4aa3ff]/18 blur-3xl" />
+        </div>
 
-      <div className="relative text-center">
-        <p className="hero-loader-name mx-auto w-[11ch] overflow-hidden whitespace-nowrap border-r-2 border-[#d98fcb] font-mono text-[clamp(2.4rem,9vw,7rem)] font-black leading-none tracking-normal text-white">
-          SAMER JABER
-        </p>
-        <p className="mt-7 text-sm font-black uppercase tracking-[0.34em] text-white/58">
-          Loading<span className="loading-dots" aria-hidden="true" />
-        </p>
-        <button
-          type="button"
-          onClick={onStartWithSound}
-          className={`accent-gradient mt-8 rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#090909] transition hover:brightness-110 ${waitingForSound ? '' : 'opacity-[.82]'}`}
-        >
-          Start with sound
-        </button>
-      </div>
-    </motion.div>
+        <div className="relative text-center">
+          <p className="hero-loader-name mx-auto w-[11ch] overflow-hidden whitespace-nowrap border-r-2 border-[#8ed8ff] font-mono text-[clamp(2.4rem,9vw,7rem)] font-black leading-none tracking-normal text-white">
+            SAMER JABER
+          </p>
+          <p className="mt-7 text-sm font-black uppercase tracking-[0.34em] text-white/58">
+            Loading<span className="loading-dots" aria-hidden="true" />
+          </p>
+          <span className="accent-gradient mt-8 inline-flex rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#06111f] transition">
+            Tap to start with sound
+          </span>
+        </div>
+      </label>
+    </>
   );
 }
 
@@ -64,44 +66,57 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
   const isAr = locale === 'ar';
   const hasHeroVideo = Boolean(sections.hero.video_url);
   const manuallyStartedRef = useRef(false);
-  const [heroVideoReady, setHeroVideoReady] = useState(!hasHeroVideo);
-  const [autoPlayBlocked, setAutoPlayBlocked] = useState(false);
+  const revealTimerRef = useRef<number | null>(null);
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [introStarted, setIntroStarted] = useState(!hasHeroVideo);
+  const [heroMuted, setHeroMuted] = useState(false);
 
   const title = isAr ? sections.hero.title_ar || sections.hero.title : sections.hero.title;
   const subtitle = isAr ? sections.hero.subtitle_ar || sections.hero.subtitle : sections.hero.subtitle;
   const description = isAr ? sections.hero.description_ar || sections.hero.description : sections.hero.description;
   const aboutTitle = isAr ? sections.about.title_ar || sections.about.title : sections.about.title;
   const about = isAr ? sections.about.content_ar || sections.about.content : sections.about.content;
-  const showHeroLoader = hasHeroVideo && (!heroVideoReady || autoPlayBlocked);
+  const showHeroLoader = hasHeroVideo && !heroVideoReady;
 
   useEffect(() => {
     manuallyStartedRef.current = false;
+    if (revealTimerRef.current) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+    setIntroStarted(!hasHeroVideo);
     setHeroVideoReady(!hasHeroVideo);
-    setAutoPlayBlocked(false);
+    setHeroMuted(false);
   }, [hasHeroVideo, sections.hero.video_url]);
 
   useEffect(() => {
-    if (!hasHeroVideo || heroVideoReady || autoPlayBlocked) return undefined;
+    if (!introStarted || !hasHeroVideo) return undefined;
 
     const fallback = window.setTimeout(() => {
-      setAutoPlayBlocked(true);
-    }, 6500);
-
+      setHeroVideoReady(true);
+    }, 3000);
     return () => window.clearTimeout(fallback);
-  }, [autoPlayBlocked, hasHeroVideo, heroVideoReady]);
+  }, [hasHeroVideo, introStarted]);
 
   const startHeroWithSound = () => {
     manuallyStartedRef.current = true;
+    setIntroStarted(true);
+    setHeroMuted(false);
     window.dispatchEvent(new Event(HERO_START_EVENT));
-    setHeroVideoReady(true);
-    setAutoPlayBlocked(false);
+    if (revealTimerRef.current) {
+      window.clearTimeout(revealTimerRef.current);
+    }
+    revealTimerRef.current = window.setTimeout(() => {
+      setHeroVideoReady(true);
+      revealTimerRef.current = null;
+    }, 3000);
   };
 
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden bg-[#080808] pt-16" dir={isAr ? 'rtl' : 'ltr'}>
       {showHeroLoader ? (
         <HeroLoadingOverlay
-          waitingForSound={autoPlayBlocked}
+          started={introStarted}
           onStartWithSound={startHeroWithSound}
         />
       ) : null}
@@ -115,28 +130,22 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
             title="Hero Video"
             autoPlay
             loop
-            muted={false}
-            onReady={() => {
-              setHeroVideoReady(true);
-              setAutoPlayBlocked(false);
-            }}
-            onAutoPlayBlocked={() => {
-              if (!manuallyStartedRef.current) {
-                setAutoPlayBlocked(true);
-              }
-            }}
+            muted={heroMuted}
+            volume={0.7}
+            fadeInAudio
+            waitForStart
             startEventName={HERO_START_EVENT}
             className="absolute inset-0 h-full w-full rounded-none opacity-95"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,.86)_0%,rgba(8,8,8,.58)_42%,rgba(8,8,8,.22)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_30%,rgba(185,156,255,.18),transparent_34%),linear-gradient(180deg,rgba(8,8,8,.14)_0%,rgba(8,8,8,.12)_48%,#080808_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_30%,rgba(142,216,255,.18),transparent_34%),linear-gradient(180deg,rgba(8,8,8,.14)_0%,rgba(8,8,8,.12)_48%,#080808_100%)]" />
         </div>
       ) : null}
 
       <div className={`absolute inset-0 ${sections.hero.video_url ? 'opacity-22' : 'opacity-35'}`}>
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:72px_72px]" />
         <motion.div
-          className="absolute inset-y-0 left-[-20%] w-[42%] bg-[#8f7cff]/16 blur-2xl"
+          className="absolute inset-y-0 left-[-20%] w-[42%] bg-[#3f8cff]/16 blur-2xl"
           animate={isPortable ? undefined : { x: ['0%', '210%', '0%'] }}
           transition={isPortable ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -153,9 +162,31 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         ))}
       </motion.div>
 
+      {hasHeroVideo ? (
+        <button
+          type="button"
+          onClick={() => setHeroMuted((current) => !current)}
+          className="fixed bottom-6 right-6 z-30 grid h-12 w-12 place-items-center rounded-full border border-white/18 bg-black/36 text-white/88 shadow-2xl shadow-black/30 backdrop-blur transition hover:border-[#8ed8ff]/70 hover:text-[#8ed8ff]"
+          aria-label={heroMuted ? 'Unmute hero video' : 'Mute hero video'}
+          title={heroMuted ? 'Unmute' : 'Mute'}
+        >
+          {heroMuted ? (
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 9.5v5h3.4L12 18V6L7.4 9.5H4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M17 9l4 4m0-4l-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 9.5v5h3.4L12 18V6L7.4 9.5H4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M16 9.2a4.2 4.2 0 010 5.6M18.8 6.6a8 8 0 010 10.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          )}
+        </button>
+      ) : null}
+
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col justify-center px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:px-8 lg:pt-32">
         <div className={`max-w-4xl ${isAr ? 'text-right' : 'text-left'}`}>
-          <p className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#d8c9ff]">
+          <p className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#cfeeff]">
             {subtitle}
           </p>
           <h1 className="max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black leading-[1.02] tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)]">
@@ -177,9 +208,9 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
 
         <div className="mt-12 max-w-xl">
           {!sections.hero.video_url ? (
-            <div className="relative aspect-video overflow-hidden border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(185,156,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(115,167,255,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]">
+            <div className="relative aspect-video overflow-hidden border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(142,216,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(37,99,235,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]">
               <motion.div
-                className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
+                className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(142,216,255,.92)_36%,rgba(142,216,255,.92)_43%,transparent_44%,transparent_100%)]"
                 animate={isPortable ? { x: '18%' } : { x: ['-120%', '120%'] }}
                 transition={isPortable ? { duration: 0 } : { duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
               />
@@ -194,7 +225,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
                 ))}
               </div>
               <div className="absolute bottom-6 left-6 right-6">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#b99cff]">{profile.name}</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8ed8ff]">{profile.name}</p>
                 <p className="mt-2 text-3xl font-black uppercase leading-none text-white sm:text-5xl">Edit<br />Frame<br />Move</p>
               </div>
             </div>

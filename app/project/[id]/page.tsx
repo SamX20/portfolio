@@ -56,7 +56,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#0a0a0f' }}>
         <div className="text-gray-500 text-lg">المشروع غير موجود</div>
-        <Link href="/" className="text-purple-400 hover:text-purple-300 text-sm transition-colors">
+        <Link href="/" className="text-sky-300 hover:text-sky-200 text-sm transition-colors">
           ← العودة للرئيسية
         </Link>
       </div>
@@ -67,13 +67,13 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     <div className="min-h-screen pt-24 pb-16 px-4" style={{ background: '#0a0a0f' }}>
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <Link href="/#projects" className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-400 text-sm mb-8 transition-colors">
+          <Link href="/#projects" className="inline-flex items-center gap-2 text-gray-500 hover:text-sky-300 text-sm mb-8 transition-colors">
             <span>→</span> العودة للمشاريع
           </Link>
 
           {/* Header */}
           <div className="mb-8">
-            <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full mb-4">
+            <span className="inline-block px-3 py-1 text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-full mb-4">
               {catLabel(project.category)}
             </span>
             <h1 className="text-3xl md:text-4xl font-black text-white mb-4">{project.title_ar || project.title}</h1>
@@ -125,7 +125,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               href={project.video_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full font-bold text-white hover:shadow-lg hover:shadow-sky-500/30 transition-all"
             >
               ▶ شاهد المشروع
             </a>

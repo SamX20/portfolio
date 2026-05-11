@@ -11,6 +11,9 @@ interface VideoPlayerProps {
   autoPlay?: boolean;
   loop?: boolean;
   muted?: boolean;
+  volume?: number;
+  fadeInAudio?: boolean;
+  waitForStart?: boolean;
   onReady?: () => void;
   onAutoPlayBlocked?: () => void;
   startEventName?: string;
@@ -79,6 +82,9 @@ export default function VideoPlayer({
   autoPlay = false,
   loop = false,
   muted = false,
+  volume = 1,
+  fadeInAudio = false,
+  waitForStart = false,
   onReady,
   onAutoPlayBlocked,
   startEventName,
@@ -101,14 +107,37 @@ export default function VideoPlayer({
     onAutoPlayBlocked?.();
   };
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = muted;
+    video.volume = muted ? 0 : volume;
+  }, [muted, volume]);
+
   const playVideo = async () => {
     const video = videoRef.current;
     if (!video) return;
 
     video.muted = muted;
+    video.volume = muted || fadeInAudio ? 0 : volume;
 
     try {
       await video.play();
+      if (fadeInAudio && !muted) {
+        const startedAt = performance.now();
+        const fadeDuration = 1600;
+
+        const tick = (now: number) => {
+          const progress = Math.min((now - startedAt) / fadeDuration, 1);
+          video.volume = volume * progress;
+          if (progress < 1 && !video.muted) {
+            window.requestAnimationFrame(tick);
+          }
+        };
+
+        window.requestAnimationFrame(tick);
+      }
       markReady();
     } catch {
       markBlocked();
@@ -148,17 +177,17 @@ export default function VideoPlayer({
           loop={loop}
           playsInline
           onCanPlayThrough={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
             else markReady();
           }}
           onCanPlay={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedMetadata={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedData={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
             else markReady();
           }}
           onPlaying={markReady}
@@ -202,17 +231,17 @@ export default function VideoPlayer({
           loop={loop}
           playsInline
           onCanPlayThrough={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
             else markReady();
           }}
           onCanPlay={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedMetadata={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
           }}
           onLoadedData={() => {
-            if (autoPlay) void playVideo();
+            if (autoPlay && !waitForStart) void playVideo();
             else markReady();
           }}
           onPlaying={markReady}
@@ -239,7 +268,7 @@ export default function VideoPlayer({
   }
 
   return (
-    <div className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-purple-900/20 to-pink-900/20 ${className}`}>
+    <div className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-sky-900/20 to-blue-900/20 ${className}`}>
       <div className="text-center text-white/60">
         <svg className="mx-auto mb-4 h-16 w-16 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />

@@ -49,11 +49,11 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
           viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
-          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full tracking-widest">
+          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-full tracking-widest">
             TESTIMONIALS
           </span>
           <h2 className="text-4xl md:text-5xl font-black mb-4">
-            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">آراء العملاء</span>
+            <span className="bg-gradient-to-r from-sky-300 to-blue-600 bg-clip-text text-transparent">آراء العملاء</span>
           </h2>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">ما يقوله عملائي عن عملي ومستوى احترافيتي</p>
         </motion.div>
@@ -69,7 +69,7 @@ export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
             <motion.div
               key={testimonial.id}
               variants={!disableMotion ? cardVariants : undefined}
-              className="p-6 rounded-2xl border border-white/8 hover:border-purple-500/30 transition-all"
+              className="p-6 rounded-2xl border border-white/8 hover:border-sky-500/30 transition-all"
               style={{ background: 'rgba(255,255,255,0.03)' }}
             >
               {/* Stars */}

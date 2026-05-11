@@ -126,7 +126,7 @@ function Field({
   placeholder?: string;
 }) {
   const className =
-    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#b99cff]/70';
+    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#8ed8ff]/70';
 
   return (
     <label className="block">
@@ -310,7 +310,7 @@ export default function AdminPage() {
     return (
       <main className="grid min-h-screen place-items-center bg-[#080808] px-4 text-white">
         <form onSubmit={login} className="w-full max-w-md border border-white/10 bg-white/[0.03] p-7">
-          <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#b99cff]">Sam Admin</p>
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#8ed8ff]">Sam Admin</p>
           <h1 className="text-4xl font-black">Control room</h1>
           <p className="mt-3 text-sm leading-7 text-white/52">
             Server-protected admin for projects, main page copy, uploads, and contact content.
@@ -325,7 +325,7 @@ export default function AdminPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Admin password"
-            className="mt-6 h-12 w-full border border-white/10 bg-black/35 px-4 text-white outline-none focus:border-[#b99cff]/70"
+            className="mt-6 h-12 w-full border border-white/10 bg-black/35 px-4 text-white outline-none focus:border-[#8ed8ff]/70"
           />
           <button disabled={saving || !password} className="accent-gradient mt-4 w-full px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-[#090909] disabled:opacity-50">
             {saving ? 'Checking...' : 'Enter'}
@@ -341,7 +341,7 @@ export default function AdminPage() {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#b99cff]">Sam Motion Admin</p>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#8ed8ff]">Sam Motion Admin</p>
             <h1 className="text-2xl font-black">Portfolio control panel</h1>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -355,7 +355,7 @@ export default function AdminPage() {
                 key={value}
                 onClick={() => setTab(value as Tab)}
                 className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
-                  tab === value ? 'accent-gradient border-[#d98fcb] text-[#090909]' : 'border-white/10 text-white/55 hover:text-white'
+                  tab === value ? 'accent-gradient border-[#4aa3ff] text-[#090909]' : 'border-white/10 text-white/55 hover:text-white'
                 }`}
               >
                 {label}
@@ -366,7 +366,7 @@ export default function AdminPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {toast && <div className="mb-5 border border-[#b99cff]/40 bg-[#b99cff]/10 p-3 text-sm text-[#b99cff]">{toast}</div>}
+        {toast && <div className="mb-5 border border-[#8ed8ff]/40 bg-[#8ed8ff]/10 p-3 text-sm text-[#8ed8ff]">{toast}</div>}
 
         {tab === 'content' && (
           <section className="grid gap-5 lg:grid-cols-2">
@@ -443,13 +443,13 @@ export default function AdminPage() {
                         setUploadProgress(0);
                       }
                     }}
-                    className="w-full rounded-full bg-[#b99cff] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] disabled:opacity-50"
+                    className="w-full rounded-full bg-[#8ed8ff] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] disabled:opacity-50"
                   >
                     {uploadingHeroVideo ? `Uploading ${uploadProgress}%` : 'Upload hero video'}
                   </button>
                   {uploadingHeroVideo ? (
                     <div className="mt-3 h-2 overflow-hidden rounded-full border border-white/10 bg-white/5">
-                      <div className="h-full bg-[#b99cff] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                      <div className="h-full bg-[#8ed8ff] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
                     </div>
                   ) : null}
                 </div>
@@ -490,7 +490,7 @@ export default function AdminPage() {
                   <div>
                     <p className="font-black">{project.title}</p>
                     <p className="mt-1 line-clamp-1 text-sm text-white/45">{project.description}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#b99cff]">
+                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#8ed8ff]">
                       {project.category
                         .map((cat) => CATEGORIES.find((item) => item.value === cat)?.label ?? cat)
                         .join(' / ')}
@@ -619,7 +619,7 @@ function EditableList({
         <h2 className="text-xl font-black">{title}</h2>
         <button
           onClick={() => onChange([...items, { ...newItem, id: crypto.randomUUID() }])}
-          className="border border-[#b99cff]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#b99cff]"
+          className="border border-[#8ed8ff]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]"
         >
           Add
         </button>
@@ -717,7 +717,7 @@ function ProjectEditor({
                         set('category', form.category.filter((value) => value !== category.value));
                       }
                     }}
-                    className="h-4 w-4 accent-[#b99cff] cursor-pointer"
+                    className="h-4 w-4 accent-[#8ed8ff] cursor-pointer"
                   />
                   {category.label}
                 </label>
@@ -746,7 +746,7 @@ function ProjectEditor({
                         setSelectedTechnologies(selectedTechnologies.filter((t) => t !== tech));
                       }
                     }}
-                    className="h-4 w-4 accent-[#b99cff] cursor-pointer"
+                    className="h-4 w-4 accent-[#8ed8ff] cursor-pointer"
                   />
                   {tech}
                 </label>
@@ -772,11 +772,11 @@ function ProjectEditor({
                   onError(message);
                 }
               }}
-              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#d98fcb] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
           </label>
           <label className="flex items-center gap-3 border border-white/10 p-3 text-sm text-white/70">
-            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#b99cff]" />
+            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#8ed8ff]" />
             Featured project
           </label>
         </div>

@@ -26,7 +26,7 @@ export default function Footer({ sections, socialLinks = [], locale }: FooterPro
               href={social.url || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-black uppercase tracking-[0.15em] text-white/42 transition hover:text-[#b99cff]"
+              className="text-xs font-black uppercase tracking-[0.15em] text-white/42 transition hover:text-[#8ed8ff]"
             >
               {social.name}
             </a>
