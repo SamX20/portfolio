@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'uploads';
+const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'videos';
 
 export const runtime = 'nodejs';
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const timestamp = Date.now();
     const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-    const filePath = `${timestamp}-${sanitized}`;
+    const filePath = `portfolio-videos/${timestamp}-${sanitized}`;
 
     const uploadFile = async () => {
       return await supabaseAdmin!.storage.from(BUCKET_NAME).upload(filePath, file, {

@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CATEGORIES, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
 import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
 
@@ -60,6 +61,11 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
   console.log('Mapped sections:', result); // Debug log
   return result;
 }
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
@@ -236,52 +242,43 @@ export default function AdminPage() {
   };
 
   const uploadFile = async (file: File, onProgress?: (percent: number) => void) => {
-    // Use server-side upload route which handles bucket creation
-    const formData = new FormData();
-    formData.append('file', file);
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'videos';
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const filePath = `portfolio-videos/${Date.now()}-${sanitizedName}`;
 
-    return new Promise<string>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/upload');
-      xhr.setRequestHeader('Accept', 'application/json');
+    try {
+      // First try to upload
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
-          onProgress?.(percent);
+      if (error) {
+        // If bucket doesn't exist, try to create it (this might fail on client side)
+        if (error.message.includes('bucket') || error.message.includes('not found')) {
+          console.log(`Bucket "${bucketName}" not found, attempting to create...`);
+          // Note: Bucket creation typically needs to be done server-side or in Supabase dashboard
+          throw new Error(`Storage bucket "${bucketName}" not found. Please create it in your Supabase dashboard.`);
         }
-      };
+        throw error;
+      }
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const result = JSON.parse(xhr.responseText);
-            if (result.url) {
-              return resolve(result.url);
-            } else {
-              return reject(new Error('Upload response missing URL'));
-            }
-          } catch (parseError) {
-            console.error('Failed to parse upload response JSON:', parseError);
-            return reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
-          }
-        }
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
 
-        let message = 'Upload failed';
-        try {
-          const result = JSON.parse(xhr.responseText);
-          message = result.error || message;
-        } catch {
-          message = `Upload failed: ${xhr.status} ${xhr.statusText}`;
-        }
-        reject(new Error(message));
-      };
+      if (!urlData.publicUrl) {
+        throw new Error('Failed to generate public URL for uploaded file');
+      }
 
-      xhr.onerror = () => reject(new Error('Upload failed due to a network error.'));
-      xhr.onabort = () => reject(new Error('Upload was aborted.'));
-
-      xhr.send(formData);
-    });
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error instanceof Error ? error : new Error('Upload failed');
+    }
   };
 
   const setProfile = (key: keyof Profile, value: string) => {
