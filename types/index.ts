@@ -95,6 +95,7 @@ export interface SectionsData {
     description: string;
     cta_text: string;
     cta_link: string;
+    video_url?: string;
     title_ar?: string;
     subtitle_ar?: string;
     description_ar?: string;

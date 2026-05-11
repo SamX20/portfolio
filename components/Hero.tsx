@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import { Locale, Profile, SectionsData, Skill, Stat } from '@/types';
 import ScrollReveal from './ScrollReveal';
 import usePortableMotion from '@/lib/usePortableMotion';
+import VideoPlayer from './VideoPlayer';
 
 interface HeroProps {
   locale: Locale;
@@ -82,28 +83,40 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         <div
           className="relative mx-auto aspect-[4/5] w-full max-w-[520px]"
         >
-          <div className="absolute inset-0 border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(185,156,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(115,167,255,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]" />
-          <div className="absolute inset-5 overflow-hidden border border-white/10 bg-black">
-            <motion.div
-              className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
-              animate={isPortable ? { x: '18%' } : { x: ['-120%', '120%'] }}
-              transition={isPortable ? { duration: 0 } : { duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
+          {sections.hero.video_url ? (
+            <VideoPlayer
+              embedCode=""
+              videoUrl={sections.hero.video_url}
+              thumbnail=""
+              title="Hero Video"
+              className="h-full w-full object-cover"
             />
-            <div className="absolute inset-0 grid grid-rows-6">
-              {[...Array(6)].map((_, index) => (
+          ) : (
+            <>
+              <div className="absolute inset-0 border border-white/14 bg-[radial-gradient(circle_at_32%_18%,rgba(185,156,255,.24),transparent_34%),radial-gradient(circle_at_70%_36%,rgba(115,167,255,.16),transparent_32%),linear-gradient(145deg,#161616,#090909)]" />
+              <div className="absolute inset-5 overflow-hidden border border-white/10 bg-black">
                 <motion.div
-                  key={index}
-                  className="border-b border-white/10 bg-white/[0.02]"
-                  animate={isPortable ? { opacity: 0.22 } : { opacity: [0.12, 0.48, 0.12] }}
-                  transition={isPortable ? { duration: 0 } : { duration: 1.4 + index * 0.18, repeat: Infinity, delay: index * 0.12 }}
+                  className="absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,transparent_35%,rgba(185,156,255,.92)_36%,rgba(185,156,255,.92)_43%,transparent_44%,transparent_100%)]"
+                  animate={isPortable ? { x: '18%' } : { x: ['-120%', '120%'] }}
+                  transition={isPortable ? { duration: 0 } : { duration: 2.4, repeat: Infinity, repeatDelay: 1.1, ease: 'easeInOut' }}
                 />
-              ))}
-            </div>
-            <div className="absolute bottom-6 left-6 right-6">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#b99cff]">{profile.name}</p>
-              <p className="mt-2 text-3xl font-black uppercase leading-none text-white sm:text-5xl">Edit<br />Frame<br />Move</p>
-            </div>
-          </div>
+                <div className="absolute inset-0 grid grid-rows-6">
+                  {[...Array(6)].map((_, index) => (
+                    <motion.div
+                      key={index}
+                      className="border-b border-white/10 bg-white/[0.02]"
+                      animate={isPortable ? { opacity: 0.22 } : { opacity: [0.12, 0.48, 0.12] }}
+                      transition={isPortable ? { duration: 0 } : { duration: 1.4 + index * 0.18, repeat: Infinity, delay: index * 0.12 }}
+                    />
+                  ))}
+                </div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[#b99cff]">{profile.name}</p>
+                  <p className="mt-2 text-3xl font-black uppercase leading-none text-white sm:text-5xl">Edit<br />Frame<br />Move</p>
+                </div>
+              </div>
+            </>
+          )}
           <div className="absolute -bottom-5 left-6 right-6 border border-white/12 bg-[#101010]/95 p-4 backdrop-blur">
             <p className="text-xs uppercase tracking-[0.22em] text-white/42">{aboutTitle}</p>
             <p className="mt-2 text-sm leading-6 text-white/72">{about}</p>

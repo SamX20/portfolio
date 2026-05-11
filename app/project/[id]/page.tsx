@@ -76,8 +76,8 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
             <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-full mb-4">
               {catLabel(project.category)}
             </span>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-4">{project.title}</h1>
-            <p className="text-gray-400 text-lg leading-relaxed">{project.description}</p>
+            <h1 className="text-3xl md:text-4xl font-black text-white mb-4">{project.title_ar || project.title}</h1>
+            <p className="text-gray-400 text-lg leading-relaxed">{project.description_ar || project.description}</p>
           </div>
 
           {/* Video Player */}

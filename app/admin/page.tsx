@@ -343,6 +343,7 @@ export default function AdminPage() {
                 <Field label="Subtitle AR" value={data.sections.hero.subtitle_ar} onChange={(value) => setSection('hero', 'subtitle_ar', value)} />
                 <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
                 <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
+                <Field label="Hero video URL" value={data.sections.hero.video_url} onChange={(value) => setSection('hero', 'video_url', value)} placeholder="YouTube, Vimeo, or direct video link" />
               </div>
             </div>
 
@@ -674,7 +675,7 @@ function ProjectEditor({
           {error && <p className="mr-auto max-w-md text-sm leading-6 text-red-300">{error}</p>}
           <button onClick={onClose} className="border border-white/10 px-4 py-2 text-sm font-bold text-white/64">Cancel</button>
           <button
-            disabled={saving || !form.title || !form.description}
+            disabled={saving || !(form.title || form.title_ar) || !(form.description || form.description_ar)}
             onClick={async () => {
               setSaving(true);
               setError('');

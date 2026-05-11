@@ -2,18 +2,21 @@
 -- Run this SQL in Supabase SQL Editor to update existing projects data.
 
 DO $$
+DECLARE
+  col_type text;
 BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_name = 'projects'
-      AND column_name = 'category'
-      AND data_type = 'text'
-  ) THEN
-    ALTER TABLE projects
-      ALTER COLUMN category TYPE text[] USING ARRAY[category];
-    ALTER TABLE projects
-      ALTER COLUMN category SET DEFAULT ARRAY['motion-design'];
+  SELECT udt_name INTO col_type
+  FROM information_schema.columns
+  WHERE table_name = 'projects'
+    AND column_name = 'category'
+    AND table_schema = 'public';
+
+  IF col_type = 'text' THEN
+    EXECUTE 'ALTER TABLE projects ADD COLUMN category_new text[] DEFAULT ARRAY[''motion-design'']::text[]';
+    EXECUTE 'UPDATE projects SET category_new = ARRAY[category]';
+    EXECUTE 'ALTER TABLE projects DROP COLUMN category';
+    EXECUTE 'ALTER TABLE projects RENAME COLUMN category_new TO category';
+    EXECUTE 'ALTER TABLE projects ALTER COLUMN category SET DEFAULT ARRAY[''motion-design'']::text[]';
   END IF;
 END $$;
 
