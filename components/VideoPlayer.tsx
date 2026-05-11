@@ -63,9 +63,8 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
     if (parsed.hostname.includes('drive.google.com')) {
       const id = getGoogleDriveFileId(videoUrl);
       if (id) {
-        const preview = new URL(`https://drive.google.com/file/d/${id}/preview`);
-        if (autoplay) preview.searchParams.set('autoplay', '1');
-        return preview.toString();
+        const preview = `https://drive.google.com/file/d/${id}/preview`;
+        return preview;
       }
     }
   } catch {
@@ -218,7 +217,7 @@ export default function VideoPlayer({
   }
 
   if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay || !thumbnail)) {
-    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/(file|uc)/.test(resolvedVideoUrl);
+    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
       return (
