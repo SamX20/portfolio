@@ -124,6 +124,7 @@ insert into sections (id, section, key, value) values
   ('hero-cta_text', 'hero', 'cta_text', 'Watch the reel'),
   ('hero-cta_link', 'hero', 'cta_link', '#projects'),
   ('hero-video_url', 'hero', 'video_url', ''),
+  ('hero-video_url', 'hero', 'video_url', ''),
   ('about-title', 'about', 'title', 'Direction, rhythm, finish.'),
   ('about-content', 'about', 'content', 'I build motion pieces with a sharp edit, clear visual hierarchy, and a finish that feels ready for screens, campaigns, and clients.'),
   ('about-title-ar', 'about', 'title_ar', 'إخراج، إيقاع، ولمسة نهائية.'),

@@ -69,6 +69,7 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
       description_ar: heroMap.description_ar || defaultSections.hero.description_ar,
       cta_text: resolveText(heroMap.cta_text, defaultSections.hero.cta_text),
       cta_link: heroMap.cta_link || defaultSections.hero.cta_link,
+      video_url: heroMap.video_url || defaultSections.hero.video_url,
     },
     about: {
       ...defaultSections.about,

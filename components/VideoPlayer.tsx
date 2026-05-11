@@ -8,10 +8,62 @@ interface VideoPlayerProps {
   thumbnail?: string;
   title: string;
   className?: string;
+  autoPlay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
 }
 
-export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, className = '' }: VideoPlayerProps) {
-  const [showVideo, setShowVideo] = useState(false);
+function getVideoEmbedUrl(videoUrl: string, autoplay = false): string {
+  try {
+    const parsed = new URL(videoUrl);
+    const params = new URLSearchParams(parsed.search);
+
+    if (parsed.hostname.includes('youtube.com') || parsed.hostname.includes('youtu.be')) {
+      const id = parsed.hostname.includes('youtu.be')
+        ? parsed.pathname.replace('/', '')
+        : params.get('v');
+      if (!id) return videoUrl;
+      const embed = new URL(`https://www.youtube.com/embed/${id}`);
+      embed.searchParams.set('rel', '0');
+      embed.searchParams.set('controls', '0');
+      embed.searchParams.set('playsinline', '1');
+      embed.searchParams.set('mute', '1');
+      embed.searchParams.set('loop', '1');
+      embed.searchParams.set('playlist', id);
+      if (autoplay) embed.searchParams.set('autoplay', '1');
+      return embed.toString();
+    }
+
+    if (parsed.hostname.includes('vimeo.com')) {
+      const id = parsed.pathname.split('/').filter(Boolean).pop();
+      if (!id) return videoUrl;
+      const embed = new URL(`https://player.vimeo.com/video/${id}`);
+      embed.searchParams.set('muted', '1');
+      embed.searchParams.set('loop', '1');
+      embed.searchParams.set('background', '1');
+      if (autoplay) embed.searchParams.set('autoplay', '1');
+      return embed.toString();
+    }
+
+    if (parsed.hostname.includes('drive.google.com')) {
+      const match = videoUrl.match(/\/file\/d\/([^/]+)/);
+      if (match) {
+        const id = match[1];
+        const embed = new URL(`https://drive.google.com/file/d/${id}/preview`);
+        if (autoplay) embed.searchParams.set('autoplay', '1');
+        return embed.toString();
+      }
+    }
+  } catch {
+    return videoUrl;
+  }
+
+  return videoUrl;
+}
+
+export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, className = '', autoPlay = false, loop = false, muted = false }: VideoPlayerProps) {
+  const [showVideo, setShowVideo] = useState(autoPlay);
+  const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay) : undefined;
 
   // إذا كان هناك embed code، استخدمه
   if (embedCode) {
@@ -25,14 +77,54 @@ export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, cla
   // إذا كان فيديو محلي، استخدم HTML5 video
   if (videoUrl && videoUrl.startsWith('/')) {
     return (
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+      <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-black ${className}`}>
         <video
           controls
           poster={thumbnail}
           className="w-full h-full object-cover"
           preload="metadata"
+          autoPlay={autoPlay}
+          muted={muted}
+          loop={loop}
+          playsInline
         >
           <source src={videoUrl} type="video/mp4" />
+          متصفحك لا يدعم تشغيل الفيديو.
+        </video>
+      </div>
+    );
+  }
+
+  if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay)) {
+    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file/.test(resolvedVideoUrl);
+
+    if (isEmbedVideo) {
+      return (
+        <div className={`relative w-full aspect-video overflow-hidden rounded-xl bg-black ${className}`}>
+          <iframe
+            src={resolvedVideoUrl}
+            title={title}
+            className="h-full w-full"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-black ${className}`}>
+        <video
+          controls={!autoPlay}
+          poster={thumbnail}
+          className="w-full h-full object-cover"
+          preload="metadata"
+          autoPlay={autoPlay}
+          muted={muted}
+          loop={loop}
+          playsInline
+        >
+          <source src={resolvedVideoUrl} type="video/mp4" />
           متصفحك لا يدعم تشغيل الفيديو.
         </video>
       </div>

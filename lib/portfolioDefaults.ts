@@ -17,6 +17,7 @@ export const defaultSections: SectionsData = {
       'أحوّل الأفكار إلى مشاهد متقنة الإيقاع، مصممة للإعلانات الرقمية، الهويات المتحركة، والفيديوهات التي تستحق أن تُشاهد حتى النهاية.',
     cta_text: 'Watch the reel',
     cta_link: '#projects',
+    video_url: '',
   },
   about: {
     title: 'Who I Am',

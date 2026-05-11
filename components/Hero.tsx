@@ -80,15 +80,16 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           </div>
         </div>
 
-        <div
-          className="relative mx-auto aspect-[4/5] w-full max-w-[520px]"
-        >
+        <div className="relative mx-auto aspect-video w-full max-w-[860px]">
           {sections.hero.video_url ? (
             <VideoPlayer
               embedCode=""
               videoUrl={sections.hero.video_url}
               thumbnail=""
               title="Hero Video"
+              autoPlay
+              loop
+              muted
               className="h-full w-full object-cover"
             />
           ) : (
