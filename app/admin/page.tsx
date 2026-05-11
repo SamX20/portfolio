@@ -7,6 +7,13 @@ import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defa
 
 type Tab = 'content' | 'projects' | 'contacts' | 'skills';
 
+interface UploadTicket {
+  bucket: string;
+  path: string;
+  token: string;
+  url: string;
+}
+
 interface AdminData {
   projects: Project[];
   stats: Stat[];
@@ -62,10 +69,21 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
   return result;
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+let browserSupabase: SupabaseClient | null = null;
+
+function getBrowserSupabase() {
+  if (browserSupabase) return browserSupabase;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnon) {
+    throw new Error('Supabase public env variables are missing.');
+  }
+
+  browserSupabase = createClient(supabaseUrl, supabaseAnon);
+  return browserSupabase;
+}
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
@@ -242,43 +260,32 @@ export default function AdminPage() {
   };
 
   const uploadFile = async (file: File, onProgress?: (percent: number) => void) => {
-    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'videos';
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-    const filePath = `portfolio-videos/${Date.now()}-${sanitizedName}`;
+    onProgress?.(5);
 
-    try {
-      // First try to upload
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+    const ticket = await api<UploadTicket>('/api/upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type,
+      }),
+    });
 
-      if (error) {
-        // If bucket doesn't exist, try to create it (this might fail on client side)
-        if (error.message.includes('bucket') || error.message.includes('not found')) {
-          console.log(`Bucket "${bucketName}" not found, attempting to create...`);
-          // Note: Bucket creation typically needs to be done server-side or in Supabase dashboard
-          throw new Error(`Storage bucket "${bucketName}" not found. Please create it in your Supabase dashboard.`);
-        }
-        throw error;
-      }
+    onProgress?.(15);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
+    const supabase = getBrowserSupabase();
+    const { error } = await supabase.storage
+      .from(ticket.bucket)
+      .uploadToSignedUrl(ticket.path, ticket.token, file, {
+        contentType: file.type,
+        upsert: true,
+      });
 
-      if (!urlData.publicUrl) {
-        throw new Error('Failed to generate public URL for uploaded file');
-      }
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw error instanceof Error ? error : new Error('Upload failed');
+    if (error) {
+      throw new Error(error.message || 'Upload failed.');
     }
+
+    onProgress?.(100);
+    return ticket.url;
   };
 
   const setProfile = (key: keyof Profile, value: string) => {

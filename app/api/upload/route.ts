@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -6,7 +6,30 @@ const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'videos';
 
 export const runtime = 'nodejs';
 
-export async function POST(request: NextRequest) {
+function sanitizeFileName(fileName: string) {
+  const baseName = fileName.trim() || 'upload';
+  return baseName.replace(/[^a-zA-Z0-9_.-]/g, '_');
+}
+
+async function ensureStorageBucket() {
+  if (!supabaseAdmin) return 'Supabase admin client is not configured.';
+
+  const { data: bucket, error: getError } = await supabaseAdmin.storage.getBucket(BUCKET_NAME);
+  if (bucket && !getError) return null;
+
+  const { error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, {
+    public: true,
+  });
+
+  if (createError && !String(createError.message).toLowerCase().includes('already exists')) {
+    console.error('Supabase bucket creation error:', createError);
+    return 'Failed to create storage bucket.';
+  }
+
+  return null;
+}
+
+export async function POST(request: Request) {
   try {
     if (!(await isAdminAuthed())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -16,45 +39,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Supabase admin client is not configured.' }, { status: 500 });
     }
 
-    const data = await request.formData();
-    const file: File | null = data.get('file') as unknown as File;
+    const body = await request.json().catch(() => ({}));
+    const fileName = typeof body.fileName === 'string' ? body.fileName : '';
+    const contentType = typeof body.contentType === 'string' ? body.contentType : '';
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file received.' }, { status: 400 });
+    if (!fileName) {
+      return NextResponse.json({ error: 'Missing file name.' }, { status: 400 });
+    }
+
+    if (!contentType || !/^(image|video)\//.test(contentType)) {
+      return NextResponse.json({ error: 'Only image and video uploads are allowed.' }, { status: 400 });
+    }
+
+    const bucketError = await ensureStorageBucket();
+    if (bucketError) {
+      return NextResponse.json({ error: bucketError }, { status: 500 });
     }
 
     const timestamp = Date.now();
-    const sanitized = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const sanitized = sanitizeFileName(fileName);
     const filePath = `portfolio-videos/${timestamp}-${sanitized}`;
 
-    const uploadFile = async () => {
-      return await supabaseAdmin!.storage.from(BUCKET_NAME).upload(filePath, file, {
-        contentType: file.type,
-        upsert: true,
-      });
-    };
+    const { data: signedUpload, error: signedUploadError } = await supabaseAdmin.storage
+      .from(BUCKET_NAME)
+      .createSignedUploadUrl(filePath, { upsert: true });
 
-    let { error: uploadError } = await uploadFile();
-
-    if (uploadError) {
-      const isBucketMissing = String(uploadError.message).toLowerCase().includes('bucket');
-      if (isBucketMissing) {
-        const { error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, {
-          public: true,
-        });
-        if (createError && !String(createError.message).toLowerCase().includes('already exists')) {
-          console.error('Supabase bucket creation error:', createError);
-          return NextResponse.json({ error: 'Failed to create storage bucket.' }, { status: 500 });
-        }
-
-        const retryResult = await uploadFile();
-        uploadError = retryResult.error;
-      }
-    }
-
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload file to Supabase Storage.' }, { status: 500 });
+    if (signedUploadError || !signedUpload?.token) {
+      console.error('Supabase signed upload error:', signedUploadError);
+      return NextResponse.json({ error: 'Failed to prepare direct upload.' }, { status: 500 });
     }
 
     const publicUrlResponse = supabaseAdmin.storage
@@ -66,9 +78,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to generate public URL.' }, { status: 500 });
     }
 
-    return NextResponse.json({ url: publicUrlResponse.data.publicUrl });
+    return NextResponse.json({
+      bucket: BUCKET_NAME,
+      path: signedUpload.path,
+      token: signedUpload.token,
+      url: publicUrlResponse.data.publicUrl,
+    });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Failed to upload file.' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to prepare upload.' }, { status: 500 });
   }
 }
