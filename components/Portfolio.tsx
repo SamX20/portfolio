@@ -77,13 +77,6 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
               {isAr ? 'معرض حد الإيقاع، مصمم للحركة.' : 'A sharp gallery built for motion.'}
             </h2>
           </ScrollReveal>
-          <ScrollReveal variant={isAr ? 'left' : 'right'} delay={120}>
-            <p className="max-w-sm text-sm leading-7 text-white/52">
-              {isAr
-                ? 'أضف روابط Google Drive أو ملفات الفيديو من لوحة التحكم، وسيظهر كل عمل هنا بشكل أنيق وقابل للتشغيل.'
-                : 'Add Google Drive links or uploaded videos from the admin, and each project becomes playable here.'}
-            </p>
-          </ScrollReveal>
         </div>
 
         <ScrollReveal className="mb-10 flex flex-wrap gap-2" delay={180}>
