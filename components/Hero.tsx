@@ -153,7 +153,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
             autoPlay
             loop
             muted={heroMuted}
-            volume={0.7}
+            volume={0.4}
             fadeInAudio
             waitForStart
             startEventName={HERO_START_EVENT}
