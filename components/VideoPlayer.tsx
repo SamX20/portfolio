@@ -30,6 +30,8 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false): string {
       embed.searchParams.set('mute', '1');
       embed.searchParams.set('loop', '1');
       embed.searchParams.set('playlist', id);
+      embed.searchParams.set('modestbranding', '1');
+      embed.searchParams.set('showinfo', '0');
       if (autoplay) embed.searchParams.set('autoplay', '1');
       return embed.toString();
     }
@@ -41,6 +43,9 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false): string {
       embed.searchParams.set('muted', '1');
       embed.searchParams.set('loop', '1');
       embed.searchParams.set('background', '1');
+      embed.searchParams.set('title', '0');
+      embed.searchParams.set('byline', '0');
+      embed.searchParams.set('portrait', '0');
       if (autoplay) embed.searchParams.set('autoplay', '1');
       return embed.toString();
     }
@@ -79,7 +84,7 @@ export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, cla
     return (
       <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-black ${className}`}>
         <video
-          controls
+          controls={!autoPlay}
           poster={thumbnail}
           className="w-full h-full object-cover"
           preload="metadata"
@@ -95,7 +100,7 @@ export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, cla
     );
   }
 
-  if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay)) {
+  if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay || !thumbnail)) {
     const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file/.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
@@ -105,7 +110,7 @@ export default function VideoPlayer({ embedCode, videoUrl, thumbnail, title, cla
             src={resolvedVideoUrl}
             title={title}
             className="h-full w-full"
-            allow="autoplay; fullscreen; picture-in-picture"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
             allowFullScreen
           />
         </div>
