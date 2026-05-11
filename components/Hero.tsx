@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Locale, Profile, SectionsData, Skill, Stat } from '@/types';
 import ScrollReveal from './ScrollReveal';
 import usePortableMotion from '@/lib/usePortableMotion';
@@ -15,21 +15,97 @@ interface HeroProps {
   skills: Skill[];
 }
 
+const HERO_START_EVENT = 'sam:start-hero-video';
+
+function HeroLoadingOverlay({
+  waitingForSound,
+  onStartWithSound,
+}: {
+  waitingForSound: boolean;
+  onStartWithSound: () => void;
+}) {
+  return (
+    <motion.div
+      className="hero-loader-overlay fixed inset-0 z-[120] grid place-items-center bg-[#080808]/88 px-5 text-white backdrop-blur-xl"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute left-1/2 top-1/2 h-[44vw] max-h-[520px] w-[44vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#d98fcb]/18 blur-3xl" />
+      </div>
+
+      <div className="relative text-center">
+        <p className="hero-loader-name mx-auto w-[11ch] overflow-hidden whitespace-nowrap border-r-2 border-[#d98fcb] font-mono text-[clamp(2.4rem,9vw,7rem)] font-black leading-none tracking-normal text-white">
+          SAMER JABER
+        </p>
+        <p className="mt-7 text-sm font-black uppercase tracking-[0.34em] text-white/58">
+          Loading<span className="loading-dots" aria-hidden="true" />
+        </p>
+        <button
+          type="button"
+          onClick={onStartWithSound}
+          className={`accent-gradient mt-8 rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#090909] transition hover:brightness-110 ${waitingForSound ? '' : 'opacity-[.82]'}`}
+        >
+          Start with sound
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Hero({ locale, profile, sections, stats, skills }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isPortable = usePortableMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], [0, 140]);
   const isAr = locale === 'ar';
+  const hasHeroVideo = Boolean(sections.hero.video_url);
+  const manuallyStartedRef = useRef(false);
+  const [heroVideoReady, setHeroVideoReady] = useState(!hasHeroVideo);
+  const [autoPlayBlocked, setAutoPlayBlocked] = useState(false);
 
   const title = isAr ? sections.hero.title_ar || sections.hero.title : sections.hero.title;
   const subtitle = isAr ? sections.hero.subtitle_ar || sections.hero.subtitle : sections.hero.subtitle;
   const description = isAr ? sections.hero.description_ar || sections.hero.description : sections.hero.description;
   const aboutTitle = isAr ? sections.about.title_ar || sections.about.title : sections.about.title;
   const about = isAr ? sections.about.content_ar || sections.about.content : sections.about.content;
+  const showHeroLoader = hasHeroVideo && (!heroVideoReady || autoPlayBlocked);
+
+  useEffect(() => {
+    manuallyStartedRef.current = false;
+    setHeroVideoReady(!hasHeroVideo);
+    setAutoPlayBlocked(false);
+  }, [hasHeroVideo, sections.hero.video_url]);
+
+  useEffect(() => {
+    if (!hasHeroVideo || heroVideoReady || autoPlayBlocked) return undefined;
+
+    const fallback = window.setTimeout(() => {
+      setAutoPlayBlocked(true);
+    }, 6500);
+
+    return () => window.clearTimeout(fallback);
+  }, [autoPlayBlocked, hasHeroVideo, heroVideoReady]);
+
+  const startHeroWithSound = () => {
+    manuallyStartedRef.current = true;
+    window.dispatchEvent(new Event(HERO_START_EVENT));
+    setHeroVideoReady(true);
+    setAutoPlayBlocked(false);
+  };
 
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden bg-[#080808] pt-16" dir={isAr ? 'rtl' : 'ltr'}>
+      {showHeroLoader ? (
+        <HeroLoadingOverlay
+          waitingForSound={autoPlayBlocked}
+          onStartWithSound={startHeroWithSound}
+        />
+      ) : null}
+
       <div className="absolute inset-0 opacity-35">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:72px_72px]" />
         <motion.div
@@ -89,7 +165,17 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
               title="Hero Video"
               autoPlay
               loop
-              muted
+              muted={false}
+              onReady={() => {
+                setHeroVideoReady(true);
+                setAutoPlayBlocked(false);
+              }}
+              onAutoPlayBlocked={() => {
+                if (!manuallyStartedRef.current) {
+                  setAutoPlayBlocked(true);
+                }
+              }}
+              startEventName={HERO_START_EVENT}
               className="h-full w-full object-cover"
             />
           ) : (
