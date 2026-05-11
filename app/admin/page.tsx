@@ -123,6 +123,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingHeroVideo, setUploadingHeroVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedHeroVideoFile, setSelectedHeroVideoFile] = useState<File | null>(null);
   const [tab, setTab] = useState<Tab>('content');
   const [toast, setToast] = useState('');
@@ -234,21 +235,47 @@ export default function AdminPage() {
     });
   };
 
-  const uploadFile = async (file: File) => {
-    const form = new FormData();
-    form.append('file', file);
-    const response = await fetch('/api/upload', { method: 'POST', body: form });
-    let result;
-    try {
-      result = await response.json();
-    } catch (parseError) {
-      console.error('Failed to parse response as JSON:', parseError);
-      const text = await response.clone().text();
-      console.error('Response text:', text);
-      throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-    }
-    if (!response.ok) throw new Error(result.error || 'Upload failed');
-    return result.url as string;
+  const uploadFile = async (file: File, onProgress?: (percent: number) => void) => {
+    return new Promise<string>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/upload');
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress?.(percent);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const result = JSON.parse(xhr.responseText);
+            if (!result.url) {
+              return reject(new Error(result.error || 'Upload failed'));}
+            return resolve(result.url as string);
+          } catch (parseError) {
+            console.error('Failed to parse upload response JSON:', parseError);
+            return reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+          }
+        }
+        let message = 'Upload failed';
+        try {
+          const result = JSON.parse(xhr.responseText);
+          message = result.error || message;
+        } catch {
+          message = `Upload failed: ${xhr.status} ${xhr.statusText}`;
+        }
+        reject(new Error(message));
+      };
+
+      xhr.onerror = () => reject(new Error('Upload failed due to a network error.'));
+      xhr.onabort = () => reject(new Error('Upload was aborted.'));
+
+      const form = new FormData();
+      form.append('file', file);
+      xhr.send(form);
+    });
   };
 
   const setProfile = (key: keyof Profile, value: string) => {
@@ -391,7 +418,10 @@ export default function AdminPage() {
                       if (!selectedHeroVideoFile) return;
                       try {
                         setUploadingHeroVideo(true);
-                        const url = await uploadFile(selectedHeroVideoFile);
+                        setUploadProgress(0);
+                        const url = await uploadFile(selectedHeroVideoFile, (percent) => {
+                          setUploadProgress(percent);
+                        });
                         setSection('hero', 'video_url', url);
                         setSelectedHeroVideoFile(null);
                         notify('تم رفع الفيديو بنجاح. اضغط save لحفظ التغييرات.');
@@ -400,12 +430,18 @@ export default function AdminPage() {
                         notify(message);
                       } finally {
                         setUploadingHeroVideo(false);
+                        setUploadProgress(0);
                       }
                     }}
                     className="w-full rounded-full bg-[#b99cff] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] disabled:opacity-50"
                   >
-                    {uploadingHeroVideo ? 'Uploading...' : 'Upload hero video'}
+                    {uploadingHeroVideo ? `Uploading ${uploadProgress}%` : 'Upload hero video'}
                   </button>
+                  {uploadingHeroVideo ? (
+                    <div className="mt-3 h-2 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                      <div className="h-full bg-[#b99cff] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
