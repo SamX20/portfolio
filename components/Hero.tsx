@@ -294,11 +294,20 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         ))}
       </ScrollReveal>
 
-      <ScrollReveal className="relative z-10 mx-auto flex max-w-7xl flex-wrap gap-2 px-4 py-6 sm:px-6 lg:px-8" delay={120}>
+      <ScrollReveal className="relative z-10 mx-auto grid max-w-7xl gap-3 px-4 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8" delay={120}>
         {skills.slice(0, 6).map((skill) => (
-          <span key={skill.id} className="border border-white/10 bg-black/20 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white/62 backdrop-blur">
-            {skill.name}
-          </span>
+          <div key={skill.id} className="border border-white/10 bg-black/28 p-3 backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate text-xs font-black uppercase tracking-[0.12em] text-white/72">{skill.name}</p>
+              <span className="shrink-0 text-xs font-black text-[#8ed8ff]">{skill.level}%</span>
+            </div>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#8ed8ff,#4aa3ff,#2563eb)]"
+                style={{ width: `${Math.max(0, Math.min(100, skill.level))}%` }}
+              />
+            </div>
+          </div>
         ))}
       </ScrollReveal>
     </section>
