@@ -9,9 +9,10 @@ interface ProjectCardProps {
   project: Project;
   locale: Locale;
   onOpen: (project: Project) => void;
+  featuredLayout?: boolean;
 }
 
-export default function ProjectCard({ project, locale, onOpen }: ProjectCardProps) {
+export default function ProjectCard({ project, locale, onOpen, featuredLayout = false }: ProjectCardProps) {
   const isPortable = usePortableMotion();
   const isAr = locale === 'ar';
   const categoryLabels = CATEGORIES.filter((item) => project.category.includes(item.value)).map((item) => (isAr ? item.labelAr : item.label));
@@ -23,7 +24,9 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
     <motion.button
       type="button"
       onClick={() => onOpen(project)}
-      className="group relative min-h-[360px] overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[#4aa3ff]/70 lg:min-h-[430px]"
+      className={`group relative overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[#4aa3ff]/70 ${
+        featuredLayout ? 'min-h-[420px] lg:min-h-[520px]' : 'min-h-[360px] lg:min-h-[430px]'
+      }`}
       whileHover={isPortable ? undefined : { y: -8 }}
       transition={isPortable ? undefined : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       dir={isAr ? 'rtl' : 'ltr'}
@@ -48,11 +51,11 @@ export default function ProjectCard({ project, locale, onOpen }: ProjectCardProp
         </span>
       )}
 
-      <div className="relative z-10 flex min-h-[360px] flex-col justify-end p-5 lg:min-h-[430px]">
+      <div className={`relative z-10 flex flex-col justify-end p-5 ${featuredLayout ? 'min-h-[420px] lg:min-h-[520px] lg:p-7' : 'min-h-[360px] lg:min-h-[430px]'}`}>
         <span className="mb-3 w-fit border border-white/16 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/70 backdrop-blur">
           {categoryLabels.length > 0 ? categoryLabels.join(' / ') : project.category.join(', ')}
         </span>
-        <h3 className="text-2xl font-black leading-tight text-white">{title}</h3>
+        <h3 className={`${featuredLayout ? 'text-3xl sm:text-4xl' : 'text-2xl'} font-black leading-tight text-white`}>{title}</h3>
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/62">{description}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           {project.client && <span className="bg-white/8 px-2.5 py-1 text-xs text-white/70">{project.client}</span>}

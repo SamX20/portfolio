@@ -21,9 +21,24 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
   const [showModalDescriptionExpanded, setShowModalDescriptionExpanded] = useState(false);
   const isAr = locale === 'ar';
 
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => Number(b.featured) - Number(a.featured) || a.sort_order - b.sort_order),
+    [projects],
+  );
+
   const filtered = useMemo(
-    () => (activeCategory === 'all' ? projects : projects.filter((project) => project.category.includes(activeCategory))),
-    [activeCategory, projects],
+    () => (activeCategory === 'all' ? sortedProjects : sortedProjects.filter((project) => project.category.includes(activeCategory))),
+    [activeCategory, sortedProjects],
+  );
+
+  const featuredProjects = useMemo(
+    () => filtered.filter((project) => project.featured),
+    [filtered],
+  );
+
+  const regularProjects = useMemo(
+    () => filtered.filter((project) => !project.featured),
+    [filtered],
   );
 
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
@@ -58,6 +73,32 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
           </ScrollReveal>
         </div>
 
+        {featuredProjects.length > 0 && (
+          <ScrollReveal className="mb-14" delay={120}>
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.26em] text-[#8ed8ff]">
+                  {isAr ? 'في الواجهة' : 'Featured Projects'}
+                </p>
+                <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                  {isAr ? 'الأعمال التي تستحق أن تبدأ بها.' : 'Start with the work that should lead.'}
+                </h3>
+              </div>
+              <p className="hidden max-w-xs text-sm leading-6 text-white/42 md:block">
+                {isAr ? 'المشاريع المختارة تظهر هنا أولاً حسب التصنيف الحالي.' : 'Pinned work appears first for the current category.'}
+              </p>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+              {featuredProjects.map((project, index) => (
+                <ScrollReveal key={project.id} delay={index * 90} variant="scale">
+                  <ProjectCard project={project} locale={locale} onOpen={openProject} featuredLayout />
+                </ScrollReveal>
+              ))}
+            </div>
+          </ScrollReveal>
+        )}
+
         <ScrollReveal className="mb-10 flex flex-wrap gap-2" delay={180}>
           {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...CATEGORIES].map((category) => (
             <button
@@ -76,7 +117,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
         </ScrollReveal>
 
         <div key={activeCategory} className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((project, index) => (
+            {regularProjects.map((project, index) => (
               <div key={project.id}>
                 <ScrollReveal delay={index * 90} variant="scale">
                   <ProjectCard project={project} locale={locale} onOpen={openProject} />
