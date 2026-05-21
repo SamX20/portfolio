@@ -144,9 +144,6 @@ export async function PUT(request: Request) {
   const profile = body.profile as Record<string, unknown> | undefined;
   const sections = body.sections as Record<string, Record<string, string>> | undefined;
 
-  console.log('PUT request body:', body); // Debug log
-  console.log('Sections:', sections); // Debug log
-
   if (profile) {
     const { error } = await supabaseAdmin!
       .from('profile')
@@ -167,9 +164,6 @@ export async function PUT(request: Request) {
 
     const rowsToUpsert = allRows.filter((row) => row.value.trim() !== '');
     const rowsToDelete = allRows.filter((row) => row.value.trim() === '');
-
-    console.log('Sections rows to upsert:', rowsToUpsert); // Debug log
-    console.log('Sections rows to delete:', rowsToDelete); // Debug log
 
     const uniqueUpsertRows = Array.from(
       rowsToUpsert.reduce<Map<string, typeof rowsToUpsert[number]>>((acc, row) => {
@@ -192,7 +186,7 @@ export async function PUT(request: Request) {
       });
 
       if (upsertError) {
-        console.error('Upsert error:', upsertError); // Debug log
+        console.error('Upsert error:', upsertError);
         return NextResponse.json({ error: upsertError.message }, { status: 500 });
       }
     }

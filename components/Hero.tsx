@@ -45,7 +45,13 @@ function HeroLoadingOverlay({
           SAMER JABER
         </p>
         <p className="mt-7 text-sm font-black uppercase tracking-[0.34em] text-white/58">
-          {isAr ? 'اختر كيف تبدأ' : 'Choose how to continue'}
+          {started ? (
+            <span className="loading-dots">{isAr ? '\u062C\u0627\u0631 \u0627\u0644\u062A\u062D\u0645\u064A\u0644' : 'Loading'}</span>
+          ) : isAr ? (
+            '\u0627\u062E\u062A\u0631 \u0637\u0631\u064A\u0642\u0629 \u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629'
+          ) : (
+            'Choose how to continue'
+          )}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
@@ -53,14 +59,14 @@ function HeroLoadingOverlay({
             onClick={onStartWithSound}
             className="rounded-full bg-[#8ed8ff] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#06111f] transition hover:bg-[#71bfff]"
           >
-            {isAr ? 'استمرار بالموسيقى' : 'Continue with music'}
+            {isAr ? '\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 \u0627\u0644\u0645\u0648\u0633\u064A\u0642\u0649' : 'Continue with music'}
           </button>
           <button
             type="button"
             onClick={onStartWithoutSound}
             className="rounded-full border border-white/15 bg-black/60 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:border-white/30 hover:bg-white/5"
           >
-            {isAr ? 'استمرار بدون موسيقى' : 'Continue without music'}
+            {isAr ? '\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0628\u062F\u0648\u0646 \u0645\u0648\u0633\u064A\u0642\u0649' : 'Continue without music'}
           </button>
         </div>
       </div>
@@ -78,7 +84,6 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
   const manuallyStartedRef = useRef(false);
   const revealTimerRef = useRef<number | null>(null);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
-  const [heroLoaderOpacity, setHeroLoaderOpacity] = useState(1);
   const [heroLoaderFading, setHeroLoaderFading] = useState(false);
   const [introStarted, setIntroStarted] = useState(!hasHeroVideo);
   const [heroMuted, setHeroMuted] = useState(false);
@@ -116,6 +121,16 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
       window.clearTimeout(fadeTimer);
     };
   }, [hasHeroVideo, introStarted]);
+
+  useEffect(() => {
+    const handleHeroMute = (event: Event) => {
+      const nextMuted = (event as CustomEvent<{ muted?: boolean }>).detail?.muted;
+      setHeroMuted(nextMuted ?? true);
+    };
+
+    window.addEventListener(HERO_MUTE_EVENT, handleHeroMute);
+    return () => window.removeEventListener(HERO_MUTE_EVENT, handleHeroMute);
+  }, []);
 
   const beginHeroIntro = (mute: boolean) => {
     manuallyStartedRef.current = true;
@@ -230,10 +245,10 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <a href="#projects" className="accent-gradient rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] transition hover:brightness-110">
-              {isAr ? 'شاهد الأعمال' : sections.hero.cta_text}
+              {isAr ? '\u0634\u0627\u0647\u062F \u0627\u0644\u0623\u0639\u0645\u0627\u0644' : sections.hero.cta_text}
             </a>
             <a href="#contact" className="rounded-full border border-white/20 bg-black/20 px-6 py-3 text-sm font-bold text-white/90 backdrop-blur transition hover:border-white/45">
-              {isAr ? 'تواصل معي' : 'Book Sam'}
+              {isAr ? '\u062A\u0648\u0627\u0635\u0644 \u0645\u0639\u064A' : 'Book Sam'}
             </a>
           </div>
         </div>

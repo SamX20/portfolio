@@ -54,7 +54,7 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
     return value === 'en' || value === 'ar';
   };
 
-  const result = {
+  return {
     global: {
       ...defaultSections.global,
       ...map.global,
@@ -65,8 +65,6 @@ function mapSections(rows: { section: string; key: string; value: string }[] = [
     footer: { ...defaultSections.footer, ...map.footer },
   };
 
-  console.log('Mapped sections:', result); // Debug log
-  return result;
 }
 
 let browserSupabase: SupabaseClient | null = null;
@@ -180,8 +178,6 @@ export default function AdminPage() {
         sections: { section: string; key: string; value: string }[];
       }>('/api/admin/data');
 
-      console.log('Loaded sections from DB:', response.sections); // Debug log
-
       setData({
         projects: response.projects,
         stats: response.stats,
@@ -228,7 +224,6 @@ export default function AdminPage() {
   const saveContent = async () => {
     setSaving(true);
     try {
-      console.log('Saving sections:', data.sections); // Debug log
       await api('/api/admin/data', {
         method: 'PUT',
         body: JSON.stringify({ profile: data.profile, sections: data.sections }),

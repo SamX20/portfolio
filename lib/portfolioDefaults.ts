@@ -11,10 +11,10 @@ export const defaultSections: SectionsData = {
     subtitle: 'Motion Graphics / Video Editing',
     description:
       'I turn your ideas into stunning visual content that attracts audiences and achieves your marketing goals.',
-    title_ar: 'أنا سام، أصنع حركة تُعلّق في الذاكرة.',
-    subtitle_ar: 'تصميم حركي / تحرير فيديو',
+    title_ar: 'مصمم موشن جرافيك ومحرر فيديو احترافي',
+    subtitle_ar: 'موشن جرافيك / مونتاج فيديو',
     description_ar:
-      'أحوّل الأفكار إلى مشاهد متقنة الإيقاع، مصممة للإعلانات الرقمية، الهويات المتحركة، والفيديوهات التي تستحق أن تُشاهد حتى النهاية.',
+      'أحوّل الأفكار إلى محتوى بصري متقن يجذب الجمهور، يحكي القصة بوضوح، ويترك أثراً احترافياً يليق بعلامتك.',
     cta_text: 'Watch the reel',
     cta_link: '#projects',
     video_url: '',
@@ -23,9 +23,9 @@ export const defaultSections: SectionsData = {
     title: 'Who I Am',
     content:
       'A professional in visual content production, editing, and design. Extensive experience in commercial advertising, educational videos, and motion graphics, and I master the use of AI tools and integrating them into my projects.',
-    title_ar: 'إيقاع بصري، قصة واضحة، ونهاية مصقولة.',
+    title_ar: 'إيقاع بصري، قصة واضحة، ولمسة نهائية مصقولة.',
     content_ar:
-      'أعمل على بناء فيديوهات تجمع بين الإحساس التحريري، التصميم الحركي، واللمسة النهائية النظيفة. من الإعلان القصير إلى فيديو الهوية، هدفي أن يبدو كل مشهد مقصوداً، سريع القراءة، وقابلاً للتذكّر.',
+      'أصمم وأحرر فيديوهات تجمع بين الحس التحريري، التصميم الحركي، والإخراج النظيف. من الإعلان القصير إلى فيديو الهوية، هدفي أن يبدو كل مشهد مقصوداً وسهل التذكر.',
     experience_years: '4+',
     projects_completed: '100+',
   },
@@ -67,11 +67,11 @@ export const defaultProjects: Project[] = [
   {
     id: 'sample-social',
     title: 'Vertical Social Ad Pack',
-    title_ar: 'حزمة إعلانات رقمية عمودية',
+    title_ar: 'حزمة إعلانات عمودية',
     description:
       'A fast-cut campaign system for Reels and TikTok with modular scenes and animated product moments.',
     description_ar:
-      'نظام إعلاني مخصص للريلز وتيك توك، بمشاهد مرنة، حركة منتج واضحة، وإيقاع مناسب للمشاهدة السريعة.',
+      'نظام إعلاني سريع مخصص للريلز وتيك توك، بمشاهد مرنة وحركة منتج واضحة تناسب المشاهدة السريعة.',
     category: ['social-ads'],
     client: 'Concept',
     role: 'Edit, motion graphics',
@@ -88,7 +88,7 @@ export const defaultProjects: Project[] = [
     description:
       'A clean explainer style with animated icons, transitions, and visual pacing for complex ideas.',
     description_ar:
-      'أسلوب شرح بصري يعتمد على أيقونات متحركة، انتقالات دقيقة، وتسلسل واضح يبسّط الأفكار المعقدة.',
+      'أسلوب شرح بصري يعتمد على أيقونات متحركة، انتقالات دقيقة، وتسلسل واضح يبسط الأفكار المعقدة.',
     category: ['explainer'],
     client: 'Concept',
     role: 'Storyboard, animation, edit',
@@ -108,9 +108,9 @@ export const defaultStats: Stat[] = [
 
 export const defaultContacts: ContactInfo[] = [
   { id: 'email', icon: '@', title: 'Email', content: 'Samer.jaber001@gmail.com', href: 'mailto:Samer.jaber001@gmail.com' },
-  { id: 'phone', icon: '📞', title: 'Phone', content: '+962 795137282', href: 'tel:+962795137282' },
-  { id: 'location', icon: '📍', title: 'Location', content: 'Jordan — Amman', href: '#' },
-  { id: 'hours', icon: '🕒', title: 'Working Hours', content: '9:00 AM – 6:00 PM (Sun–Thu)', href: '#' },
+  { id: 'phone', icon: 'phone', title: 'Phone', content: '+962 795137282', href: 'tel:+962795137282' },
+  { id: 'location', icon: 'pin', title: 'Location', content: 'Jordan - Amman', href: '#' },
+  { id: 'hours', icon: 'clock', title: 'Working Hours', content: '9:00 AM - 6:00 PM (Sun-Thu)', href: '#' },
 ];
 
 export const defaultSocials: SocialLink[] = [
