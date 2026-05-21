@@ -279,8 +279,9 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           ) : null}
 
           <div className="border border-white/12 bg-[#101010]/82 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.22em] text-white/42">{aboutTitle}</p>
-            <p className="mt-2 text-sm leading-6 text-white/72">{about}</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-white/42">{isAr ? 'من أنا' : 'Who I Am'}</p>
+            <p className="mt-2 text-2xl font-black leading-tight text-white">{aboutTitle}</p>
+            <p className="mt-3 text-sm leading-6 text-white/72">{about}</p>
           </div>
         </div>
       </div>

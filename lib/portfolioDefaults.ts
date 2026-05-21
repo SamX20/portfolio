@@ -11,7 +11,7 @@ export const defaultSections: SectionsData = {
     subtitle: 'Motion Graphics / Video Editing',
     description:
       'I turn your ideas into stunning visual content that attracts audiences and achieves your marketing goals.',
-    title_ar: 'مصمم موشن جرافيك ومحرر فيديو احترافي',
+    title_ar: 'مصمم فيديو ومحرر احترافي',
     subtitle_ar: 'موشن جرافيك / مونتاج فيديو',
     description_ar:
       'أحوّل الأفكار إلى محتوى بصري متقن يجذب الجمهور، يحكي القصة بوضوح، ويترك أثراً احترافياً يليق بعلامتك.',
@@ -20,12 +20,12 @@ export const defaultSections: SectionsData = {
     video_url: '',
   },
   about: {
-    title: 'Who I Am',
+    title: 'Samer Jaber',
     content:
-      'A professional in visual content production, editing, and design. Extensive experience in commercial advertising, educational videos, and motion graphics, and I master the use of AI tools and integrating them into my projects.',
-    title_ar: 'إيقاع بصري، قصة واضحة، ولمسة نهائية مصقولة.',
+      'I am Samer Jaber, a motion graphics designer and video editor focused on polished visual content, commercial ads, educational videos, and motion-led brand stories.',
+    title_ar: 'سامر جابر',
     content_ar:
-      'أصمم وأحرر فيديوهات تجمع بين الحس التحريري، التصميم الحركي، والإخراج النظيف. من الإعلان القصير إلى فيديو الهوية، هدفي أن يبدو كل مشهد مقصوداً وسهل التذكر.',
+      'أنا سامر جابر، مصمم موشن جرافيك ومحرر فيديو. أعمل على إنتاج محتوى بصري احترافي للإعلانات التجارية، الفيديوهات التعليمية، والهويات المتحركة، مع توظيف أدوات الذكاء الاصطناعي لخدمة الفكرة والإخراج.',
     experience_years: '4+',
     projects_completed: '100+',
   },
