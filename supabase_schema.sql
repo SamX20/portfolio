@@ -145,8 +145,8 @@ on conflict (id) do update set label = excluded.label, value = excluded.value;
 insert into skills (id, name, level, category) values
   ('skill-after-effects', 'Adobe After Effects', 96, 'motion-design'),
   ('skill-premiere', 'Adobe Premiere Pro', 92, 'video-editing'),
-  ('skill-illustrator', 'Adobe Illustrator', 86, 'design'),
-  ('skill-c4d', 'Cinema 4D', 78, '3d-motion')
+  ('skill-ai-tools', 'AI Tools', 88, 'design'),
+  ('skill-blender', 'Blender 3D', 78, '3d-modeling')
 on conflict (id) do update set name = excluded.name, level = excluded.level, category = excluded.category;
 
 alter table projects enable row level security;
