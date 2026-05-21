@@ -9,6 +9,7 @@ import VideoPlayer from './VideoPlayer';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
 
 const HERO_MUTE_EVENT = 'sam:set-hero-muted';
+const INITIAL_PROJECT_COUNT = 9;
 
 interface PortfolioProps {
   projects?: Project[];
@@ -19,10 +20,11 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
   const [activeCategory, setActiveCategory] = useState<ProjectCategory | 'all'>('all');
   const [selected, setSelected] = useState<Project | null>(null);
   const [showModalDescriptionExpanded, setShowModalDescriptionExpanded] = useState(false);
+  const [visibleProjectCount, setVisibleProjectCount] = useState(INITIAL_PROJECT_COUNT);
   const isAr = locale === 'ar';
 
   const sortedProjects = useMemo(
-    () => [...projects].sort((a, b) => Number(b.featured) - Number(a.featured) || a.sort_order - b.sort_order),
+    () => [...projects].sort((a, b) => b.year - a.year || a.sort_order - b.sort_order),
     [projects],
   );
 
@@ -46,11 +48,22 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
     [filtered],
   );
 
+  const visibleRegularProjects = useMemo(
+    () => regularProjects.slice(0, visibleProjectCount),
+    [regularProjects, visibleProjectCount],
+  );
+
+  const canShowMoreProjects = visibleProjectCount < regularProjects.length;
+
   useEffect(() => {
     if (activeCategory !== 'all' && !availableCategories.some((category) => category.value === activeCategory)) {
       setActiveCategory('all');
     }
   }, [activeCategory, availableCategories]);
+
+  useEffect(() => {
+    setVisibleProjectCount(INITIAL_PROJECT_COUNT);
+  }, [activeCategory]);
 
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
@@ -128,7 +141,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
         </ScrollReveal>
 
         <div key={activeCategory} className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {regularProjects.map((project, index) => (
+            {visibleRegularProjects.map((project, index) => (
               <div key={project.id}>
                 <ScrollReveal delay={index * 90} variant="scale">
                   <ProjectCard project={project} locale={locale} onOpen={openProject} />
@@ -136,6 +149,18 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
               </div>
             ))}
         </div>
+
+        {canShowMoreProjects && (
+          <div className="mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleProjectCount((current) => current + INITIAL_PROJECT_COUNT)}
+              className="rounded-full border border-white/14 bg-white/[0.035] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/72 transition hover:border-[#8ed8ff]/55 hover:text-white"
+            >
+              {isAr ? 'عرض المزيد' : 'View more'}
+            </button>
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <div className="border border-white/10 py-16 text-center text-white/45">
