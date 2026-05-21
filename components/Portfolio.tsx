@@ -60,8 +60,8 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
   };
 
   return (
-    <section id="projects" className="bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="mx-auto max-w-7xl">
+    <section id="projects" className="relative bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
             <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#8ed8ff]">

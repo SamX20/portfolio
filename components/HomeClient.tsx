@@ -30,7 +30,19 @@ export default function HomeClient({ data }: { data: HomeData }) {
   }, [locale]);
 
   return (
-    <main className="bg-[#080808] text-white">
+    <main className="relative isolate overflow-hidden bg-[#080808] text-white">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed left-[-18%] right-[-18%] top-[52%] z-[1] hidden -rotate-6 overflow-hidden py-5 text-6xl font-black uppercase leading-none text-white/[0.055] mix-blend-screen sm:text-7xl lg:flex lg:text-8xl"
+      >
+        <div className="flex min-w-max gap-10 whitespace-nowrap">
+          {[...Array(6)].map((_, index) => (
+            <span key={index} className="shrink-0">
+              Motion Graphics / Video Editing / Design / Storyboard /
+            </span>
+          ))}
+        </div>
+      </div>
       <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} />
       <Hero locale={locale} profile={data.profile} sections={data.sections} stats={data.stats} skills={data.skills} />
       <Portfolio locale={locale} projects={data.projects} />

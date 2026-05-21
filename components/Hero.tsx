@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { Locale, Profile, SectionsData, Skill, Stat } from '@/types';
 import ScrollReveal from './ScrollReveal';
@@ -75,10 +75,7 @@ function HeroLoadingOverlay({
 }
 
 export default function Hero({ locale, profile, sections, stats, skills }: HeroProps) {
-  const ref = useRef<HTMLDivElement>(null);
   const isPortable = usePortableMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 140]);
   const isAr = locale === 'ar';
   const hasHeroVideo = Boolean(sections.hero.video_url);
   const manuallyStartedRef = useRef(false);
@@ -157,7 +154,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
   const startHeroWithoutSound = () => beginHeroIntro(true);
 
   return (
-    <section ref={ref} className="relative min-h-screen overflow-hidden bg-[#080808] pt-16" dir={isAr ? 'rtl' : 'ltr'}>
+    <section className="relative min-h-screen overflow-hidden bg-[#080808] pt-16" dir={isAr ? 'rtl' : 'ltr'}>
       {showHeroLoader ? (
         <HeroLoadingOverlay
           started={introStarted}
@@ -197,17 +194,6 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           transition={isPortable ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
-
-      <motion.div
-        className="absolute bottom-12 left-0 right-0 hidden rotate-[-4deg] gap-4 overflow-hidden border-y border-white/10 bg-white/[0.03] py-3 text-xs font-black uppercase tracking-[0.3em] text-white/38 lg:flex"
-        style={isPortable ? undefined : { y }}
-      >
-        {[...Array(8)].map((_, index) => (
-          <span key={index} className="shrink-0">
-            Motion Design / Edit / Timing / Storyboard /
-          </span>
-        ))}
-      </motion.div>
 
       {hasHeroVideo ? (
         <button
@@ -279,7 +265,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           ) : null}
 
           <div className="border border-white/12 bg-[#101010]/82 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.22em] text-white/42">{isAr ? 'من أنا' : 'Who I Am'}</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-white/42">{isAr ? '\u0645\u0646 \u0623\u0646\u0627' : 'Who I Am'}</p>
             <p className="mt-2 text-2xl font-black leading-tight text-white">{aboutTitle}</p>
             <p className="mt-3 text-sm leading-6 text-white/72">{about}</p>
           </div>
