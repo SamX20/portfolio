@@ -5,7 +5,7 @@ import { defaultProjects } from '@/lib/portfolioDefaults';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xsamer.com';
 
-  // الصفحات الثابتة - بدون anchors (#)
+  // الصفحات الثابتة (بدون روابط #)
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -13,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 1,
     },
+    // يمكن إضافة صفحات أخرى حقيقية هنا إذا لزم الأمر
   ];
 
   // جلب المشاريع من قاعدة البيانات
