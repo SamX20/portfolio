@@ -120,10 +120,10 @@ export const defaultSocials: SocialLink[] = [
 ];
 
 export const defaultSkills: Skill[] = [
-  { id: 'skill-after-effects', name: 'Adobe After Effects', level: 96, category: 'Motion' },
-  { id: 'skill-premiere', name: 'Adobe Premiere Pro', level: 92, category: 'Editing' },
-  { id: 'skill-ai-tools', name: 'AI Tools', level: 88, category: 'AI' },
-  { id: 'skill-blender', name: 'Blender 3D', level: 78, category: '3D' },
+  { id: 'skill-after-effects', name: 'Adobe After Effects', level: 96, category: 'motion-design' },
+  { id: 'skill-premiere', name: 'Adobe Premiere Pro', level: 92, category: 'video-editing' },
+  { id: 'skill-ai-tools', name: 'AI Tools', level: 88, category: 'design' },
+  { id: 'skill-blender', name: 'Blender 3D', level: 78, category: '3d-modeling' },
 ];
 
 export const defaultTestimonials: Testimonial[] = [];
