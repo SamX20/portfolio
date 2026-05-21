@@ -14,6 +14,49 @@ interface SkillsProps {
   skills?: Skill[];
 }
 
+// Tool Icons Component
+function ToolIcon({ skillName }: { skillName: string }) {
+  let icon = null;
+  
+  if (skillName.includes('After Effects')) {
+    icon = (
+      <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="6" fill="#001E3C"/>
+        <text x="16" y="22" fontSize="18" fontWeight="bold" fill="#B0AAFF" textAnchor="middle">Ae</text>
+      </svg>
+    );
+  } else if (skillName.includes('Premier') || skillName.includes('Premiere')) {
+    icon = (
+      <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="6" fill="#001E3C"/>
+        <text x="16" y="22" fontSize="18" fontWeight="bold" fill="#B0AAFF" textAnchor="middle">Pr</text>
+      </svg>
+    );
+  } else if (skillName.includes('Blender')) {
+    icon = (
+      <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="15" fill="#F37726"/>
+        <circle cx="16" cy="16" r="10" fill="#001E3C"/>
+        <circle cx="16" cy="16" r="6" fill="#F37726"/>
+      </svg>
+    );
+  } else if (skillName.includes('AI') || skillName.includes('تقنيات الذكاء')) {
+    icon = (
+      <svg className="w-4 h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 2 L22 10 L30 10 L23 16 L26 24 L16 19 L6 24 L9 16 L2 10 L10 10 Z" fill="url(#sparkleGradient)"/>
+        <defs>
+          <linearGradient id="sparkleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#60A5FA"/>
+            <stop offset="100%" stopColor="#A78BFA"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    );
+  }
+  
+  return icon ? <span className="inline-flex">{icon}</span> : null;
+}
+
 export default function Skills({ skills = [] }: SkillsProps) {
   if (!skills || skills.length === 0) {
     return null;
@@ -91,7 +134,10 @@ export default function Skills({ skills = [] }: SkillsProps) {
                   {categorySkills.map(skill => (
                     <motion.div key={skill.id} variants={!disableMotion ? itemVariants : undefined} className="group">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-semibold text-sm">{skill.name}</span>
+                        <div className="flex items-center gap-2">
+                          <ToolIcon skillName={skill.name} />
+                          <span className="text-white font-semibold text-sm">{skill.name}</span>
+                        </div>
                         <span className="text-sky-300 text-sm font-bold">{skill.level}%</span>
                       </div>
                       <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
