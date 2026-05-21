@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- الصفحة الرئيسية -->
+  <url>
+    <loc>https://sammotion.com</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- صفحات المشاريع الرئيسية -->
+  <url>
+    <loc>https://sammotion.com#projects</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- قسم المهارات -->
+  <url>
+    <loc>https://sammotion.com#skills</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- قسم التواصل -->
+  <url>
+    <loc>https://sammotion.com#contact</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- صفحات المشاريع الفردية -->
+  <url>
+    <loc>https://sammotion.com/project/sample-identity</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://sammotion.com/project-thumbnail.jpg</image:loc>
+    </image:image>
+  </url>
+  
+  <url>
+    <loc>https://sammotion.com/project/sample-social</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://sammotion.com/project-thumbnail.jpg</image:loc>
+    </image:image>
+  </url>
+  
+  <url>
+    <loc>https://sammotion.com/project/sample-explainer</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://sammotion.com/project-thumbnail.jpg</image:loc>
+    </image:image>
+  </url>
+</urlset>
