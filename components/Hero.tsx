@@ -272,6 +272,19 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         </div>
       </div>
 
+      <div
+        aria-hidden="true"
+        className="pointer-events-none relative z-[2] hidden -rotate-2 overflow-hidden border-y border-white/[0.075] bg-white/[0.018] py-3 text-xs font-black uppercase tracking-[0.32em] text-white/[0.24] backdrop-blur-[1px] lg:flex"
+      >
+        <div className="flex min-w-max gap-7 whitespace-nowrap">
+          {[...Array(10)].map((_, index) => (
+            <span key={index} className="shrink-0">
+              Motion Graphics / Video Editing / Design / Timing / Storyboard /
+            </span>
+          ))}
+        </div>
+      </div>
+
       <ScrollReveal className="relative z-10 mx-auto grid max-w-7xl gap-px border-y border-white/10 bg-white/10 sm:grid-cols-3">
         {stats.slice(0, 3).map((stat) => (
           <div key={stat.id} className="bg-[#080808]/92 px-4 py-5 text-center backdrop-blur">

@@ -31,18 +31,6 @@ export default function HomeClient({ data }: { data: HomeData }) {
 
   return (
     <main className="relative isolate overflow-hidden bg-[#080808] text-white">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed bottom-28 left-[-10%] right-[-10%] z-[1] hidden -rotate-3 overflow-hidden border-y border-white/[0.075] bg-white/[0.018] py-3 text-xs font-black uppercase tracking-[0.32em] text-white/[0.24] backdrop-blur-[1px] lg:flex"
-      >
-        <div className="flex min-w-max gap-7 whitespace-nowrap">
-          {[...Array(10)].map((_, index) => (
-            <span key={index} className="shrink-0">
-              Motion Graphics / Video Editing / Design / Timing / Storyboard /
-            </span>
-          ))}
-        </div>
-      </div>
       <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} />
       <Hero locale={locale} profile={data.profile} sections={data.sections} stats={data.stats} skills={data.skills} />
       <Portfolio locale={locale} projects={data.projects} />
