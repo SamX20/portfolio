@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { defaultProjects } from '@/lib/portfolioDefaults';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sammotion.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xsamer.com';
 
   // الصفحات الثابتة
   const staticPages: MetadataRoute.Sitemap = [
