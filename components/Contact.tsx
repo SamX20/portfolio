@@ -49,7 +49,7 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
           <p className="mt-6 max-w-xl text-base leading-8 text-white/60">
             {isAr
               ? 'أرسل تفاصيل المشروع، نوع الفيديو، المدة المتوقعة، وأي مراجع بصرية تحبها. سأعود إليك برد واضح وخطوة عملية.'
-              : 'Send the project idea, references, or video type. The new admin lets you keep this entire page updated without touching code.'}
+              : 'Send the project idea, references, or video type. I will get back to you with a clear direction and next steps.'}
           </p>
 
           <div className="mt-10 space-y-3">
