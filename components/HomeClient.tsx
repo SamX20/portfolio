@@ -33,12 +33,12 @@ export default function HomeClient({ data }: { data: HomeData }) {
     <main className="relative isolate overflow-hidden bg-[#080808] text-white">
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed left-[-18%] right-[-18%] top-[52%] z-[1] hidden -rotate-6 overflow-hidden py-5 text-6xl font-black uppercase leading-none text-white/[0.055] mix-blend-screen sm:text-7xl lg:flex lg:text-8xl"
+        className="pointer-events-none fixed bottom-28 left-[-10%] right-[-10%] z-[1] hidden -rotate-3 overflow-hidden border-y border-white/[0.075] bg-white/[0.018] py-3 text-xs font-black uppercase tracking-[0.32em] text-white/[0.24] backdrop-blur-[1px] lg:flex"
       >
-        <div className="flex min-w-max gap-10 whitespace-nowrap">
-          {[...Array(6)].map((_, index) => (
+        <div className="flex min-w-max gap-7 whitespace-nowrap">
+          {[...Array(10)].map((_, index) => (
             <span key={index} className="shrink-0">
-              Motion Graphics / Video Editing / Design / Storyboard /
+              Motion Graphics / Video Editing / Design / Timing / Storyboard /
             </span>
           ))}
         </div>
