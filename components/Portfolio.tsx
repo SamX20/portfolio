@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CATEGORIES, Locale, Project, ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
@@ -26,6 +26,11 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
     [projects],
   );
 
+  const availableCategories = useMemo(
+    () => CATEGORIES.filter((category) => sortedProjects.some((project) => project.category.includes(category.value))),
+    [sortedProjects],
+  );
+
   const filtered = useMemo(
     () => (activeCategory === 'all' ? sortedProjects : sortedProjects.filter((project) => project.category.includes(activeCategory))),
     [activeCategory, sortedProjects],
@@ -40,6 +45,12 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
     () => filtered.filter((project) => !project.featured),
     [filtered],
   );
+
+  useEffect(() => {
+    if (activeCategory !== 'all' && !availableCategories.some((category) => category.value === activeCategory)) {
+      setActiveCategory('all');
+    }
+  }, [activeCategory, availableCategories]);
 
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
@@ -100,7 +111,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
         )}
 
         <ScrollReveal className="mb-10 flex flex-wrap gap-2" delay={180}>
-          {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...CATEGORIES].map((category) => (
+          {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...availableCategories].map((category) => (
             <button
               key={category.value}
               type="button"
