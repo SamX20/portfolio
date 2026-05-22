@@ -53,6 +53,11 @@ function HeroLoadingOverlay({
             'Choose how to continue'
           )}
         </p>
+        <p className="mx-auto mt-4 max-w-[18rem] text-xs font-semibold leading-5 text-white/45 sm:hidden">
+          {isAr
+            ? '\u0644\u062A\u062C\u0631\u0628\u0629 \u0623\u0641\u0636\u0644\u060C \u0627\u0641\u062A\u062D \u0627\u0644\u0645\u0648\u0642\u0639 \u0639\u0644\u0649 \u0643\u0645\u0628\u064A\u0648\u062A\u0631 \u0623\u0648 \u0644\u0627\u0628\u062A\u0648\u0628.'
+            : 'For the best experience, open this site on a PC or laptop.'}
+        </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
