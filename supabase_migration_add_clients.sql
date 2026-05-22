@@ -24,27 +24,38 @@ create policy "Allow service role manage clients" on clients
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
 
-insert into clients (id, name, slug, featured, sort_order)
-select
-  gen_random_uuid()::text,
-  trim(client),
-  lower(regexp_replace(trim(client), '[^a-zA-Z0-9]+', '-', 'g')),
-  true,
-  row_number() over (order by trim(client))
-from (
-  select distinct client
-  from projects
-  where nullif(trim(client), '') is not null
-) source
-where not exists (
-  select 1
-  from clients
-  where lower(clients.name) = lower(trim(source.client))
-);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'projects'
+      and column_name = 'client'
+  ) then
+    insert into clients (id, name, slug, featured, sort_order)
+    select
+      gen_random_uuid()::text,
+      trim(client),
+      lower(regexp_replace(trim(client), '[^a-zA-Z0-9]+', '-', 'g')),
+      true,
+      row_number() over (order by trim(client))
+    from (
+      select distinct client
+      from projects
+      where nullif(trim(client), '') is not null
+    ) source
+    where not exists (
+      select 1
+      from clients
+      where lower(clients.name) = lower(trim(source.client))
+    );
 
-update projects
-set client_id = clients.id
-from clients
-where projects.client_id is null
-  and nullif(trim(projects.client), '') is not null
-  and lower(clients.name) = lower(trim(projects.client));
+    update projects
+    set client_id = clients.id
+    from clients
+    where projects.client_id is null
+      and nullif(trim(projects.client), '') is not null
+      and lower(clients.name) = lower(trim(projects.client));
+  end if;
+end $$;
