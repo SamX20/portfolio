@@ -63,8 +63,7 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
     if (parsed.hostname.includes('drive.google.com')) {
       const id = getGoogleDriveFileId(videoUrl);
       if (id) {
-        const preview = `https://drive.google.com/file/d/${id}/preview`;
-        return preview;
+        return `https://drive.google.com/uc?export=download&id=${id}`;
       }
     }
   } catch {
@@ -93,12 +92,16 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const [showVideo, setShowVideo] = useState(autoPlay);
   const [aspectRatio, setAspectRatio] = useState(3 / 4);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
   const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay, muted) : undefined;
   const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
   const wrapperStyle = { aspectRatio, maxHeight: '80vh', maxWidth: '100%' };
+  const showCompactControls = !autoPlay;
 
   const handleThumbnailLoad = (event: SyntheticEvent<HTMLImageElement>) => {
     const img = event.currentTarget;
@@ -136,6 +139,7 @@ export default function VideoPlayer({
 
     try {
       await video.play();
+      setIsPlaying(true);
       if (fadeInAudio && !muted) {
         const startedAt = performance.now();
         const fadeDuration = 1600;
@@ -156,6 +160,44 @@ export default function VideoPlayer({
     }
   };
 
+  const togglePlayback = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      await video.play();
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const seekTo = (value: string) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const nextTime = Number(value);
+    video.currentTime = nextTime;
+    setCurrentTime(nextTime);
+  };
+
+  const formatTime = (seconds: number) => {
+    if (!Number.isFinite(seconds)) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${remainingSeconds}`;
+  };
+
+  const handleMetadata = () => {
+    const video = videoRef.current;
+    if (video?.videoWidth && video?.videoHeight) {
+      setAspectRatio(video.videoWidth / video.videoHeight);
+    }
+    setDuration(video?.duration || 0);
+    if (autoPlay && !waitForStart) void playVideo();
+  };
+
   useEffect(() => {
     if (!startEventName) return undefined;
 
@@ -167,6 +209,85 @@ export default function VideoPlayer({
     return () => window.removeEventListener(startEventName, handleStart);
   }, [startEventName]);
 
+  const renderDirectVideo = (src: string) => (
+    <div className={`group relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
+      <video
+        ref={videoRef}
+        controls={false}
+        poster={thumbnail}
+        className={`h-full w-full ${objectFitClass}`}
+        preload="auto"
+        autoPlay={autoPlay}
+        muted={muted}
+        loop={loop}
+        playsInline
+        onClick={() => {
+          if (showCompactControls) void togglePlayback();
+        }}
+        onCanPlayThrough={() => {
+          if (autoPlay && !waitForStart) void playVideo();
+          else markReady();
+        }}
+        onCanPlay={() => {
+          if (autoPlay && !waitForStart) void playVideo();
+        }}
+        onLoadedMetadata={handleMetadata}
+        onLoadedData={() => {
+          if (autoPlay && !waitForStart) void playVideo();
+          else markReady();
+        }}
+        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+        onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
+        onPlaying={() => {
+          setIsPlaying(true);
+          markReady();
+        }}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        onError={markReady}
+      >
+        <source src={src} type="video/mp4" />
+        Your browser does not support video playback.
+      </video>
+
+      {showCompactControls && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-3 pt-12 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/12 bg-black/58 px-3 py-2 shadow-2xl shadow-black/35 backdrop-blur-xl">
+            <button
+              type="button"
+              onClick={togglePlayback}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#8ed8ff] text-[#05070b] transition hover:bg-white"
+              aria-label={isPlaying ? 'Pause video' : 'Play video'}
+            >
+              {isPlaying ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+                  <path d="M7 5h3v14H7V5Zm7 0h3v14h-3V5Z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true">
+                  <path d="M8 5v14l11-7L8 5Z" />
+                </svg>
+              )}
+            </button>
+            <span className="hidden min-w-[72px] text-xs font-bold tabular-nums text-white/70 sm:inline">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+            <input
+              type="range"
+              min="0"
+              max={duration || 0}
+              step="0.1"
+              value={Math.min(currentTime, duration || currentTime)}
+              onChange={(event) => seekTo(event.target.value)}
+              className="h-1.5 min-w-0 flex-1 accent-[#8ed8ff]"
+              aria-label="Video progress"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   if (embedCode) {
     return (
       <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
@@ -176,48 +297,11 @@ export default function VideoPlayer({
   }
 
   if (videoUrl && videoUrl.startsWith('/')) {
-    return (
-      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
-        <video
-          ref={videoRef}
-          controls={!autoPlay}
-          poster={thumbnail}
-          className={`h-full w-full ${objectFitClass}`}
-          preload="auto"
-          autoPlay={autoPlay}
-          muted={muted}
-          loop={loop}
-          playsInline
-          onCanPlayThrough={() => {
-            if (autoPlay && !waitForStart) void playVideo();
-            else markReady();
-          }}
-          onCanPlay={() => {
-            if (autoPlay && !waitForStart) void playVideo();
-          }}
-          onLoadedMetadata={() => {
-            const video = videoRef.current;
-            if (video?.videoWidth && video?.videoHeight) {
-              setAspectRatio(video.videoWidth / video.videoHeight);
-            }
-            if (autoPlay && !waitForStart) void playVideo();
-          }}
-          onLoadedData={() => {
-            if (autoPlay && !waitForStart) void playVideo();
-            else markReady();
-          }}
-          onPlaying={markReady}
-          onError={markReady}
-        >
-          <source src={videoUrl} type="video/mp4" />
-          Your browser does not support video playback.
-        </video>
-      </div>
-    );
+    return renderDirectVideo(videoUrl);
   }
 
   if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay || !thumbnail)) {
-    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl);
+    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com/.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
       return (
@@ -234,44 +318,7 @@ export default function VideoPlayer({
       );
     }
 
-    return (
-      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
-        <video
-          ref={videoRef}
-          controls={!autoPlay}
-          poster={thumbnail}
-          className={`h-full w-full ${objectFitClass}`}
-          preload="auto"
-          autoPlay={autoPlay}
-          muted={muted}
-          loop={loop}
-          playsInline
-          onCanPlayThrough={() => {
-            if (autoPlay && !waitForStart) void playVideo();
-            else markReady();
-          }}
-          onCanPlay={() => {
-            if (autoPlay && !waitForStart) void playVideo();
-          }}
-          onLoadedMetadata={() => {
-            const video = videoRef.current;
-            if (video?.videoWidth && video?.videoHeight) {
-              setAspectRatio(video.videoWidth / video.videoHeight);
-            }
-            if (autoPlay && !waitForStart) void playVideo();
-          }}
-          onLoadedData={() => {
-            if (autoPlay && !waitForStart) void playVideo();
-            else markReady();
-          }}
-          onPlaying={markReady}
-          onError={markReady}
-        >
-          <source src={resolvedVideoUrl} type="video/mp4" />
-          Your browser does not support video playback.
-        </video>
-      </div>
-    );
+    return renderDirectVideo(resolvedVideoUrl);
   }
 
   if (videoUrl && thumbnail && !showVideo) {
