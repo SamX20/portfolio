@@ -227,7 +227,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
           <p className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[#cfeeff]">
             {subtitle}
           </p>
-          <h1 className="max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black leading-[1.02] tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)]">
+          <h1 className={`max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)] ${isAr ? 'leading-[1.16]' : 'leading-[1.02]'}`}>
             {title}
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/78 drop-shadow-[0_8px_24px_rgba(0,0,0,.68)] sm:text-lg">
