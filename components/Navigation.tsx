@@ -23,9 +23,16 @@ const labels = {
   },
 };
 
+function isImageLogo(value?: string) {
+  if (!value) return false;
+  return /^(\/|https?:\/\/).+\.(svg|png|jpe?g|webp|gif)(\?.*)?$/i.test(value.trim());
+}
+
 export default function Navigation({ sections, locale, onLocaleChange }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const t = labels[locale];
+  const logo = sections?.global.logo || 'S';
+  const siteTitle = sections?.global.site_title || 'Sam Motion';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -42,11 +49,15 @@ export default function Navigation({ sections, locale, onLocaleChange }: Navigat
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-3">
-          <span className="accent-gradient grid h-9 w-9 place-items-center rounded-full border border-[#4aa3ff]/50 text-sm font-black text-[#090909]">
-            {sections?.global.logo || 'S'}
+          <span className="accent-gradient grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-[#4aa3ff]/50 text-sm font-black text-[#090909]">
+            {isImageLogo(logo) ? (
+              <img src={logo} alt={`${siteTitle} logo`} className="h-full w-full object-cover" />
+            ) : (
+              logo
+            )}
           </span>
           <span className="text-sm font-black uppercase tracking-[0.22em] text-white">
-            {sections?.global.site_title || 'Sam Motion'}
+            {siteTitle}
           </span>
         </Link>
 
