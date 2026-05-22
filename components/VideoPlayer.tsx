@@ -63,7 +63,7 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
     if (parsed.hostname.includes('drive.google.com')) {
       const id = getGoogleDriveFileId(videoUrl);
       if (id) {
-        return `https://drive.google.com/file/d/${id}/preview`;
+        return getGoogleDrivePreviewUrl(id);
       }
     }
   } catch {
@@ -71,6 +71,14 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
   }
 
   return videoUrl;
+}
+
+function getGoogleDrivePreviewUrl(id: string) {
+  return `https://drive.google.com/file/d/${id}/preview`;
+}
+
+function getGoogleDriveDirectUrl(id: string) {
+  return `https://drive.google.com/uc?export=download&id=${id}`;
 }
 
 export default function VideoPlayer({
@@ -95,10 +103,13 @@ export default function VideoPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isMobilePlayer, setIsMobilePlayer] = useState(false);
+  const [nativePlaybackError, setNativePlaybackError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
   const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay, muted) : undefined;
+  const driveFileId = getGoogleDriveFileId(videoUrl);
   const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
   const wrapperStyle = { aspectRatio, maxHeight: '80vh', maxWidth: '100%' };
   const showCompactControls = !autoPlay;
@@ -129,6 +140,15 @@ export default function VideoPlayer({
     video.muted = muted;
     video.volume = muted ? 0 : volume;
   }, [muted, volume]);
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px), (pointer: coarse)');
+    const update = () => setIsMobilePlayer(query.matches);
+
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
 
   const playVideo = async () => {
     const video = videoRef.current;
@@ -296,6 +316,49 @@ export default function VideoPlayer({
     </div>
   );
 
+  const renderNativeMobileDriveVideo = (id: string) => {
+    const directUrl = getGoogleDriveDirectUrl(id);
+    const previewUrl = getGoogleDrivePreviewUrl(id);
+
+    return (
+      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
+        <video
+          ref={videoRef}
+          controls
+          poster={thumbnail}
+          className={`h-full w-full ${objectFitClass}`}
+          preload="metadata"
+          playsInline
+          onLoadedMetadata={handleMetadata}
+          onLoadedData={markReady}
+          onError={() => {
+            setNativePlaybackError(true);
+            markReady();
+          }}
+        >
+          <source src={directUrl} type="video/mp4" />
+          Your browser does not support video playback.
+        </video>
+
+        {nativePlaybackError && (
+          <div className="absolute inset-0 grid place-items-center bg-black/86 p-5 text-center">
+            <div>
+              <p className="text-sm font-bold text-white/74">This Drive video needs to open in Google Drive.</p>
+              <a
+                href={previewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex rounded-full bg-[#8ed8ff] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b]"
+              >
+                Open video
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (embedCode) {
     return (
       <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
@@ -309,6 +372,10 @@ export default function VideoPlayer({
   }
 
   if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay || !thumbnail)) {
+    if (driveFileId && isMobilePlayer && !autoPlay) {
+      return renderNativeMobileDriveVideo(driveFileId);
+    }
+
     const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
