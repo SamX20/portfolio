@@ -63,7 +63,7 @@ function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): st
     if (parsed.hostname.includes('drive.google.com')) {
       const id = getGoogleDriveFileId(videoUrl);
       if (id) {
-        return `https://drive.google.com/uc?export=download&id=${id}`;
+        return `https://drive.google.com/file/d/${id}/preview`;
       }
     }
   } catch {
@@ -165,8 +165,13 @@ export default function VideoPlayer({
     if (!video) return;
 
     if (video.paused) {
-      await video.play();
-      setIsPlaying(true);
+      try {
+        await video.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+        markBlocked();
+      }
     } else {
       video.pause();
       setIsPlaying(false);
@@ -255,7 +260,10 @@ export default function VideoPlayer({
           <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/12 bg-black/58 px-3 py-2 shadow-2xl shadow-black/35 backdrop-blur-xl">
             <button
               type="button"
-              onClick={togglePlayback}
+              onClick={(event) => {
+                event.stopPropagation();
+                void togglePlayback();
+              }}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#8ed8ff] text-[#05070b] transition hover:bg-white"
               aria-label={isPlaying ? 'Pause video' : 'Play video'}
             >
@@ -301,7 +309,7 @@ export default function VideoPlayer({
   }
 
   if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay || !thumbnail)) {
-    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com/.test(resolvedVideoUrl);
+    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
       return (
