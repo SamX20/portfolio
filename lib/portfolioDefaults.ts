@@ -1,4 +1,4 @@
-import { ContactInfo, Profile, Project, SectionsData, Skill, SocialLink, Stat, Testimonial } from '@/types';
+import { Client, ContactInfo, Profile, Project, SectionsData, Skill, SocialLink, Stat, Testimonial } from '@/types';
 
 export const defaultSections: SectionsData = {
   global: {
@@ -97,6 +97,18 @@ export const defaultProjects: Project[] = [
     technologies: ['After Effects', 'Photoshop'],
     featured: false,
     sort_order: 3,
+  },
+];
+
+export const defaultClients: Client[] = [
+  {
+    id: 'client-concept',
+    name: 'Concept',
+    slug: 'concept',
+    logo_url: '',
+    website_url: '',
+    featured: true,
+    sort_order: 1,
   },
 ];
 

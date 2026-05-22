@@ -2,10 +2,10 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { CATEGORIES, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
-import { defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
+import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
+import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
 
-type Tab = 'content' | 'projects' | 'contacts' | 'skills';
+type Tab = 'content' | 'projects' | 'clients' | 'contacts' | 'skills';
 
 interface UploadTicket {
   bucket: string;
@@ -18,6 +18,7 @@ interface AdminData {
   projects: Project[];
   stats: Stat[];
   contacts: ContactInfo[];
+  clients: Client[];
   socials: SocialLink[];
   skills: Skill[];
   profile: Profile;
@@ -154,6 +155,7 @@ export default function AdminPage() {
     projects: defaultProjects,
     stats: defaultStats,
     contacts: defaultContacts,
+    clients: defaultClients,
     socials: defaultSocials,
     skills: defaultSkills,
     profile: defaultProfile,
@@ -172,6 +174,7 @@ export default function AdminPage() {
         projects: Project[];
         stats: Stat[];
         contacts: ContactInfo[];
+        clients: Client[];
         socials: SocialLink[];
         skills: Skill[];
         profile: Profile | null;
@@ -182,6 +185,7 @@ export default function AdminPage() {
         projects: response.projects,
         stats: response.stats,
         contacts: response.contacts,
+        clients: response.clients || [],
         socials: response.socials,
         skills: response.skills,
         profile: response.profile || defaultProfile,
@@ -343,6 +347,7 @@ export default function AdminPage() {
             {[
               ['content', 'Main page'],
               ['projects', 'Projects'],
+              ['clients', 'Clients'],
               ['contacts', 'Contact / Social'],
               ['skills', 'Skills / Stats'],
             ].map(([value, label]) => (
@@ -511,6 +516,17 @@ export default function AdminPage() {
           </section>
         )}
 
+        {tab === 'clients' && (
+          <ClientsManager
+            clients={data.clients}
+            uploadFile={uploadFile}
+            onChange={(clients) => setData((current) => ({ ...current, clients }))}
+            saveRecord={saveRecord}
+            deleteRecord={deleteRecord}
+            notify={notify}
+          />
+        )}
+
         {tab === 'contacts' && (
           <section className="grid gap-5 lg:grid-cols-2">
             <EditableList
@@ -569,6 +585,7 @@ export default function AdminPage() {
       {editingProject && (
         <ProjectEditor
           project={editingProject}
+          clients={data.clients}
           uploadFile={uploadFile}
           onClose={() => setEditingProject(null)}
           onSave={async (project) => {
@@ -584,6 +601,134 @@ export default function AdminPage() {
         />
       )}
     </main>
+  );
+}
+
+function ClientsManager({
+  clients,
+  onChange,
+  saveRecord,
+  deleteRecord,
+  notify,
+  uploadFile,
+}: {
+  clients: Client[];
+  onChange: (clients: Client[]) => void;
+  saveRecord: (table: string, record: object) => Promise<void>;
+  deleteRecord: (table: string, id: string) => Promise<void>;
+  notify: (message: string) => void;
+  uploadFile: (file: File) => Promise<string>;
+}) {
+  const addClient = () => {
+    onChange([
+      ...clients,
+      {
+        id: crypto.randomUUID(),
+        name: '',
+        slug: '',
+        logo_url: '',
+        website_url: '',
+        featured: true,
+        sort_order: clients.length + 1,
+      },
+    ]);
+  };
+
+  const updateClient = (id: string, patch: Partial<Client>) => {
+    onChange(clients.map((client) => (client.id === id ? { ...client, ...patch } : client)));
+  };
+
+  return (
+    <section>
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black">Clients</h2>
+          <p className="mt-1 text-sm text-white/45">Add client logos, then link projects to them from the project editor.</p>
+        </div>
+        <button onClick={addClient} className="accent-gradient px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#090909]">
+          Add client
+        </button>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {clients.map((client) => (
+          <article key={client.id} className="border border-white/10 bg-white/[0.025] p-4">
+            <div className="mb-4 flex items-center gap-4">
+              <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-black/30">
+                {client.logo_url ? (
+                  <img src={client.logo_url} alt={client.name} className="h-full w-full object-contain p-2" />
+                ) : (
+                  <span className="text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">Logo</span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-black">{client.name || 'Untitled client'}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/35">{client.slug || 'client-slug'}</p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label="Name" value={client.name} onChange={(value) => updateClient(client.id, { name: value })} />
+              <Field label="Slug" value={client.slug} onChange={(value) => updateClient(client.id, { slug: value })} />
+              <Field label="Logo URL" value={client.logo_url} onChange={(value) => updateClient(client.id, { logo_url: value })} />
+              <Field label="Website URL" value={client.website_url} onChange={(value) => updateClient(client.id, { website_url: value })} />
+              <Field label="Sort order" value={client.sort_order} type="number" onChange={(value) => updateClient(client.id, { sort_order: Number(value) })} />
+              <label className="flex items-center gap-3 border border-white/10 p-3 text-sm text-white/70">
+                <input
+                  type="checkbox"
+                  checked={client.featured !== false}
+                  onChange={(event) => updateClient(client.id, { featured: event.target.checked })}
+                  className="h-4 w-4 accent-[#8ed8ff]"
+                />
+                Show in selected clients
+              </label>
+              <label className="block md:col-span-2">
+                <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload logo</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const url = await uploadFile(file);
+                      updateClient(client.id, { logo_url: url });
+                      notify('Client logo uploaded. Save the client to keep it.');
+                    } catch (uploadError) {
+                      notify(uploadError instanceof Error ? uploadError.message : 'Logo upload failed');
+                    }
+                  }}
+                  className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={async () => {
+                  await saveRecord('clients', client);
+                  notify('Client saved');
+                }}
+                className="accent-gradient px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
+              >
+                Save
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('Delete this client? Projects will keep their manual client text.')) return;
+                  await deleteRecord('clients', client.id);
+                  onChange(clients.filter((item) => item.id !== client.id));
+                  notify('Client deleted');
+                }}
+                className="border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -663,12 +808,14 @@ function EditableList({
 
 function ProjectEditor({
   project,
+  clients,
   onClose,
   onSave,
   onError,
   uploadFile,
 }: {
   project: Project;
+  clients: Client[];
   onClose: () => void;
   onSave: (project: Project) => Promise<void>;
   onError: (message: string) => void;
@@ -681,7 +828,7 @@ function ProjectEditor({
 
   const availableTechnologies = ['After Effects', 'AI tools', 'Illustrator', 'Photoshop', 'Blender3D', 'Premier Pro'];
 
-  const set = (key: keyof Project, value: string | number | boolean | string[]) => {
+  const set = (key: keyof Project, value: string | number | boolean | string[] | null) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
@@ -719,7 +866,29 @@ function ProjectEditor({
               ))}
             </div>
           </label>
-          <Field label="Client" value={form.client} onChange={(value) => set('client', value)} />
+          <label className="block">
+            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Client</span>
+            <select
+              value={form.client_id || ''}
+              onChange={(event) => {
+                const client = clients.find((item) => item.id === event.target.value);
+                setForm((current) => ({
+                  ...current,
+                  client_id: client?.id || null,
+                  client: client?.name || current.client,
+                }));
+              }}
+              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#8ed8ff]/70"
+            >
+              <option value="">Manual client text</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name || 'Untitled client'}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Field label="Client text fallback" value={form.client} onChange={(value) => set('client', value)} />
           <Field label="Role" value={form.role} onChange={(value) => set('role', value)} />
           <Field label="Year" value={form.year} type="number" onChange={(value) => set('year', Number(value))} />
           <Field label="Duration" value={form.duration} onChange={(value) => set('duration', value)} />

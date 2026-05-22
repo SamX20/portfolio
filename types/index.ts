@@ -17,6 +17,7 @@ export interface Project {
   description: string;
   description_ar?: string;
   category: ProjectCategory[];
+  client_id?: string | null;
   client?: string;
   role?: string;
   year: number;
@@ -25,6 +26,18 @@ export interface Project {
   video_url?: string;
   embed_code?: string;
   thumbnail?: string;
+  featured: boolean;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  slug?: string;
+  logo_url?: string;
+  website_url?: string;
   featured: boolean;
   sort_order: number;
   created_at?: string;

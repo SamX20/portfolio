@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CATEGORIES, Locale, Project, ProjectCategory } from '@/types';
+import { CATEGORIES, Client, Locale, Project, ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
 import ScrollReveal from './ScrollReveal';
 import VideoPlayer from './VideoPlayer';
@@ -13,10 +13,17 @@ const INITIAL_PROJECT_COUNT = 9;
 
 interface PortfolioProps {
   projects?: Project[];
+  clients?: Client[];
   locale: Locale;
+  selectedClientId?: string | null;
+  onClearClient?: () => void;
 }
 
-export default function Portfolio({ projects = [], locale }: PortfolioProps) {
+function getProjectClientKey(project: Project) {
+  return project.client_id || (project.client ? `legacy:${project.client}` : null);
+}
+
+export default function Portfolio({ projects = [], clients = [], locale, selectedClientId = null, onClearClient }: PortfolioProps) {
   const [activeCategory, setActiveCategory] = useState<ProjectCategory | 'all'>('all');
   const [selected, setSelected] = useState<Project | null>(null);
   const [showModalDescriptionExpanded, setShowModalDescriptionExpanded] = useState(false);
@@ -28,14 +35,26 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
     [projects],
   );
 
+  const clientFilteredProjects = useMemo(
+    () => (selectedClientId ? sortedProjects.filter((project) => getProjectClientKey(project) === selectedClientId) : sortedProjects),
+    [selectedClientId, sortedProjects],
+  );
+
+  const selectedClientName = useMemo(() => {
+    if (!selectedClientId) return '';
+    const linkedClient = clients.find((client) => client.id === selectedClientId);
+    if (linkedClient) return linkedClient.name;
+    return selectedClientId.startsWith('legacy:') ? selectedClientId.replace('legacy:', '') : '';
+  }, [clients, selectedClientId]);
+
   const availableCategories = useMemo(
-    () => CATEGORIES.filter((category) => sortedProjects.some((project) => project.category.includes(category.value))),
-    [sortedProjects],
+    () => CATEGORIES.filter((category) => clientFilteredProjects.some((project) => project.category.includes(category.value))),
+    [clientFilteredProjects],
   );
 
   const filtered = useMemo(
-    () => (activeCategory === 'all' ? sortedProjects : sortedProjects.filter((project) => project.category.includes(activeCategory))),
-    [activeCategory, sortedProjects],
+    () => (activeCategory === 'all' ? clientFilteredProjects : clientFilteredProjects.filter((project) => project.category.includes(activeCategory))),
+    [activeCategory, clientFilteredProjects],
   );
 
   const featuredProjects = useMemo(
@@ -63,7 +82,7 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
 
   useEffect(() => {
     setVisibleProjectCount(INITIAL_PROJECT_COUNT);
-  }, [activeCategory]);
+  }, [activeCategory, selectedClientId]);
 
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
@@ -120,6 +139,21 @@ export default function Portfolio({ projects = [], locale }: PortfolioProps) {
                 </ScrollReveal>
               ))}
             </div>
+          </ScrollReveal>
+        )}
+
+        {selectedClientId && selectedClientName && (
+          <ScrollReveal className="mb-5 flex flex-wrap items-center gap-3" delay={160}>
+            <span className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
+              {isAr ? `مشاريع ${selectedClientName}` : `${selectedClientName} projects`}
+            </span>
+            <button
+              type="button"
+              onClick={onClearClient}
+              className="rounded-full border border-white/12 px-4 py-2 text-xs font-bold text-white/52 transition hover:border-white/35 hover:text-white"
+            >
+              {isAr ? 'إزالة الفلتر' : 'Clear filter'}
+            </button>
           </ScrollReveal>
         )}
 

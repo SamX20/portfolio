@@ -8,6 +8,7 @@ create table if not exists projects (
   description text not null,
   description_ar text,
   category text[] not null default array['motion-design'],
+  client_id text,
   client text,
   role text,
   year integer not null default extract(year from now())::integer,
@@ -24,6 +25,7 @@ create table if not exists projects (
 
 alter table projects add column if not exists title_ar text;
 alter table projects add column if not exists description_ar text;
+alter table projects add column if not exists client_id text;
 alter table projects add column if not exists client text;
 alter table projects add column if not exists role text;
 
@@ -41,9 +43,34 @@ end $$;
 alter table projects
   add constraint projects_category_check
   check (
-    category <@ array['motion-design','social-ads','brand-films','explainer','video-editing','logo-animation','3d-modelling']::text[]
+    category <@ array['motion-design','social-ads','brand-films','explainer','video-editing','logo-animation','3d-modelling','anime-edit']::text[]
     and array_length(category, 1) > 0
   );
+
+create table if not exists clients (
+  id text primary key default gen_random_uuid()::text,
+  name text not null,
+  slug text unique,
+  logo_url text default '',
+  website_url text default '',
+  featured boolean default true,
+  sort_order integer default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'projects_client_id_fkey'
+  ) then
+    alter table projects
+      add constraint projects_client_id_fkey
+      foreign key (client_id) references clients(id) on delete set null;
+  end if;
+end $$;
 
 create table if not exists stats (
   id text primary key,
@@ -150,6 +177,7 @@ insert into skills (id, name, level, category) values
 on conflict (id) do update set name = excluded.name, level = excluded.level, category = excluded.category;
 
 alter table projects enable row level security;
+alter table clients enable row level security;
 alter table stats enable row level security;
 alter table contact_info enable row level security;
 alter table social_links enable row level security;
@@ -159,6 +187,7 @@ alter table skills enable row level security;
 alter table testimonials enable row level security;
 
 drop policy if exists "public_read_projects" on projects;
+drop policy if exists "public_read_clients" on clients;
 drop policy if exists "public_read_stats" on stats;
 drop policy if exists "public_read_contact" on contact_info;
 drop policy if exists "public_read_social" on social_links;
@@ -168,6 +197,7 @@ drop policy if exists "public_read_skills" on skills;
 drop policy if exists "public_read_testimonials" on testimonials;
 
 create policy "public_read_projects" on projects for select using (true);
+create policy "public_read_clients" on clients for select using (true);
 create policy "public_read_stats" on stats for select using (true);
 create policy "public_read_contact" on contact_info for select using (true);
 create policy "public_read_social" on social_links for select using (true);

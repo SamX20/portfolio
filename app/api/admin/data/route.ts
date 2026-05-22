@@ -3,6 +3,7 @@ import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 const TABLES = new Set([
+  'clients',
   'projects',
   'stats',
   'contact_info',
@@ -72,11 +73,12 @@ export async function GET() {
   const authError = await requireAdmin();
   if (authError) return authError;
 
-  const [projects, stats, contacts, socials, sections, profile, skills, testimonials] =
+  const [projects, stats, contacts, clients, socials, sections, profile, skills, testimonials] =
     await Promise.all([
       supabaseAdmin!.from('projects').select('*').order('sort_order'),
       supabaseAdmin!.from('stats').select('*'),
       supabaseAdmin!.from('contact_info').select('*'),
+      supabaseAdmin!.from('clients').select('*').order('sort_order'),
       supabaseAdmin!.from('social_links').select('*').order('sort_order'),
       supabaseAdmin!.from('sections').select('*'),
       supabaseAdmin!.from('profile').select('*').eq('id', 'main').single(),
@@ -102,6 +104,7 @@ export async function GET() {
     projects: projects.data || [],
     stats: stats.data || [],
     contacts: contacts.data || [],
+    clients: clients.data || [],
     socials: socials.data || [],
     sections: sections.data || [],
     profile: profile.data || null,
@@ -124,7 +127,7 @@ export async function POST(request: Request) {
 
   const payload = {
     ...record,
-    updated_at: table === 'projects' ? new Date().toISOString() : undefined,
+    updated_at: table === 'projects' || table === 'clients' ? new Date().toISOString() : undefined,
   };
 
   const { data, error, missingColumns } = await upsertWithSchemaFallback(table, payload);

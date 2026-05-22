@@ -1,6 +1,7 @@
 import HomeClient, { HomeData } from '@/components/HomeClient';
 import {
   defaultContacts,
+  defaultClients,
   defaultProfile,
   defaultProjects,
   defaultSections,
@@ -21,6 +22,7 @@ function fallbackData(): HomeData {
     projects: defaultProjects,
     stats: defaultStats,
     contacts: defaultContacts,
+    clients: defaultClients,
     socials: defaultSocials,
     sections: defaultSections,
     profile: defaultProfile,
@@ -99,6 +101,7 @@ async function loadHomeData(): Promise<HomeData> {
       supabase.from('projects').select('*').order('sort_order'),
       supabase.from('stats').select('*'),
       supabase.from('contact_info').select('*'),
+      supabase.from('clients').select('*').order('sort_order'),
       supabase.from('social_links').select('*').order('sort_order'),
       supabase.from('sections').select('*'),
       supabase.from('profile').select('*').eq('id', 'main').single(),
@@ -113,12 +116,13 @@ async function loadHomeData(): Promise<HomeData> {
     const result = await Promise.race([query, timeout]);
     if (!result) return fallback;
 
-    const [projectsRes, statsRes, contactsRes, socialsRes, sectionsRes, profileRes, skillsRes, testimonialsRes] = result;
+    const [projectsRes, statsRes, contactsRes, clientsRes, socialsRes, sectionsRes, profileRes, skillsRes, testimonialsRes] = result;
 
     return {
       projects: projectsRes.data ?? defaultProjects,
       stats: statsRes.data ?? defaultStats,
       contacts: contactsRes.data ?? defaultContacts,
+      clients: clientsRes.data ?? [],
       socials: socialsRes.data ?? defaultSocials,
       sections: sectionsRes.data?.length ? mapSections(sectionsRes.data) : defaultSections,
       profile: profileRes.data || defaultProfile,
