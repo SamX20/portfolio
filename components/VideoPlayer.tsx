@@ -77,6 +77,10 @@ function getGoogleDrivePreviewUrl(id: string) {
   return `https://drive.google.com/file/d/${id}/preview`;
 }
 
+function getGoogleDriveViewUrl(id: string) {
+  return `https://drive.google.com/file/d/${id}/view`;
+}
+
 function getGoogleDriveDirectUrl(id: string) {
   return `https://drive.google.com/uc?export=download&id=${id}`;
 }
@@ -105,6 +109,7 @@ export default function VideoPlayer({
   const [duration, setDuration] = useState(0);
   const [isMobilePlayer, setIsMobilePlayer] = useState(false);
   const [nativePlaybackError, setNativePlaybackError] = useState(false);
+  const [showDriveFallback, setShowDriveFallback] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
@@ -149,6 +154,19 @@ export default function VideoPlayer({
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
   }, []);
+
+  useEffect(() => {
+    setNativePlaybackError(false);
+    setShowDriveFallback(false);
+
+    if (!driveFileId || isMobilePlayer || autoPlay || !showVideo) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setShowDriveFallback(true);
+    }, 1800);
+
+    return () => window.clearTimeout(timer);
+  }, [autoPlay, driveFileId, isMobilePlayer, showVideo, videoUrl]);
 
   const playVideo = async () => {
     const video = videoRef.current;
@@ -318,7 +336,7 @@ export default function VideoPlayer({
 
   const renderNativeMobileDriveVideo = (id: string) => {
     const directUrl = getGoogleDriveDirectUrl(id);
-    const previewUrl = getGoogleDrivePreviewUrl(id);
+    const viewUrl = getGoogleDriveViewUrl(id);
 
     return (
       <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
@@ -345,7 +363,7 @@ export default function VideoPlayer({
             <div>
               <p className="text-sm font-bold text-white/74">This Drive video needs to open in Google Drive.</p>
               <a
-                href={previewUrl}
+                href={viewUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-4 inline-flex rounded-full bg-[#8ed8ff] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b]"
@@ -379,6 +397,8 @@ export default function VideoPlayer({
     const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
+      const driveViewUrl = driveFileId ? getGoogleDriveViewUrl(driveFileId) : '';
+
       return (
         <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
           <iframe
@@ -389,6 +409,19 @@ export default function VideoPlayer({
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
             allowFullScreen
           />
+          {driveFileId && showDriveFallback && (
+            <div className="absolute inset-x-3 bottom-3 z-10 rounded-2xl border border-white/12 bg-black/74 p-3 text-center shadow-2xl shadow-black/35 backdrop-blur-xl">
+              <p className="text-xs font-bold text-white/70">If the Drive player stays black, open the video directly.</p>
+              <a
+                href={driveViewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex rounded-full bg-[#8ed8ff] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#05070b]"
+              >
+                Open in Drive
+              </a>
+            </div>
+          )}
         </div>
       );
     }
