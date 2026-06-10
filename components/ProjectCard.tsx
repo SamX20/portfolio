@@ -15,7 +15,9 @@ interface ProjectCardProps {
 export default function ProjectCard({ project, locale, onOpen, featuredLayout = false }: ProjectCardProps) {
   const isPortable = usePortableMotion();
   const isAr = locale === 'ar';
-  const categoryLabels = CATEGORIES.filter((item) => project.category.includes(item.value)).map((item) => (isAr ? item.labelAr : item.label));
+  const categoryLabels = CATEGORIES
+    .filter((item) => project.category.includes(item.value))
+    .map((item) => (isAr ? item.labelAr : item.label));
   const title = isAr ? project.title_ar || project.title : project.title;
   const description = isAr ? project.description_ar || project.description : project.description;
   const thumbnailUrl = project.thumbnail || getGoogleDriveThumbnail(project.video_url);
@@ -67,7 +69,9 @@ export default function ProjectCard({ project, locale, onOpen, featuredLayout = 
             {isAr ? 'مشاهدة العمل' : 'Play'}
           </span>
           <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-black transition group-hover:bg-[#4aa3ff]">
-            ▶
+            <svg viewBox="0 0 24 24" className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true">
+              <path d="M8 5v14l11-7L8 5Z" />
+            </svg>
           </span>
         </div>
       </div>

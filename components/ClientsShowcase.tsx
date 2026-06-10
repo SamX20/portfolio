@@ -12,10 +12,6 @@ interface ClientsShowcaseProps {
   onSelectClient: (clientId: string | null) => void;
 }
 
-function getProjectClientKey(project: Project) {
-  return project.client_id || (project.client ? `legacy:${project.client}` : null);
-}
-
 function getInitials(name: string) {
   return name
     .split(/\s+/)

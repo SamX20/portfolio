@@ -18,6 +18,12 @@ interface HeroProps {
 const HERO_START_EVENT = 'sam:start-hero-video';
 const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 
+const statLabels: Record<string, { en: string; ar: string }> = {
+  clients_count: { en: 'Happy clients', ar: 'عميل راضٍ' },
+  projects_count: { en: 'Completed projects', ar: 'مشروع منجز' },
+  years_exp: { en: 'Years experience', ar: 'سنوات خبرة' },
+};
+
 function HeroLoadingOverlay({
   started,
   onStartWithSound,
@@ -96,6 +102,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
   const aboutTitle = isAr ? sections.about.title_ar || sections.about.title : sections.about.title;
   const about = isAr ? sections.about.content_ar || sections.about.content : sections.about.content;
   const showHeroLoader = hasHeroVideo && !heroVideoReady;
+  const getStatLabel = (stat: Stat) => statLabels[stat.id]?.[locale] || stat.label;
 
   useEffect(() => {
     manuallyStartedRef.current = false;
@@ -294,7 +301,7 @@ export default function Hero({ locale, profile, sections, stats, skills }: HeroP
         {stats.slice(0, 3).map((stat) => (
           <div key={stat.id} className="bg-[#080808]/92 px-4 py-5 text-center backdrop-blur">
             <p className="text-3xl font-black text-white">{stat.value}</p>
-            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-white/42">{stat.label}</p>
+            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-white/42">{getStatLabel(stat)}</p>
           </div>
         ))}
       </ScrollReveal>
