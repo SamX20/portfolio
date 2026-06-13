@@ -260,6 +260,16 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                       {descriptionToggleText}
                     </button>
                   )}
+                  {selected.video_url && (
+                    <a
+                      href={selected.video_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 inline-flex rounded-full border border-[#8ed8ff]/45 bg-[#8ed8ff]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff]/16 hover:text-white"
+                    >
+                      {isAr ? 'فتح الرابط المباشر' : 'Open direct link'}
+                    </a>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
                   {selected.technologies?.map((tech) => (

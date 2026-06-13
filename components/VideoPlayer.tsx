@@ -361,14 +361,14 @@ export default function VideoPlayer({
         {nativePlaybackError && (
           <div className="absolute inset-0 grid place-items-center bg-black/86 p-5 text-center">
             <div>
-              <p className="text-sm font-bold text-white/74">This Drive video needs to open in Google Drive.</p>
+              <p className="text-sm font-bold text-white/74">This video needs to open from its source.</p>
               <a
                 href={viewUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-4 inline-flex rounded-full bg-[#8ed8ff] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b]"
               >
-                Open video
+                Open direct link
               </a>
             </div>
           </div>
@@ -411,14 +411,14 @@ export default function VideoPlayer({
           />
           {driveFileId && showDriveFallback && (
             <div className="absolute inset-x-3 bottom-3 z-10 rounded-2xl border border-white/12 bg-black/74 p-3 text-center shadow-2xl shadow-black/35 backdrop-blur-xl">
-              <p className="text-xs font-bold text-white/70">If the Drive player stays black, open the video directly.</p>
+              <p className="text-xs font-bold text-white/70">If the player stays black, open the source directly.</p>
               <a
                 href={driveViewUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-3 inline-flex rounded-full bg-[#8ed8ff] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#05070b]"
               >
-                Open in Drive
+                Open direct link
               </a>
             </div>
           )}
@@ -445,7 +445,9 @@ export default function VideoPlayer({
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute inset-0 grid place-items-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/40 text-white shadow-lg shadow-black/30">
-            <span className="text-3xl leading-none">▶</span>
+            <svg viewBox="0 0 24 24" className="ml-1 h-8 w-8 fill-current" aria-hidden="true">
+              <path d="M8 5v14l11-7L8 5Z" />
+            </svg>
           </div>
         </div>
       </div>
