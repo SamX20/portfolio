@@ -162,6 +162,24 @@ export default function AdminPage() {
     sections: defaultSections,
   });
 
+  const sortedAdminProjects = useMemo(
+    () => [...data.projects].sort((a, b) => b.year - a.year || a.sort_order - b.sort_order),
+    [data.projects],
+  );
+
+  const projectSummary = useMemo(
+    () => ({
+      total: data.projects.length,
+      featured: data.projects.filter((project) => project.featured).length,
+      linked: data.projects.filter((project) => project.video_url).length,
+    }),
+    [data.projects],
+  );
+
+  const startNewProject = () => {
+    setEditingProject({ ...emptyProject, id: crypto.randomUUID(), sort_order: data.projects.length + 1 });
+  };
+
   const notify = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(''), 3200);
@@ -337,6 +355,12 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-[#080808] text-white">
+      {toast && (
+        <div className="fixed right-4 top-4 z-[120] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-[#8ed8ff]/35 bg-[#0b1014]/95 p-4 text-sm font-bold leading-6 text-[#dff5ff] shadow-2xl shadow-black/35 backdrop-blur-xl">
+          <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.2em] text-[#8ed8ff]">Admin update</span>
+          {toast}
+        </div>
+      )}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
@@ -366,8 +390,6 @@ export default function AdminPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {toast && <div className="mb-5 border border-[#8ed8ff]/40 bg-[#8ed8ff]/10 p-3 text-sm text-[#8ed8ff]">{toast}</div>}
-
         {tab === 'content' && (
           <section className="grid gap-5 lg:grid-cols-2">
             <div className="border border-white/10 bg-white/[0.025] p-5">
@@ -474,30 +496,87 @@ export default function AdminPage() {
         )}
 
         {tab === 'projects' && (
-          <section>
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-xl font-black">Projects</h2>
-              <button onClick={() => setEditingProject({ ...emptyProject, id: crypto.randomUUID(), sort_order: data.projects.length + 1 })} className="accent-gradient px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#090909]">
-                Add project
-              </button>
-            </div>
-            <div className="grid gap-3">
-              {data.projects.map((project) => (
-                <article key={project.id} className="grid gap-4 border border-white/10 bg-white/[0.025] p-4 md:grid-cols-[96px_1fr_auto] md:items-center">
-                  <div className="aspect-video bg-black">
-                    {project.thumbnail ? <img src={project.thumbnail} alt={project.title} className="h-full w-full object-cover" /> : null}
+          <section className="pb-24">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Project library</p>
+                <h2 className="mt-2 text-3xl font-black">Stacked project cards</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
+                  Manage project details, thumbnails, links, categories, and featured status from one flexible view.
+                </p>
+              </div>
+              <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] text-center">
+                {[
+                  ['Total', projectSummary.total],
+                  ['Featured', projectSummary.featured],
+                  ['Linked', projectSummary.linked],
+                ].map(([label, value]) => (
+                  <div key={label} className="border-r border-white/10 px-4 py-3 last:border-r-0">
+                    <p className="text-lg font-black text-white">{value}</p>
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/38">{label}</p>
                   </div>
-                  <div>
-                    <p className="font-black">{project.title}</p>
-                    <p className="mt-1 line-clamp-1 text-sm text-white/45">{project.description}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[#8ed8ff]">
-                      {project.category
-                        .map((cat) => CATEGORIES.find((item) => item.value === cat)?.label ?? cat)
-                        .join(' / ')}
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={startNewProject}
+              className="fixed bottom-5 right-5 z-50 rounded-full bg-[#8ed8ff] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[#4aa3ff]/20 transition hover:brightness-110"
+            >
+              Add project
+            </button>
+
+            <div className="grid gap-4">
+              {sortedAdminProjects.map((project, index) => (
+                <article
+                  key={project.id}
+                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-3 shadow-2xl shadow-black/10 transition hover:border-[#8ed8ff]/35 hover:bg-white/[0.04] md:grid md:grid-cols-[180px_1fr_auto] md:items-stretch md:gap-5 md:p-4"
+                >
+                  <div className="relative aspect-video overflow-hidden rounded-2xl bg-black md:aspect-auto md:min-h-32">
+                    {project.thumbnail ? (
+                      <img src={project.thumbnail} alt={project.title || 'Project thumbnail'} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    ) : (
+                      <div className="grid h-full min-h-32 place-items-center bg-white/[0.035] text-xs font-black uppercase tracking-[0.18em] text-white/28">No thumbnail</div>
+                    )}
+                    <div className="absolute left-3 top-3 rounded-full bg-black/70 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/80">
+                      #{index + 1}
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 py-4 md:py-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {project.featured && (
+                        <span className="rounded-full border border-[#8ed8ff]/30 bg-[#8ed8ff]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">
+                          Featured
+                        </span>
+                      )}
+                      <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/48">
+                        {project.year}
+                      </span>
+                      {project.video_url && (
+                        <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200">
+                          Link ready
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="mt-3 truncate text-xl font-black text-white">{project.title || project.title_ar || 'Untitled project'}</h3>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/48">{project.description || project.description_ar || 'No description yet.'}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {project.category.map((cat) => (
+                        <span key={cat} className="rounded-full bg-white/[0.055] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/50">
+                          {CATEGORIES.find((item) => item.value === cat)?.label ?? cat}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-xs uppercase tracking-[0.16em] text-white/32">
+                      {project.client || 'No client'} / {project.role || 'No role'} / Sort {project.sort_order}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setEditingProject(project)} className="border border-white/10 px-3 py-2 text-xs font-bold text-white/70">Edit</button>
+
+                  <div className="flex gap-2 border-t border-white/10 pt-3 md:flex-col md:justify-center md:border-l md:border-t-0 md:pl-4 md:pt-0">
+                    <button onClick={() => setEditingProject(project)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/72 transition hover:border-[#8ed8ff]/50 hover:text-white">
+                      Edit
+                    </button>
                     <button
                       onClick={async () => {
                         if (!confirm('Delete this project?')) return;
@@ -505,7 +584,7 @@ export default function AdminPage() {
                         setData((current) => ({ ...current, projects: current.projects.filter((item) => item.id !== project.id) }));
                         notify('Project deleted');
                       }}
-                      className="border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200"
+                      className="rounded-full border border-red-400/25 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-red-200 transition hover:bg-red-500/10"
                     >
                       Delete
                     </button>
@@ -833,11 +912,14 @@ function ProjectEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/84 p-4 backdrop-blur-xl">
-      <div className="mx-auto my-8 max-w-4xl border border-white/10 bg-[#101010]">
-        <div className="flex items-center justify-between border-b border-white/10 p-5">
-          <h2 className="text-xl font-black">{project.title ? 'Edit project' : 'New project'}</h2>
-          <button onClick={onClose} className="grid h-10 w-10 place-items-center border border-white/10 text-white/70">×</button>
+    <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/74 p-3 backdrop-blur-xl sm:p-5">
+      <div className="mx-auto my-5 max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-[#0d0f12] shadow-2xl shadow-black/55">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0d0f12]/92 p-5 backdrop-blur-xl">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8ed8ff]">{project.title ? 'Editing project' : 'Create project'}</p>
+            <h2 className="mt-1 text-2xl font-black">{project.title || 'New project'}</h2>
+          </div>
+          <button onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full border border-white/10 text-lg font-black text-white/70 transition hover:border-white/25 hover:text-white">X</button>
         </div>
         <div className="grid gap-4 p-5 md:grid-cols-2">
           <Field label="Title EN" value={form.title} onChange={(value) => set('title', value)} />
@@ -846,9 +928,9 @@ function ProjectEditor({
           <Field label="Description AR" value={form.description_ar} onChange={(value) => set('description_ar', value)} textarea />
           <label className="block md:col-span-2">
             <span className="mb-3 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Category</span>
-            <div className="grid gap-2 grid-cols-2 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
               {CATEGORIES.map((category) => (
-                <label key={category.value} className="flex items-center gap-2 border border-white/10 p-3 text-sm text-white/70 cursor-pointer hover:bg-white/5">
+                <label key={category.value} className="flex cursor-pointer items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-sm text-white/70 transition hover:bg-white/5">
                   <input
                     type="checkbox"
                     checked={form.category.includes(category.value)}
@@ -897,9 +979,9 @@ function ProjectEditor({
           <Field label="Thumbnail URL" value={form.thumbnail} onChange={(value) => set('thumbnail', value)} />
           <label className="block md:col-span-2">
             <span className="mb-3 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Technologies</span>
-            <div className="grid gap-2 grid-cols-2 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
               {availableTechnologies.map((tech) => (
-                <label key={tech} className="flex items-center gap-2 border border-white/10 p-3 text-sm text-white/70 cursor-pointer hover:bg-white/5">
+                <label key={tech} className="flex cursor-pointer items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-sm text-white/70 transition hover:bg-white/5">
                   <input
                     type="checkbox"
                     checked={selectedTechnologies.includes(tech)}
@@ -939,14 +1021,14 @@ function ProjectEditor({
               className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
           </label>
-          <label className="flex items-center gap-3 border border-white/10 p-3 text-sm text-white/70">
+          <label className="flex items-center gap-3 rounded-2xl border border-[#8ed8ff]/20 bg-[#8ed8ff]/10 p-3 text-sm font-bold text-white/78">
             <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#8ed8ff]" />
             Featured project
           </label>
         </div>
-        <div className="flex justify-end gap-3 border-t border-white/10 p-5">
+        <div className="sticky bottom-0 flex flex-col gap-3 border-t border-white/10 bg-[#0d0f12]/92 p-5 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-end">
           {error && <p className="mr-auto max-w-md text-sm leading-6 text-red-300">{error}</p>}
-          <button onClick={onClose} className="border border-white/10 px-4 py-2 text-sm font-bold text-white/64">Cancel</button>
+          <button onClick={onClose} className="rounded-full border border-white/10 px-5 py-3 text-sm font-bold text-white/64 transition hover:border-white/25 hover:text-white">Cancel</button>
           <button
             disabled={saving || !(form.title || form.title_ar) || !(form.description || form.description_ar)}
             onClick={async () => {
@@ -962,7 +1044,7 @@ function ProjectEditor({
                 setSaving(false);
               }
             }}
-            className="accent-gradient px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#090909] disabled:opacity-50"
+            className="accent-gradient rounded-full px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#090909] disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save project'}
           </button>
