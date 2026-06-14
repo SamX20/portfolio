@@ -109,6 +109,47 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return data;
 }
 
+function getProjectVideoSource(videoUrl?: string) {
+  const normalizedUrl = (videoUrl || '').toLowerCase();
+
+  if (!normalizedUrl) {
+    return null;
+  }
+
+  if (normalizedUrl.includes('drive.google.com') || normalizedUrl.includes('docs.google.com')) {
+    return {
+      label: 'Drive',
+      className: 'border-amber-300/25 bg-amber-300/10 text-amber-100',
+    };
+  }
+
+  if (normalizedUrl.includes('youtube.com') || normalizedUrl.includes('youtu.be')) {
+    return {
+      label: 'YouTube',
+      className: 'border-red-300/25 bg-red-300/10 text-red-100',
+    };
+  }
+
+  if (normalizedUrl.includes('vimeo.com')) {
+    return {
+      label: 'Vimeo',
+      className: 'border-sky-300/25 bg-sky-300/10 text-sky-100',
+    };
+  }
+
+  if (normalizedUrl.startsWith('/') || /\.(mp4|webm|mov)(\?|#|$)/.test(normalizedUrl)) {
+    return {
+      label: 'Direct',
+      className: 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100',
+    };
+  }
+
+  return {
+    label: 'External',
+    className: 'border-violet-300/25 bg-violet-300/10 text-violet-100',
+  };
+}
+
 function Field({
   label,
   value,
@@ -553,11 +594,17 @@ export default function AdminPage() {
                       <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/48">
                         {project.year}
                       </span>
-                      {project.video_url && (
-                        <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200">
-                          Link ready
-                        </span>
-                      )}
+                      {project.video_url &&
+                        (() => {
+                          const videoSource = getProjectVideoSource(project.video_url);
+                          if (!videoSource) return null;
+
+                          return (
+                            <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${videoSource.className}`}>
+                              {videoSource.label}
+                            </span>
+                          );
+                        })()}
                     </div>
                     <h3 className="mt-3 truncate text-xl font-black text-white">{project.title || project.title_ar || 'Untitled project'}</h3>
                     <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/48">{project.description || project.description_ar || 'No description yet.'}</p>
