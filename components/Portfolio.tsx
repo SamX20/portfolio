@@ -249,6 +249,18 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               </div>
 
               <div className="grid gap-5 p-5 md:grid-cols-[1fr_auto] md:items-start">
+                {selected.video_url && (
+                  <div className="flex justify-center md:col-span-2">
+                    <a
+                      href={selected.video_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex rounded-full border border-[#8ed8ff]/55 bg-[#8ed8ff] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[#4aa3ff]/20 transition hover:border-white hover:bg-white"
+                    >
+                      {isAr ? 'فتح الرابط المباشر' : 'Open direct link'}
+                    </a>
+                  </div>
+                )}
                 <div className="max-w-3xl">
                   <p className="text-sm leading-7 text-white/64">{displayedModalDescription}</p>
                   {descriptionIsLong && (
@@ -259,16 +271,6 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                     >
                       {descriptionToggleText}
                     </button>
-                  )}
-                  {selected.video_url && (
-                    <a
-                      href={selected.video_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-4 inline-flex rounded-full border border-[#8ed8ff]/45 bg-[#8ed8ff]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff]/16 hover:text-white"
-                    >
-                      {isAr ? 'فتح الرابط المباشر' : 'Open direct link'}
-                    </a>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
