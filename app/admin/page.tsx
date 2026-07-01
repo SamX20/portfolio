@@ -949,15 +949,15 @@ function SkillsManager({
   deleteRecord: (table: string, id: string) => Promise<void>;
   notify: (message: string) => void;
 }) {
-  const addSkill = () => {
+  const addSkill = (program = PROGRAM_OPTIONS[0]) => {
     onChange([
       ...skills,
       {
         id: crypto.randomUUID(),
-        name: PROGRAM_OPTIONS[0],
+        name: program,
         level: 90,
         category: 'motion-design',
-        program: PROGRAM_OPTIONS[0],
+        program,
         program_skill: PROGRAM_SKILL_OPTIONS[0],
         editing_field: EDITING_FIELD_OPTIONS[0],
         sort_order: skills.length + 1,
@@ -969,50 +969,94 @@ function SkillsManager({
     onChange(skills.map((skill) => (skill.id === id ? { ...skill, ...patch } : skill)));
   };
 
+  const sortedSkills = [...skills].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const programs = Array.from(
+    sortedSkills.reduce<Map<string, Skill[]>>((acc, skill) => {
+      const program = skill.program || skill.name || PROGRAM_OPTIONS[0];
+      acc.set(program, [...(acc.get(program) || []), skill]);
+      return acc;
+    }, new Map()).entries(),
+  );
+  const emptyPrograms = PROGRAM_OPTIONS.filter((program) => !programs.some(([name]) => name === program));
+
   return (
     <div className="border border-white/10 bg-white/[0.025] p-5">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black">Skills Settings</h2>
-          <p className="mt-1 text-sm text-white/45">Choose the program, the skill inside it, and the editing field it supports.</p>
+          <p className="mt-1 text-sm text-white/45">Each software can contain multiple skills, editing fields, and levels.</p>
         </div>
-        <button onClick={addSkill} className="rounded-full border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
+        <button onClick={() => addSkill()} className="rounded-full border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
           Add skill
         </button>
       </div>
       <div className="grid gap-4">
-        {[...skills].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((skill) => (
-          <article key={skill.id} className="rounded-3xl border border-white/10 bg-black/20 p-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <SelectField label="Program" value={skill.program || skill.name} options={PROGRAM_OPTIONS} onChange={(value) => updateSkill(skill.id, { program: value, name: value })} />
-              <SelectField label="Skill inside program" value={skill.program_skill || skill.name} options={PROGRAM_SKILL_OPTIONS} onChange={(value) => updateSkill(skill.id, { program_skill: value })} />
-              <SelectField label="Editing field" value={skill.editing_field || skill.category} options={EDITING_FIELD_OPTIONS} onChange={(value) => updateSkill(skill.id, { editing_field: value, category: value })} />
-              <Field label="Level %" value={skill.level} type="number" onChange={(value) => updateSkill(skill.id, { level: Number(value) })} />
-              <Field label="Sort order" value={skill.sort_order ?? 0} type="number" onChange={(value) => updateSkill(skill.id, { sort_order: Number(value) })} />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
+        {programs.map(([program, programSkills]) => (
+          <section key={program} className="rounded-3xl border border-white/10 bg-black/20 p-4">
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-lg font-black text-white">{program}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/38">
+                  {programSkills.length} skills inside this software
+                </p>
+              </div>
               <button
-                onClick={async () => {
-                  await saveRecord('skills', skill);
-                  notify('Skill saved');
-                }}
-                className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
+                onClick={() => addSkill(program)}
+                className="rounded-full border border-[#8ed8ff]/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:text-white"
               >
-                Save
-              </button>
-              <button
-                onClick={async () => {
-                  await deleteRecord('skills', skill.id);
-                  onChange(skills.filter((item) => item.id !== skill.id));
-                  notify('Skill deleted');
-                }}
-                className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
-              >
-                Delete
+                Add skill to this program
               </button>
             </div>
-          </article>
+
+            <div className="grid gap-3">
+              {programSkills.map((skill) => (
+                <article key={skill.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <SelectField label="Program" value={skill.program || skill.name} options={PROGRAM_OPTIONS} onChange={(value) => updateSkill(skill.id, { program: value, name: value })} />
+                    <SelectField label="Skill inside program" value={skill.program_skill || skill.name} options={PROGRAM_SKILL_OPTIONS} onChange={(value) => updateSkill(skill.id, { program_skill: value })} />
+                    <SelectField label="Editing field" value={skill.editing_field || skill.category} options={EDITING_FIELD_OPTIONS} onChange={(value) => updateSkill(skill.id, { editing_field: value, category: value })} />
+                    <Field label="Level %" value={skill.level} type="number" onChange={(value) => updateSkill(skill.id, { level: Number(value) })} />
+                    <Field label="Sort order" value={skill.sort_order ?? 0} type="number" onChange={(value) => updateSkill(skill.id, { sort_order: Number(value) })} />
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={async () => {
+                        await saveRecord('skills', skill);
+                        notify('Skill saved');
+                      }}
+                      className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await deleteRecord('skills', skill.id);
+                        onChange(skills.filter((item) => item.id !== skill.id));
+                        notify('Skill deleted');
+                      }}
+                      className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
         ))}
+        {emptyPrograms.length > 0 && (
+          <div className="flex flex-wrap gap-2 rounded-3xl border border-white/10 bg-black/20 p-4">
+            {emptyPrograms.map((program) => (
+              <button
+                key={program}
+                onClick={() => addSkill(program)}
+                className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/58 transition hover:border-[#8ed8ff]/45 hover:text-white"
+              >
+                Add {program}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
