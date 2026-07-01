@@ -1,11 +1,25 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
+
+interface ShareClient {
+  id: string;
+  name: string;
+}
 
 export default function ShareTestimonialPage() {
+  const [clients, setClients] = useState<ShareClient[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [rating, setRating] = useState(5);
   const [status, setStatus] = useState<'idle' | 'saving' | 'sent'>('idle');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/clients')
+      .then((response) => response.json())
+      .then((data) => setClients(Array.isArray(data.clients) ? data.clients.filter((client: ShareClient) => client.name) : []))
+      .catch(() => setClients([]));
+  }, []);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -13,9 +27,12 @@ export default function ShareTestimonialPage() {
     setError('');
 
     const form = new FormData(event.currentTarget);
+    const selectedClient = clients.find((client) => client.id === selectedClientId);
+    const company = selectedClient?.name || String(form.get('company') || '').trim();
     const payload = {
       name: form.get('name'),
-      company: form.get('company'),
+      company,
+      client_id: selectedClient?.id || null,
       role: form.get('role'),
       email: form.get('email'),
       content: form.get('content'),
@@ -33,6 +50,7 @@ export default function ShareTestimonialPage() {
       if (!response.ok) throw new Error(data.error || 'Could not send your testimonial.');
 
       event.currentTarget.reset();
+      setSelectedClientId('');
       setRating(5);
       setStatus('sent');
     } catch (submitError) {
@@ -86,10 +104,33 @@ export default function ShareTestimonialPage() {
                   <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Name</span>
                   <input name="name" required className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition focus:border-[#8ed8ff]/70" />
                 </label>
-                <label className="block">
-                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Company / Brand</span>
-                  <input name="company" required className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition focus:border-[#8ed8ff]/70" />
-                </label>
+                <div className="grid gap-3">
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Company / Brand</span>
+                    <select
+                      value={selectedClientId}
+                      onChange={(event) => setSelectedClientId(event.target.value)}
+                      required
+                      className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition focus:border-[#8ed8ff]/70"
+                    >
+                      <option value="">Choose company</option>
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {client.name}
+                        </option>
+                      ))}
+                      <option value="other">Other / not listed</option>
+                    </select>
+                  </label>
+                  {selectedClientId === 'other' && (
+                    <input
+                      name="company"
+                      required
+                      placeholder="Write company name"
+                      className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition placeholder:text-white/24 focus:border-[#8ed8ff]/70"
+                    />
+                  )}
+                </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">

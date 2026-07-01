@@ -101,6 +101,7 @@ export interface Testimonial {
   rating: number;
   role?: string;
   email?: string;
+  client_id?: string | null;
   approved?: boolean;
   created_at?: string;
 }

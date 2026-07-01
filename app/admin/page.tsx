@@ -724,12 +724,25 @@ export default function AdminPage() {
 
         {tab === 'testimonials' && (
           <section>
-            <div className="mb-5 flex flex-col gap-2">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Client sharing link</p>
-              <h2 className="text-3xl font-black">Testimonials</h2>
-              <p className="max-w-3xl text-sm leading-6 text-white/46">
-                Send clients this link: <span className="text-[#8ed8ff]">/share-testimonial</span>. Submitted feedback appears on the main page.
-              </p>
+            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Client sharing link</p>
+                <h2 className="text-3xl font-black">Testimonials</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-white/46">
+                  Send clients this link: <span className="text-[#8ed8ff]">/share-testimonial</span>. Submitted feedback appears on the main page.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const link = `${window.location.origin}/share-testimonial`;
+                  await navigator.clipboard.writeText(link);
+                  notify('Testimonial sharing link copied');
+                }}
+                className="rounded-full border border-[#8ed8ff]/45 bg-[#8ed8ff]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff]/16 hover:text-white"
+              >
+                Copy link
+              </button>
             </div>
             <TestimonialsManager
               testimonials={data.testimonials}

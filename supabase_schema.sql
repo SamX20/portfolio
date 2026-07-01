@@ -130,6 +130,7 @@ create table if not exists testimonials (
   rating integer not null check (rating >= 1 and rating <= 5),
   role text,
   email text,
+  client_id text,
   approved boolean not null default true,
   created_at timestamptz not null default now()
 );

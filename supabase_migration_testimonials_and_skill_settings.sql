@@ -14,6 +14,7 @@ set
 alter table testimonials
   add column if not exists role text,
   add column if not exists email text,
+  add column if not exists client_id text,
   add column if not exists approved boolean not null default true,
   add column if not exists created_at timestamptz not null default now();
 

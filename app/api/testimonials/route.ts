@@ -44,6 +44,7 @@ export async function POST(request: Request) {
   const company = cleanText(body.company, 100);
   const role = cleanText(body.role, 100);
   const email = cleanText(body.email, 160);
+  const clientId = cleanText(body.client_id, 120);
   const content = cleanText(body.content, 900);
   const rating = Math.max(1, Math.min(5, Number(body.rating || 5)));
 
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     company,
     role,
     email,
+    client_id: clientId || null,
     content,
     rating,
     approved: true,
