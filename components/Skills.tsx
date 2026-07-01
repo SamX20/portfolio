@@ -2,149 +2,112 @@
 
 import { motion } from 'framer-motion';
 import useDisableMotion from '@/lib/useDisableMotion';
-
-interface Skill {
-  id: string;
-  name: string;
-  level: number;
-  category: string;
-}
+import { Locale, Skill } from '@/types';
 
 interface SkillsProps {
   skills?: Skill[];
+  locale: Locale;
 }
 
-// Tool Icons Component
-function ToolIcon({ skillName }: { skillName: string }) {
-  if (skillName.includes('After Effects')) {
-    return (
-      <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-600 rounded text-white text-xs font-bold">
-        Ae
-      </span>
-    );
-  } else if (skillName.includes('Premier') || skillName.includes('Premiere')) {
-    return (
-      <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-600 rounded text-white text-xs font-bold">
-        Pr
-      </span>
-    );
-  } else if (skillName.includes('Blender')) {
-    return (
-      <span className="inline-flex items-center justify-center w-5 h-5 bg-orange-500 rounded-full text-white text-xs font-bold">
-        B
-      </span>
-    );
-  } else if (skillName.includes('AI') || skillName.includes('تقنيات الذكاء')) {
-    return (
-      <span className="inline-flex items-center justify-center w-5 h-5 bg-gradient-to-br from-blue-400 to-purple-500 rounded text-white text-xs">
-        ✨
-      </span>
-    );
-  }
-  
-  return null;
+function getProgramInitial(program: string) {
+  if (/after effects/i.test(program)) return 'Ae';
+  if (/premiere|premier/i.test(program)) return 'Pr';
+  if (/blender/i.test(program)) return 'B';
+  if (/illustrator/i.test(program)) return 'Ai';
+  if (/photoshop/i.test(program)) return 'Ps';
+  if (/ai tools|generative/i.test(program)) return 'AI';
+  return program.slice(0, 2).toUpperCase();
 }
 
-export default function Skills({ skills = [] }: SkillsProps) {
-  if (!skills || skills.length === 0) {
-    return null;
-  }
-
-  const categories = [
-    { value: 'motion-design', label: 'موشن جرافيك' },
-    { value: 'video-editing', label: 'مونتاج فيديو' },
-    { value: 'design', label: 'تصميم' },
-    { value: '3d-modeling', label: 'نمذجة ثلاثية الأبعاد' },
-  ];
-
-  const skillsByCategory = categories.reduce((acc, cat) => {
-    acc[cat.value] = skills.filter(s => s.category === cat.value);
-    return acc;
-  }, {} as Record<string, Skill[]>);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6 },
-    },
-  };
-
+export default function Skills({ skills = [], locale }: SkillsProps) {
   const disableMotion = useDisableMotion();
+  const isAr = locale === 'ar';
+
+  if (!skills.length) return null;
+
+  const sortedSkills = [...skills].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || b.level - a.level);
+  const programs = Array.from(
+    sortedSkills.reduce<Map<string, Skill[]>>((acc, skill) => {
+      const program = skill.program || skill.name;
+      acc.set(program, [...(acc.get(program) || []), skill]);
+      return acc;
+    }, new Map()).entries(),
+  );
+  const editingFields = Array.from(new Set(sortedSkills.map((skill) => skill.editing_field || skill.category).filter(Boolean)));
 
   return (
-    <section className="min-h-screen py-24 px-4 bg-[#0a0a0f] md:bg-[#0d0d14]" id="skills">
-      <div className="max-w-5xl mx-auto">
+    <section className="bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" id="skills" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="mx-auto max-w-7xl">
         <motion.div
-          className="text-center mb-16"
-          initial={!disableMotion ? { opacity: 0, y: -18 } : undefined}
+          className="mb-12 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
+          initial={!disableMotion ? { opacity: 0, y: 24 } : undefined}
           whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
           viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
-          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-full tracking-widest">
-            المهارات
-          </span>
-          <h2 className="text-4xl md:text-5xl font-black mb-4">
-            <span className="bg-gradient-to-r from-sky-300 to-blue-600 bg-clip-text text-transparent">مهاراتي</span>
-          </h2>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto">تجربة عميقة في مختلف جوانب الإنتاج البصري والتصميم</p>
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8ed8ff]">{isAr ? 'المهارات والأدوات' : 'Tools and Skills'}</p>
+            <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
+              {isAr ? 'برامج، مهارات، ومجالات تحرير أشتغل عليها.' : 'Programs, craft skills, and editing fields I build with.'}
+            </h2>
+          </div>
+          <div className="flex max-w-2xl flex-wrap gap-2">
+            {editingFields.slice(0, 8).map((field) => (
+              <span key={field} className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/56">
+                {field}
+              </span>
+            ))}
+          </div>
         </motion.div>
 
-        <motion.div
-          variants={!disableMotion ? containerVariants : undefined}
-          initial={!disableMotion ? 'hidden' : undefined}
-          whileInView={!disableMotion ? 'visible' : undefined}
-          viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
-          className="space-y-12"
-        >
-          {categories.map(category => {
-            const categorySkills = skillsByCategory[category.value];
-            if (!categorySkills || categorySkills.length === 0) return null;
-
-            return (
-              <motion.div key={category.value} variants={itemVariants}>
-                <h3 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-gradient-to-b from-sky-500 to-blue-600 rounded-full" />
-                  {category.label}
-                </h3>
-
-                <div className="space-y-4">
-                  {categorySkills.map(skill => (
-                    <motion.div key={skill.id} variants={!disableMotion ? itemVariants : undefined} className="group">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <ToolIcon skillName={skill.name} />
-                          <span className="text-white font-semibold text-sm">{skill.name}</span>
-                        </div>
-                        <span className="text-sky-300 text-sm font-bold">{skill.level}%</span>
-                      </div>
-                      <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-                        <motion.div
-                          className="h-full bg-gradient-to-r from-sky-500 to-blue-600 rounded-full"
-                          initial={!disableMotion ? { width: 0 } : undefined}
-                          whileInView={!disableMotion ? { width: `${skill.level}%` } : undefined}
-                          viewport={!disableMotion ? { once: true, amount: 0.15 } : undefined}
-                          transition={!disableMotion ? { duration: 0.75, delay: 0.1, ease: 'easeOut' } : undefined}
-                          style={!disableMotion ? undefined : { width: `${skill.level}%` }}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {programs.map(([program, programSkills], index) => (
+            <motion.article
+              key={program}
+              className="rounded-3xl border border-white/10 bg-white/[0.025] p-5 shadow-2xl shadow-black/10"
+              initial={!disableMotion ? { opacity: 0, y: 22 } : undefined}
+              whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+              viewport={!disableMotion ? { once: true, amount: 0.16, margin: '-100px' } : undefined}
+              transition={!disableMotion ? { duration: 0.5, delay: index * 0.05 } : undefined}
+            >
+              <div className="mb-5 flex items-center gap-4">
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[#8ed8ff] text-lg font-black text-[#05070b]">
+                  {getProgramInitial(program)}
                 </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+                <div className="min-w-0">
+                  <h3 className="truncate text-xl font-black text-white">{program}</h3>
+                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/36">
+                    {programSkills.length} {isAr ? 'مهارة' : 'skills'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {programSkills.map((skill) => (
+                  <div key={skill.id}>
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-white">{skill.program_skill || skill.name}</p>
+                        <p className="mt-1 text-xs text-white/38">{skill.editing_field || skill.category}</p>
+                      </div>
+                      <span className="text-sm font-black text-[#8ed8ff]">{skill.level}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-[#8ed8ff] to-[#2f7dff]"
+                        initial={!disableMotion ? { width: 0 } : undefined}
+                        whileInView={!disableMotion ? { width: `${skill.level}%` } : undefined}
+                        viewport={!disableMotion ? { once: true, amount: 0.2 } : undefined}
+                        transition={!disableMotion ? { duration: 0.7, ease: 'easeOut' } : undefined}
+                        style={!disableMotion ? undefined : { width: `${skill.level}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.article>
+          ))}
+        </div>
       </div>
     </section>
   );

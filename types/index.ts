@@ -87,6 +87,10 @@ export interface Skill {
   name: string;
   level: number;
   category: string;
+  program?: string;
+  program_skill?: string;
+  editing_field?: string;
+  sort_order?: number;
 }
 
 export interface Testimonial {
@@ -95,6 +99,10 @@ export interface Testimonial {
   company: string;
   content: string;
   rating: number;
+  role?: string;
+  email?: string;
+  approved?: boolean;
+  created_at?: string;
 }
 
 export interface SectionsData {

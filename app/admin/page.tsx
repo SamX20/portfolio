@@ -2,10 +2,10 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat } from '@/types';
-import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats } from '@/lib/portfolioDefaults';
+import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat, Testimonial } from '@/types';
+import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
 
-type Tab = 'content' | 'projects' | 'clients' | 'contacts' | 'skills';
+type Tab = 'content' | 'projects' | 'clients' | 'contacts' | 'skills' | 'testimonials';
 
 interface UploadTicket {
   bucket: string;
@@ -21,9 +21,24 @@ interface AdminData {
   clients: Client[];
   socials: SocialLink[];
   skills: Skill[];
+  testimonials: Testimonial[];
   profile: Profile;
   sections: SectionsData;
 }
+
+const PROGRAM_OPTIONS = ['Adobe After Effects', 'Adobe Premiere Pro', 'Blender 3D', 'AI Tools', 'Adobe Illustrator', 'Adobe Photoshop'];
+const PROGRAM_SKILL_OPTIONS = [
+  'Motion Graphics',
+  'Character Animation',
+  'Logo Animation',
+  'Color and Rhythm Edit',
+  'Sound Design',
+  '3D Motion',
+  'Generative Visuals',
+  'Compositing',
+  'Storyboarding',
+];
+const EDITING_FIELD_OPTIONS = ['SaaS', 'Product Promo', 'Launch Video', 'Social Ads', 'Explainer Video', 'Brand Film', 'Educational Video', 'Anime Edit'];
 
 const emptyProject: Project = {
   id: '',
@@ -199,6 +214,7 @@ export default function AdminPage() {
     clients: defaultClients,
     socials: defaultSocials,
     skills: defaultSkills,
+    testimonials: defaultTestimonials,
     profile: defaultProfile,
     sections: defaultSections,
   });
@@ -236,6 +252,7 @@ export default function AdminPage() {
         clients: Client[];
         socials: SocialLink[];
         skills: Skill[];
+        testimonials: Testimonial[];
         profile: Profile | null;
         sections: { section: string; key: string; value: string }[];
       }>('/api/admin/data');
@@ -247,6 +264,7 @@ export default function AdminPage() {
         clients: response.clients || [],
         socials: response.socials,
         skills: response.skills,
+        testimonials: response.testimonials || [],
         profile: response.profile || defaultProfile,
         sections: mapSections(response.sections),
       });
@@ -415,6 +433,7 @@ export default function AdminPage() {
               ['clients', 'Clients'],
               ['contacts', 'Contact / Social'],
               ['skills', 'Skills / Stats'],
+              ['testimonials', 'Testimonials'],
             ].map(([value, label]) => (
               <button
                 key={value}
@@ -693,13 +712,28 @@ export default function AdminPage() {
               deleteRecord={deleteRecord}
               notify={notify}
             />
-            <EditableList
-              title="Skills"
-              items={data.skills}
-              table="skills"
-              fields={['name', 'level', 'category']}
-              newItem={{ id: '', name: 'After Effects', level: 90, category: 'Motion' }}
-              onChange={(skills) => setData((current) => ({ ...current, skills: skills as Skill[] }))}
+            <SkillsManager
+              skills={data.skills}
+              onChange={(skills) => setData((current) => ({ ...current, skills }))}
+              saveRecord={saveRecord}
+              deleteRecord={deleteRecord}
+              notify={notify}
+            />
+          </section>
+        )}
+
+        {tab === 'testimonials' && (
+          <section>
+            <div className="mb-5 flex flex-col gap-2">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Client sharing link</p>
+              <h2 className="text-3xl font-black">Testimonials</h2>
+              <p className="max-w-3xl text-sm leading-6 text-white/46">
+                Send clients this link: <span className="text-[#8ed8ff]">/share-testimonial</span>. Submitted feedback appears on the main page.
+              </p>
+            </div>
+            <TestimonialsManager
+              testimonials={data.testimonials}
+              onChange={(testimonials) => setData((current) => ({ ...current, testimonials }))}
               saveRecord={saveRecord}
               deleteRecord={deleteRecord}
               notify={notify}
@@ -855,6 +889,196 @@ function ClientsManager({
         ))}
       </div>
     </section>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string | undefined;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  const allOptions = value && !options.includes(value) ? [value, ...options] : options;
+
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{label}</span>
+      <select
+        value={value || allOptions[0] || ''}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#8ed8ff]/70"
+      >
+        {allOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function SkillsManager({
+  skills,
+  onChange,
+  saveRecord,
+  deleteRecord,
+  notify,
+}: {
+  skills: Skill[];
+  onChange: (skills: Skill[]) => void;
+  saveRecord: (table: string, record: object) => Promise<void>;
+  deleteRecord: (table: string, id: string) => Promise<void>;
+  notify: (message: string) => void;
+}) {
+  const addSkill = () => {
+    onChange([
+      ...skills,
+      {
+        id: crypto.randomUUID(),
+        name: PROGRAM_OPTIONS[0],
+        level: 90,
+        category: 'motion-design',
+        program: PROGRAM_OPTIONS[0],
+        program_skill: PROGRAM_SKILL_OPTIONS[0],
+        editing_field: EDITING_FIELD_OPTIONS[0],
+        sort_order: skills.length + 1,
+      },
+    ]);
+  };
+
+  const updateSkill = (id: string, patch: Partial<Skill>) => {
+    onChange(skills.map((skill) => (skill.id === id ? { ...skill, ...patch } : skill)));
+  };
+
+  return (
+    <div className="border border-white/10 bg-white/[0.025] p-5">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black">Skills Settings</h2>
+          <p className="mt-1 text-sm text-white/45">Choose the program, the skill inside it, and the editing field it supports.</p>
+        </div>
+        <button onClick={addSkill} className="rounded-full border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
+          Add skill
+        </button>
+      </div>
+      <div className="grid gap-4">
+        {[...skills].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((skill) => (
+          <article key={skill.id} className="rounded-3xl border border-white/10 bg-black/20 p-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <SelectField label="Program" value={skill.program || skill.name} options={PROGRAM_OPTIONS} onChange={(value) => updateSkill(skill.id, { program: value, name: value })} />
+              <SelectField label="Skill inside program" value={skill.program_skill || skill.name} options={PROGRAM_SKILL_OPTIONS} onChange={(value) => updateSkill(skill.id, { program_skill: value })} />
+              <SelectField label="Editing field" value={skill.editing_field || skill.category} options={EDITING_FIELD_OPTIONS} onChange={(value) => updateSkill(skill.id, { editing_field: value, category: value })} />
+              <Field label="Level %" value={skill.level} type="number" onChange={(value) => updateSkill(skill.id, { level: Number(value) })} />
+              <Field label="Sort order" value={skill.sort_order ?? 0} type="number" onChange={(value) => updateSkill(skill.id, { sort_order: Number(value) })} />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={async () => {
+                  await saveRecord('skills', skill);
+                  notify('Skill saved');
+                }}
+                className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
+              >
+                Save
+              </button>
+              <button
+                onClick={async () => {
+                  await deleteRecord('skills', skill.id);
+                  onChange(skills.filter((item) => item.id !== skill.id));
+                  notify('Skill deleted');
+                }}
+                className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TestimonialsManager({
+  testimonials,
+  onChange,
+  saveRecord,
+  deleteRecord,
+  notify,
+}: {
+  testimonials: Testimonial[];
+  onChange: (testimonials: Testimonial[]) => void;
+  saveRecord: (table: string, record: object) => Promise<void>;
+  deleteRecord: (table: string, id: string) => Promise<void>;
+  notify: (message: string) => void;
+}) {
+  const updateTestimonial = (id: string, patch: Partial<Testimonial>) => {
+    onChange(testimonials.map((testimonial) => (testimonial.id === id ? { ...testimonial, ...patch } : testimonial)));
+  };
+
+  return (
+    <div className="grid gap-4">
+      {testimonials.length === 0 && (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 text-sm text-white/48">No testimonials yet.</div>
+      )}
+      {testimonials.map((testimonial) => (
+        <article key={testimonial.id} className="rounded-3xl border border-white/10 bg-white/[0.025] p-5">
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-xl font-black">{testimonial.name || 'Unnamed client'}</h3>
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-white/38">
+                {[testimonial.role, testimonial.company].filter(Boolean).join(' / ') || 'No company'}
+              </p>
+            </div>
+            <label className="flex items-center gap-3 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-white/70">
+              <input
+                type="checkbox"
+                checked={testimonial.approved !== false}
+                onChange={(event) => updateTestimonial(testimonial.id, { approved: event.target.checked })}
+                className="h-4 w-4 accent-[#8ed8ff]"
+              />
+              Show on homepage
+            </label>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="Name" value={testimonial.name} onChange={(value) => updateTestimonial(testimonial.id, { name: value })} />
+            <Field label="Company" value={testimonial.company} onChange={(value) => updateTestimonial(testimonial.id, { company: value })} />
+            <Field label="Role" value={testimonial.role} onChange={(value) => updateTestimonial(testimonial.id, { role: value })} />
+            <Field label="Rating" value={testimonial.rating} type="number" onChange={(value) => updateTestimonial(testimonial.id, { rating: Number(value) })} />
+            <div className="md:col-span-2">
+              <Field label="Content" value={testimonial.content} onChange={(value) => updateTestimonial(testimonial.id, { content: value })} textarea />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={async () => {
+                await saveRecord('testimonials', testimonial);
+                notify('Testimonial saved');
+              }}
+              className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
+            >
+              Save
+            </button>
+            <button
+              onClick={async () => {
+                await deleteRecord('testimonials', testimonial.id);
+                onChange(testimonials.filter((item) => item.id !== testimonial.id));
+                notify('Testimonial deleted');
+              }}
+              className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }
 

@@ -115,7 +115,11 @@ create table if not exists skills (
   id text primary key,
   name text not null,
   level integer not null check (level >= 0 and level <= 100),
-  category text not null
+  category text not null,
+  program text,
+  program_skill text,
+  editing_field text,
+  sort_order integer default 0
 );
 
 create table if not exists testimonials (
@@ -123,7 +127,11 @@ create table if not exists testimonials (
   name text not null,
   company text not null,
   content text not null,
-  rating integer not null check (rating >= 1 and rating <= 5)
+  rating integer not null check (rating >= 1 and rating <= 5),
+  role text,
+  email text,
+  approved boolean not null default true,
+  created_at timestamptz not null default now()
 );
 
 insert into profile (id, name, title, description)
@@ -169,12 +177,19 @@ insert into stats (id, label, value) values
   ('years_exp', 'Years editing', '5+')
 on conflict (id) do update set label = excluded.label, value = excluded.value;
 
-insert into skills (id, name, level, category) values
-  ('skill-after-effects', 'Adobe After Effects', 96, 'motion-design'),
-  ('skill-premiere', 'Adobe Premiere Pro', 92, 'video-editing'),
-  ('skill-ai-tools', 'AI Tools', 88, 'design'),
-  ('skill-blender', 'Blender 3D', 78, '3d-modeling')
-on conflict (id) do update set name = excluded.name, level = excluded.level, category = excluded.category;
+insert into skills (id, name, level, category, program, program_skill, editing_field, sort_order) values
+  ('skill-after-effects', 'Adobe After Effects', 96, 'motion-design', 'Adobe After Effects', 'Motion Graphics', 'Product Promo', 1),
+  ('skill-premiere', 'Adobe Premiere Pro', 92, 'video-editing', 'Adobe Premiere Pro', 'Color and Rhythm Edit', 'Launch Video', 2),
+  ('skill-ai-tools', 'AI Tools', 88, 'design', 'AI Tools', 'Generative Visuals', 'SaaS', 3),
+  ('skill-blender', 'Blender 3D', 78, '3d-modeling', 'Blender 3D', '3D Motion', 'Product Promo', 4)
+on conflict (id) do update set
+  name = excluded.name,
+  level = excluded.level,
+  category = excluded.category,
+  program = excluded.program,
+  program_skill = excluded.program_skill,
+  editing_field = excluded.editing_field,
+  sort_order = excluded.sort_order;
 
 alter table projects enable row level security;
 alter table clients enable row level security;

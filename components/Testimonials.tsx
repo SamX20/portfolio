@@ -2,94 +2,70 @@
 
 import { motion } from 'framer-motion';
 import useDisableMotion from '@/lib/useDisableMotion';
-
-interface Testimonial {
-  id: string;
-  name: string;
-  company: string;
-  content: string;
-  rating: number;
-}
+import { Locale, Testimonial } from '@/types';
 
 interface TestimonialsProps {
   testimonials?: Testimonial[];
+  locale: Locale;
 }
 
-export default function Testimonials({ testimonials = [] }: TestimonialsProps) {
-  if (!testimonials || testimonials.length === 0) {
-    return null;
-  }
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.2 },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6 },
-    },
-  };
-
+export default function Testimonials({ testimonials = [], locale }: TestimonialsProps) {
   const disableMotion = useDisableMotion();
+  const isAr = locale === 'ar';
+  const visibleTestimonials = testimonials
+    .filter((testimonial) => testimonial.approved !== false)
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+  if (!visibleTestimonials.length) return null;
 
   return (
-    <section className="min-h-screen py-24 px-4 bg-[#0a0a0f]" id="testimonials">
-      <div className="max-w-6xl mx-auto">
+    <section className="bg-[#080808] px-4 pb-24 sm:px-6 lg:px-8" id="testimonials" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="mx-auto max-w-7xl">
         <motion.div
-          className="text-center mb-16"
-          initial={!disableMotion ? { opacity: 0, y: -16 } : undefined}
+          className="mb-10 max-w-3xl"
+          initial={!disableMotion ? { opacity: 0, y: 22 } : undefined}
           whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
           viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
-          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-full tracking-widest">
-            TESTIMONIALS
-          </span>
-          <h2 className="text-4xl md:text-5xl font-black mb-4">
-            <span className="bg-gradient-to-r from-sky-300 to-blue-600 bg-clip-text text-transparent">آراء العملاء</span>
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8ed8ff]">{isAr ? 'آراء العملاء' : 'Client feedback'}</p>
+          <h2 className="mt-3 text-4xl font-black leading-tight md:text-5xl">
+            {isAr ? 'تجارب حقيقية من عملاء اشتغلوا معي.' : 'What clients say after the final cut.'}
           </h2>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto">ما يقوله عملائي عن عملي ومستوى احترافيتي</p>
         </motion.div>
 
-        <motion.div
-          variants={!disableMotion ? containerVariants : undefined}
-          initial={!disableMotion ? 'hidden' : undefined}
-          whileInView={!disableMotion ? 'visible' : undefined}
-          viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          {testimonials.map(testimonial => (
-            <motion.div
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visibleTestimonials.map((testimonial, index) => (
+            <motion.article
               key={testimonial.id}
-              variants={!disableMotion ? cardVariants : undefined}
-              className="p-6 rounded-2xl border border-white/8 hover:border-sky-500/30 transition-all"
-              style={{ background: 'rgba(255,255,255,0.03)' }}
+              className="rounded-3xl border border-white/10 bg-white/[0.025] p-5 shadow-2xl shadow-black/10"
+              initial={!disableMotion ? { opacity: 0, y: 24 } : undefined}
+              whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
+              viewport={!disableMotion ? { once: true, amount: 0.16, margin: '-100px' } : undefined}
+              transition={!disableMotion ? { duration: 0.5, delay: index * 0.05 } : undefined}
             >
-              {/* Stars */}
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: testimonial.rating }).map((_, i) => (
-                  <span key={i} className="text-lg">⭐</span>
+              <div className="mb-5 flex gap-1" aria-label={`${testimonial.rating} out of 5`}>
+                {Array.from({ length: 5 }).map((_, starIndex) => (
+                  <svg
+                    key={starIndex}
+                    viewBox="0 0 24 24"
+                    className={`h-4 w-4 ${starIndex < testimonial.rating ? 'fill-[#8ed8ff]' : 'fill-white/14'}`}
+                    aria-hidden="true"
+                  >
+                    <path d="m12 2 2.9 6.2 6.7.8-4.9 4.6 1.3 6.6-6-3.3-6 3.3 1.3-6.6L2.4 9l6.7-.8L12 2Z" />
+                  </svg>
                 ))}
               </div>
-
-              {/* Quote */}
-              <p className="text-gray-300 text-sm leading-relaxed mb-5 italic">"{testimonial.content}"</p>
-
-              {/* Author */}
-              <div className="border-t border-white/8 pt-4">
-                <p className="text-white font-semibold text-sm">{testimonial.name}</p>
-                <p className="text-gray-500 text-xs">{testimonial.company}</p>
+              <p className="text-sm leading-7 text-white/66">"{testimonial.content}"</p>
+              <div className="mt-6 border-t border-white/10 pt-4">
+                <p className="font-black text-white">{testimonial.name}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-white/38">
+                  {[testimonial.role, testimonial.company].filter(Boolean).join(' / ')}
+                </p>
               </div>
-            </motion.div>
+            </motion.article>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

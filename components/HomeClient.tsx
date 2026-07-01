@@ -7,6 +7,8 @@ import Hero from '@/components/Hero';
 import ClientsShowcase from '@/components/ClientsShowcase';
 import Navigation from '@/components/Navigation';
 import Portfolio from '@/components/Portfolio';
+import Skills from '@/components/Skills';
+import Testimonials from '@/components/Testimonials';
 import { Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat, Testimonial } from '@/types';
 
 export interface HomeData {
@@ -50,6 +52,8 @@ export default function HomeClient({ data }: { data: HomeData }) {
         selectedClientId={selectedClientId}
         onClearClient={() => setSelectedClientId(null)}
       />
+      <Skills locale={locale} skills={data.skills} />
+      <Testimonials locale={locale} testimonials={data.testimonials} />
       <Contact locale={locale} contacts={data.contacts} socialLinks={data.socials} />
       <Footer locale={locale} sections={data.sections} socialLinks={data.socials} />
     </main>
