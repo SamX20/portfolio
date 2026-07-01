@@ -28,6 +28,18 @@ export default function HomeClient({ data }: { data: HomeData }) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
+      window.setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 80);
+    }
+  }, []);
+
+  useEffect(() => {
     const htmlElement = document.documentElement;
     htmlElement.lang = locale;
     htmlElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
