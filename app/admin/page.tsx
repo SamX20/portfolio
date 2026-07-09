@@ -27,18 +27,22 @@ interface AdminData {
 }
 
 const PROGRAM_OPTIONS = ['Adobe After Effects', 'Adobe Premiere Pro', 'Blender 3D', 'AI Tools', 'Adobe Illustrator', 'Adobe Photoshop'];
-const PROGRAM_SKILL_OPTIONS = [
-  'Motion Graphics',
-  'Character Animation',
-  'Logo Animation',
-  'Color and Rhythm Edit',
-  'Sound Design',
-  '3D Motion',
-  'Generative Visuals',
-  'Compositing',
-  'Storyboarding',
-];
-const EDITING_FIELD_OPTIONS = ['SaaS', 'Product Promo', 'Launch Video', 'Social Ads', 'Explainer Video', 'Brand Film', 'Educational Video', 'Anime Edit'];
+const PROGRAM_SKILL_OPTIONS_BY_PROGRAM: Record<string, string[]> = {
+  'Adobe After Effects': ['Motion Graphics', 'Logo Animation', 'Compositing', 'Kinetic Typography', 'Character Animation', 'VFX Cleanup'],
+  'Adobe Premiere Pro': ['Video Editing', 'Color and Rhythm Edit', 'Sound Design', 'Pacing', 'Subtitles and Captions', 'Multi-cam Editing'],
+  'Blender 3D': ['3D Modelling', '3D Motion', 'Lighting', 'Rendering', 'Product Visualization', 'Camera Animation'],
+  'AI Tools': ['Generative Visuals', 'Prompt Craft', 'Image Cleanup', 'Storyboard Concepts', 'Asset Extension', 'Style Exploration'],
+  'Adobe Illustrator': ['Vector Design', 'Icon Design', 'Storyboard Frames', 'Logo Prep', 'Shape Systems', 'Brand Assets'],
+  'Adobe Photoshop': ['Image Editing', 'Photo Compositing', 'Thumbnail Design', 'Retouching', 'Matte Prep', 'Visual Cleanup'],
+};
+const EDITING_FIELD_OPTIONS_BY_PROGRAM: Record<string, string[]> = {
+  'Adobe After Effects': ['Motion Design', 'Logo Animation', 'Explainer Video', 'Product Promo', 'Social Ads', 'Brand Film'],
+  'Adobe Premiere Pro': ['Launch Video', 'Social Ads', 'Brand Film', 'Educational Video', 'YouTube Edit', 'Product Promo'],
+  'Blender 3D': ['3D Product Visual', 'Product Promo', 'Logo Reveal', 'Scene Design', '3D Explainer'],
+  'AI Tools': ['Concept Development', 'Creative Direction', 'Asset Generation', 'Style Frames', 'Pre-production'],
+  'Adobe Illustrator': ['Brand Assets', 'Storyboard', 'Icon Systems', 'Vector Art', 'Logo Prep'],
+  'Adobe Photoshop': ['Thumbnail Design', 'Key Visuals', 'Photo Edit', 'Campaign Visuals', 'Compositing'],
+};
 
 const emptyProject: Project = {
   id: '',
@@ -936,6 +940,14 @@ function SelectField({
   );
 }
 
+function getProgramSkillOptions(program?: string) {
+  return PROGRAM_SKILL_OPTIONS_BY_PROGRAM[program || ''] || PROGRAM_SKILL_OPTIONS_BY_PROGRAM[PROGRAM_OPTIONS[0]];
+}
+
+function getProgramFieldOptions(program?: string) {
+  return EDITING_FIELD_OPTIONS_BY_PROGRAM[program || ''] || EDITING_FIELD_OPTIONS_BY_PROGRAM[PROGRAM_OPTIONS[0]];
+}
+
 function SkillsManager({
   skills,
   onChange,
@@ -950,16 +962,19 @@ function SkillsManager({
   notify: (message: string) => void;
 }) {
   const addSkill = (program = PROGRAM_OPTIONS[0]) => {
+    const programSkill = getProgramSkillOptions(program)[0];
+    const editingField = getProgramFieldOptions(program)[0];
+
     onChange([
       ...skills,
       {
         id: crypto.randomUUID(),
         name: program,
         level: 90,
-        category: 'motion-design',
+        category: editingField,
         program,
-        program_skill: PROGRAM_SKILL_OPTIONS[0],
-        editing_field: EDITING_FIELD_OPTIONS[0],
+        program_skill: programSkill,
+        editing_field: editingField,
         sort_order: skills.length + 1,
       },
     ]);
@@ -1012,9 +1027,22 @@ function SkillsManager({
               {programSkills.map((skill) => (
                 <article key={skill.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                   <div className="grid gap-3 md:grid-cols-2">
-                    <SelectField label="Program" value={skill.program || skill.name} options={PROGRAM_OPTIONS} onChange={(value) => updateSkill(skill.id, { program: value, name: value })} />
-                    <SelectField label="Skill inside program" value={skill.program_skill || skill.name} options={PROGRAM_SKILL_OPTIONS} onChange={(value) => updateSkill(skill.id, { program_skill: value })} />
-                    <SelectField label="Editing field" value={skill.editing_field || skill.category} options={EDITING_FIELD_OPTIONS} onChange={(value) => updateSkill(skill.id, { editing_field: value, category: value })} />
+                    <SelectField
+                      label="Program"
+                      value={skill.program || skill.name}
+                      options={PROGRAM_OPTIONS}
+                      onChange={(value) =>
+                        updateSkill(skill.id, {
+                          program: value,
+                          name: value,
+                          program_skill: getProgramSkillOptions(value)[0],
+                          editing_field: getProgramFieldOptions(value)[0],
+                          category: getProgramFieldOptions(value)[0],
+                        })
+                      }
+                    />
+                    <SelectField label="Skill inside program" value={skill.program_skill || skill.name} options={getProgramSkillOptions(skill.program || skill.name)} onChange={(value) => updateSkill(skill.id, { program_skill: value })} />
+                    <SelectField label="Field / use case" value={skill.editing_field || skill.category} options={getProgramFieldOptions(skill.program || skill.name)} onChange={(value) => updateSkill(skill.id, { editing_field: value, category: value })} />
                     <Field label="Level %" value={skill.level} type="number" onChange={(value) => updateSkill(skill.id, { level: Number(value) })} />
                     <Field label="Sort order" value={skill.sort_order ?? 0} type="number" onChange={(value) => updateSkill(skill.id, { sort_order: Number(value) })} />
                   </div>
