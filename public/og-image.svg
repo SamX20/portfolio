@@ -1,44 +1,69 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Xsamer video editing and motion graphics portfolio</title>
+  <desc id="desc">Open graph image for Xsamer, freelance video editor and motion graphics designer.</desc>
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a0a0f;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1" />
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#05070b"/>
+      <stop offset="0.48" stop-color="#080808"/>
+      <stop offset="1" stop-color="#0a1524"/>
     </linearGradient>
-    <linearGradient id="text" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#ec4899;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f97316;stop-opacity:1" />
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8ed8ff"/>
+      <stop offset="0.52" stop-color="#4aa3ff"/>
+      <stop offset="1" stop-color="#2f7dff"/>
     </linearGradient>
+    <radialGradient id="glowA" cx="25%" cy="25%" r="60%">
+      <stop offset="0" stop-color="#8ed8ff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#8ed8ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="80%" cy="70%" r="54%">
+      <stop offset="0" stop-color="#2f7dff" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#2f7dff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="logoClip">
+      <rect x="26" y="28" width="214" height="214" rx="44"/>
+    </clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="28" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
   </defs>
 
-  <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glowA)"/>
+  <rect width="1200" height="630" fill="url(#glowB)"/>
 
-  <!-- Grid pattern -->
-  <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-    <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(168,85,247,0.1)" stroke-width="1"/>
-  </pattern>
-  <rect width="1200" height="630" fill="url(#grid)"/>
+  <g opacity="0.16">
+    <path d="M-80 470 C190 420 370 520 610 468 C850 416 995 338 1280 380" fill="none" stroke="#8ed8ff" stroke-width="2"/>
+    <path d="M-60 505 C220 448 382 552 625 504 C866 456 1040 378 1260 420" fill="none" stroke="#ffffff" stroke-width="1"/>
+    <path d="M-70 210 C160 165 335 260 570 218 C812 174 980 116 1280 146" fill="none" stroke="#4aa3ff" stroke-width="2"/>
+  </g>
 
-  <!-- Main content -->
-  <text x="600" y="200" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="url(#text)">
-    محمد علي
-  </text>
+  <g opacity="0.08">
+    <rect x="0" y="0" width="1200" height="630" fill="none" stroke="#ffffff"/>
+    <path d="M100 0v630M300 0v630M500 0v630M700 0v630M900 0v630M1100 0v630M0 105h1200M0 315h1200M0 525h1200" stroke="#ffffff" stroke-width="1"/>
+  </g>
 
-  <text x="600" y="280" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#ffffff">
-    مصمم ومحرر فيديو احترافي
-  </text>
+  <g transform="translate(92 102)">
+    <rect x="0" y="0" width="108" height="108" rx="28" fill="url(#accent)" filter="url(#shadow)"/>
+    <text x="54" y="68" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="900" fill="#05070b">Sam</text>
+  </g>
 
-  <text x="600" y="340" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#cccccc">
-    Motion Designer & Video Editor
-  </text>
+  <g transform="translate(92 244)">
+    <text font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="900" letter-spacing="8" fill="#8ed8ff">MOTION GRAPHICS / VIDEO EDITING</text>
+    <text y="88" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="900" fill="#ffffff">Xsamer</text>
+    <text y="168" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="900" fill="#ffffff">Freelance Video Editor</text>
+    <text y="224" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="700" fill="#b8c2cc">Promos, social content, brand stories, and polished edits.</text>
+  </g>
 
-  <!-- Decorative elements -->
-  <circle cx="200" cy="400" r="80" fill="none" stroke="url(#text)" stroke-width="3" opacity="0.6"/>
-  <circle cx="1000" cy="200" r="60" fill="none" stroke="url(#text)" stroke-width="2" opacity="0.4"/>
+  <g transform="translate(820 112)" filter="url(#shadow)">
+    <rect x="0" y="0" width="286" height="286" rx="62" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+    <image href="/WhatsApp%20Image%202026-07-04%20at%2012.41.26%20AM.jpeg" x="26" y="28" width="214" height="214" preserveAspectRatio="xMidYMid slice" clip-path="url(#logoClip)"/>
+    <rect x="26" y="28" width="214" height="214" rx="44" fill="none" stroke="url(#accent)" stroke-width="3"/>
+  </g>
 
-  <!-- Bottom text -->
-  <text x="600" y="550" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#888888">
-    portfolio.vercel.app
-  </text>
+  <g transform="translate(820 462)">
+    <rect x="0" y="0" width="286" height="66" rx="33" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.1"/>
+    <circle cx="42" cy="33" r="10" fill="#8ed8ff"/>
+    <text x="68" y="40" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="900" fill="#ffffff">xsamer.com</text>
+  </g>
 </svg>
