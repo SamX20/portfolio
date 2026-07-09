@@ -149,7 +149,7 @@ on conflict (id) do update set
 
 insert into sections (id, section, key, value) values
   ('global-site_title', 'global', 'site_title', 'Sam Motion'),
-  ('global-logo', 'global', 'logo', 'S'),
+  ('global-logo', 'global', 'logo', '/WhatsApp Image 2026-07-04 at 12.41.26 AM.jpeg'),
   ('global-language', 'global', 'language', 'en'),
   ('hero-title', 'hero', 'title', 'Sam turns motion into memory.'),
   ('hero-subtitle', 'hero', 'subtitle', 'Motion Graphics / Video Editing'),

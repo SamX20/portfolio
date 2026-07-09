@@ -3,7 +3,7 @@ import { Client, ContactInfo, Profile, Project, SectionsData, Skill, SocialLink,
 export const defaultSections: SectionsData = {
   global: {
     site_title: 'Sam Motion',
-    logo: 'S',
+    logo: '/WhatsApp Image 2026-07-04 at 12.41.26 AM.jpeg',
     language: 'en',
   },
   hero: {
