@@ -9,6 +9,17 @@ interface SkillsProps {
   locale: Locale;
 }
 
+function getProgramIcon(program: string) {
+  if (/after effects/i.test(program)) return '/Software-icons/adobe-after-effects-icon.svg';
+  if (/premiere|premier/i.test(program)) return '/Software-icons/Adobe_Premiere_Pro_CC_icon.svg';
+  if (/blender/i.test(program)) return '/Software-icons/blender-icon.svg';
+  if (/illustrator/i.test(program)) return '/Software-icons/adobe-illustrator-icon.svg';
+  if (/photoshop/i.test(program)) return '/Software-icons/adobe-photoshop-icon.svg';
+  if (/davinci|resolve/i.test(program)) return '/Software-icons/DaVinci_Resolve_Studio.png';
+  if (/ai tools|generative/i.test(program)) return '/Software-icons/Ai%20Tools.avif';
+  return null;
+}
+
 function getProgramInitial(program: string) {
   if (/after effects/i.test(program)) return 'Ae';
   if (/premiere|premier/i.test(program)) return 'Pr';
@@ -71,8 +82,12 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
               transition={!disableMotion ? { duration: 0.5, delay: index * 0.05 } : undefined}
             >
               <div className="mb-5 flex items-center gap-4">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[#8ed8ff] text-lg font-black text-[#05070b]">
-                  {getProgramInitial(program)}
+                <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-2">
+                  {getProgramIcon(program) ? (
+                    <img src={getProgramIcon(program) || ''} alt={`${program} icon`} className="h-full w-full object-contain" />
+                  ) : (
+                    <span className="text-lg font-black text-[#8ed8ff]">{getProgramInitial(program)}</span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <h3 className="truncate text-xl font-black text-white">{program}</h3>
