@@ -236,7 +236,10 @@ export default function ShareTestimonialPage() {
                         value <= rating ? 'border-[#8ed8ff] bg-[#8ed8ff] text-[#05070b]' : 'border-white/10 bg-black/25 text-white/45'
                       }`}
                     >
-                      {value}
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                        <path d="m12 2 2.9 6.2 6.7.8-4.9 4.6 1.3 6.6-6-3.3-6 3.3 1.3-6.6L2.4 9l6.7-.8L12 2Z" />
+                      </svg>
+                      <span className="sr-only">{value}</span>
                     </button>
                   ))}
                 </div>
