@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ShareClient {
   id: string;
@@ -67,14 +68,22 @@ const copy = {
 };
 
 export default function ShareTestimonialPage() {
+  const router = useRouter();
   const [locale, setLocale] = useState<TestimonialLocale>('en');
   const [clients, setClients] = useState<ShareClient[]>([]);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [rating, setRating] = useState(5);
-  const [status, setStatus] = useState<'idle' | 'saving' | 'sent'>('idle');
+  const [status, setStatus] = useState<'idle' | 'saving'>('idle');
   const [error, setError] = useState('');
   const t = copy[locale];
   const isAr = locale === 'ar';
+
+  useEffect(() => {
+    const requestedLocale = new URLSearchParams(window.location.search).get('lang');
+    if (requestedLocale === 'ar' || requestedLocale === 'en') {
+      setLocale(requestedLocale);
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -119,7 +128,7 @@ export default function ShareTestimonialPage() {
       event.currentTarget.reset();
       setSelectedClientId('');
       setRating(5);
-      setStatus('sent');
+      router.push(`/share-testimonial/thank-you?lang=${locale}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t.fallbackError);
       setStatus('idle');
@@ -164,23 +173,7 @@ export default function ShareTestimonialPage() {
         </section>
 
         <form onSubmit={submit} className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/35 sm:p-7">
-          {status === 'sent' ? (
-            <div className="grid min-h-[440px] place-items-center text-center">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8ed8ff]">{t.sentLabel}</p>
-                <h2 className="mt-3 text-3xl font-black">{t.sentTitle}</h2>
-                <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-white/55">{t.sentText}</p>
-                <button
-                  type="button"
-                  onClick={() => setStatus('idle')}
-                  className="mt-7 rounded-full border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/70 transition hover:border-[#8ed8ff]/50 hover:text-white"
-                >
-                  {t.addAnother}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid gap-4">
+          <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.name}</span>
@@ -259,8 +252,7 @@ export default function ShareTestimonialPage() {
               <button disabled={status === 'saving'} className="accent-gradient rounded-full px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#05070b] disabled:opacity-50">
                 {status === 'saving' ? t.sending : t.submit}
               </button>
-            </div>
-          )}
+          </div>
         </form>
       </div>
     </main>
