@@ -44,7 +44,7 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
       return acc;
     }, new Map()).entries(),
   );
-  const editingFields = Array.from(new Set(sortedSkills.map((skill) => skill.editing_field || skill.category).filter(Boolean)));
+  const programNames = programs.map(([program]) => program);
 
   return (
     <section className="bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" id="skills" dir={isAr ? 'rtl' : 'ltr'}>
@@ -59,13 +59,13 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8ed8ff]">{isAr ? 'المهارات والأدوات' : 'Tools and Skills'}</p>
             <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
-              {isAr ? 'برامج، مهارات، ومجالات تحرير أشتغل عليها.' : 'Programs, craft skills, and editing fields I build with.'}
+              {isAr ? 'برامج ومهارات أشتغل عليها.' : 'Programs and craft skills I build with.'}
             </h2>
           </div>
           <div className="flex max-w-2xl flex-wrap gap-2">
-            {editingFields.slice(0, 8).map((field) => (
-              <span key={field} className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/56">
-                {field}
+            {programNames.slice(0, 8).map((program) => (
+              <span key={program} className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/56">
+                {program}
               </span>
             ))}
           </div>
@@ -103,7 +103,6 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-white">{skill.program_skill || skill.name}</p>
-                        <p className="mt-1 text-xs text-white/38">{skill.editing_field || skill.category}</p>
                       </div>
                       <span className="text-sm font-black text-[#8ed8ff]">{skill.level}%</span>
                     </div>

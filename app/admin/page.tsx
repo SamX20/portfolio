@@ -26,24 +26,6 @@ interface AdminData {
   sections: SectionsData;
 }
 
-const PROGRAM_OPTIONS = ['Adobe After Effects', 'Adobe Premiere Pro', 'Blender 3D', 'AI Tools', 'Adobe Illustrator', 'Adobe Photoshop'];
-const PROGRAM_SKILL_OPTIONS_BY_PROGRAM: Record<string, string[]> = {
-  'Adobe After Effects': ['Motion Graphics', 'Logo Animation', 'Compositing', 'Kinetic Typography', 'Character Animation', 'VFX Cleanup'],
-  'Adobe Premiere Pro': ['Video Editing', 'Color and Rhythm Edit', 'Sound Design', 'Pacing', 'Subtitles and Captions', 'Multi-cam Editing'],
-  'Blender 3D': ['3D Modelling', '3D Motion', 'Lighting', 'Rendering', 'Product Visualization', 'Camera Animation'],
-  'AI Tools': ['Generative Visuals', 'Prompt Craft', 'Image Cleanup', 'Storyboard Concepts', 'Asset Extension', 'Style Exploration'],
-  'Adobe Illustrator': ['Vector Design', 'Icon Design', 'Storyboard Frames', 'Logo Prep', 'Shape Systems', 'Brand Assets'],
-  'Adobe Photoshop': ['Image Editing', 'Photo Compositing', 'Thumbnail Design', 'Retouching', 'Matte Prep', 'Visual Cleanup'],
-};
-const EDITING_FIELD_OPTIONS_BY_PROGRAM: Record<string, string[]> = {
-  'Adobe After Effects': ['Motion Design', 'Logo Animation', 'Explainer Video', 'Product Promo', 'Social Ads', 'Brand Film'],
-  'Adobe Premiere Pro': ['Launch Video', 'Social Ads', 'Brand Film', 'Educational Video', 'YouTube Edit', 'Product Promo'],
-  'Blender 3D': ['3D Product Visual', 'Product Promo', 'Logo Reveal', 'Scene Design', '3D Explainer'],
-  'AI Tools': ['Concept Development', 'Creative Direction', 'Asset Generation', 'Style Frames', 'Pre-production'],
-  'Adobe Illustrator': ['Brand Assets', 'Storyboard', 'Icon Systems', 'Vector Art', 'Logo Prep'],
-  'Adobe Photoshop': ['Thumbnail Design', 'Key Visuals', 'Photo Edit', 'Campaign Visuals', 'Compositing'],
-};
-
 const emptyProject: Project = {
   id: '',
   title: '',
@@ -909,45 +891,6 @@ function ClientsManager({
   );
 }
 
-function SelectField({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string | undefined;
-  options: string[];
-  onChange: (value: string) => void;
-}) {
-  const allOptions = value && !options.includes(value) ? [value, ...options] : options;
-
-  return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{label}</span>
-      <select
-        value={value || allOptions[0] || ''}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#8ed8ff]/70"
-      >
-        {allOptions.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function getProgramSkillOptions(program?: string) {
-  return PROGRAM_SKILL_OPTIONS_BY_PROGRAM[program || ''] || PROGRAM_SKILL_OPTIONS_BY_PROGRAM[PROGRAM_OPTIONS[0]];
-}
-
-function getProgramFieldOptions(program?: string) {
-  return EDITING_FIELD_OPTIONS_BY_PROGRAM[program || ''] || EDITING_FIELD_OPTIONS_BY_PROGRAM[PROGRAM_OPTIONS[0]];
-}
-
 function SkillsManager({
   skills,
   onChange,
@@ -961,20 +904,17 @@ function SkillsManager({
   deleteRecord: (table: string, id: string) => Promise<void>;
   notify: (message: string) => void;
 }) {
-  const addSkill = (program = PROGRAM_OPTIONS[0]) => {
-    const programSkill = getProgramSkillOptions(program)[0];
-    const editingField = getProgramFieldOptions(program)[0];
-
+  const addSkill = (program = 'Adobe After Effects') => {
     onChange([
       ...skills,
       {
         id: crypto.randomUUID(),
-        name: program,
+        name: 'New skill',
         level: 90,
-        category: editingField,
+        category: '',
         program,
-        program_skill: programSkill,
-        editing_field: editingField,
+        program_skill: 'New skill',
+        editing_field: '',
         sort_order: skills.length + 1,
       },
     ]);
@@ -987,19 +927,18 @@ function SkillsManager({
   const sortedSkills = [...skills].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   const programs = Array.from(
     sortedSkills.reduce<Map<string, Skill[]>>((acc, skill) => {
-      const program = skill.program || skill.name || PROGRAM_OPTIONS[0];
+      const program = skill.program || 'Adobe After Effects';
       acc.set(program, [...(acc.get(program) || []), skill]);
       return acc;
     }, new Map()).entries(),
   );
-  const emptyPrograms = PROGRAM_OPTIONS.filter((program) => !programs.some(([name]) => name === program));
 
   return (
     <div className="border border-white/10 bg-white/[0.025] p-5">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black">Skills Settings</h2>
-          <p className="mt-1 text-sm text-white/45">Each software can contain multiple skills, editing fields, and levels.</p>
+          <p className="mt-1 text-sm text-white/45">Write the software, skill name, and level freely. Matching software names are grouped together.</p>
         </div>
         <button onClick={() => addSkill()} className="rounded-full border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
           Add skill
@@ -1027,22 +966,8 @@ function SkillsManager({
               {programSkills.map((skill) => (
                 <article key={skill.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                   <div className="grid gap-3 md:grid-cols-2">
-                    <SelectField
-                      label="Program"
-                      value={skill.program || skill.name}
-                      options={PROGRAM_OPTIONS}
-                      onChange={(value) =>
-                        updateSkill(skill.id, {
-                          program: value,
-                          name: value,
-                          program_skill: getProgramSkillOptions(value)[0],
-                          editing_field: getProgramFieldOptions(value)[0],
-                          category: getProgramFieldOptions(value)[0],
-                        })
-                      }
-                    />
-                    <SelectField label="Skill inside program" value={skill.program_skill || skill.name} options={getProgramSkillOptions(skill.program || skill.name)} onChange={(value) => updateSkill(skill.id, { program_skill: value })} />
-                    <SelectField label="Field / use case" value={skill.editing_field || skill.category} options={getProgramFieldOptions(skill.program || skill.name)} onChange={(value) => updateSkill(skill.id, { editing_field: value, category: value })} />
+                    <Field label="Program" value={skill.program || ''} onChange={(value) => updateSkill(skill.id, { program: value })} />
+                    <Field label="Skill name" value={skill.program_skill || skill.name} onChange={(value) => updateSkill(skill.id, { program_skill: value, name: value })} />
                     <Field label="Level %" value={skill.level} type="number" onChange={(value) => updateSkill(skill.id, { level: Number(value) })} />
                     <Field label="Sort order" value={skill.sort_order ?? 0} type="number" onChange={(value) => updateSkill(skill.id, { sort_order: Number(value) })} />
                   </div>
@@ -1072,19 +997,6 @@ function SkillsManager({
             </div>
           </section>
         ))}
-        {emptyPrograms.length > 0 && (
-          <div className="flex flex-wrap gap-2 rounded-3xl border border-white/10 bg-black/20 p-4">
-            {emptyPrograms.map((program) => (
-              <button
-                key={program}
-                onClick={() => addSkill(program)}
-                className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/58 transition hover:border-[#8ed8ff]/45 hover:text-white"
-              >
-                Add {program}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
