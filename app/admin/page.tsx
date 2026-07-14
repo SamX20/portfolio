@@ -26,6 +26,11 @@ interface AdminData {
   sections: SectionsData;
 }
 
+interface PendingDelete {
+  table: string;
+  id: string;
+}
+
 const emptyProject: Project = {
   id: '',
   title: '',
@@ -193,6 +198,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('content');
   const [toast, setToast] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [pendingDeletes, setPendingDeletes] = useState<PendingDelete[]>([]);
   const [data, setData] = useState<AdminData>({
     projects: defaultProjects,
     stats: defaultStats,
@@ -254,12 +261,42 @@ export default function AdminPage() {
         profile: response.profile || defaultProfile,
         sections: mapSections(response.sections),
       });
+      setHasUnsavedChanges(false);
+      setPendingDeletes([]);
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Could not load admin data');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  const updateData = (updater: (current: AdminData) => AdminData) => {
+    setData(updater);
+    setHasUnsavedChanges(true);
+  };
+
+  const stageDelete = (table: string, id: string) => {
+    setPendingDeletes((current) => {
+      if (current.some((item) => item.table === table && item.id === id)) return current;
+      return [...current, { table, id }];
+    });
+    setHasUnsavedChanges(true);
+  };
+
+  const changeTab = (nextTab: Tab) => {
+    setTab(nextTab);
+  };
 
   useEffect(() => {
     api<{ authed: boolean; configured: boolean }>('/api/admin/session')
@@ -288,21 +325,6 @@ export default function AdminPage() {
     }
   };
 
-  const saveContent = async () => {
-    setSaving(true);
-    try {
-      await api('/api/admin/data', {
-        method: 'PUT',
-        body: JSON.stringify({ profile: data.profile, sections: data.sections }),
-      });
-      notify('Main page saved');
-    } catch (error) {
-      notify(error instanceof Error ? error.message : 'Save failed');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const saveRecord = async (table: string, record: object) => {
     const result = await api<{ missingColumns?: string[] }>('/api/admin/data', {
       method: 'POST',
@@ -312,6 +334,48 @@ export default function AdminPage() {
     if (result.missingColumns?.length) {
       notify(`Saved, but missing DB columns were skipped: ${result.missingColumns.join(', ')}`);
     }
+  };
+
+  const saveAllChanges = async () => {
+    setSaving(true);
+    try {
+      await api('/api/admin/data', {
+        method: 'PUT',
+        body: JSON.stringify({ profile: data.profile, sections: data.sections }),
+      });
+
+      const saveRows = async (table: string, records: object[]) => {
+        for (const record of records) {
+          await saveRecord(table, record);
+        }
+      };
+
+      for (const item of pendingDeletes) {
+        await deleteRecord(item.table, item.id);
+      }
+
+      await saveRows('projects', data.projects);
+      await saveRows('clients', data.clients);
+      await saveRows('stats', data.stats);
+      await saveRows('contact_info', data.contacts);
+      await saveRows('social_links', data.socials);
+      await saveRows('skills', data.skills);
+      await saveRows('testimonials', data.testimonials);
+
+      setHasUnsavedChanges(false);
+      setPendingDeletes([]);
+      notify('All changes saved');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const dismissChanges = async () => {
+    if (!confirm('Dismiss unsaved changes and reload the last saved data?')) return;
+    await load();
+    notify('Unsaved changes dismissed');
   };
 
   const deleteRecord = async (table: string, id: string) => {
@@ -351,11 +415,11 @@ export default function AdminPage() {
   };
 
   const setProfile = (key: keyof Profile, value: string) => {
-    setData((current) => ({ ...current, profile: { ...current.profile, [key]: value } }));
+    updateData((current) => ({ ...current, profile: { ...current.profile, [key]: value } }));
   };
 
   const setSection = (section: keyof SectionsData, key: string, value: string) => {
-    setData((current) => ({
+    updateData((current) => ({
       ...current,
       sections: {
         ...current.sections,
@@ -423,7 +487,7 @@ export default function AdminPage() {
             ].map(([value, label]) => (
               <button
                 key={value}
-                onClick={() => setTab(value as Tab)}
+                onClick={() => changeTab(value as Tab)}
                 className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
                   tab === value ? 'accent-gradient border-[#4aa3ff] text-[#090909]' : 'border-white/10 text-white/55 hover:text-white'
                 }`}
@@ -434,6 +498,35 @@ export default function AdminPage() {
           </div>
         </div>
       </header>
+
+      {hasUnsavedChanges && (
+        <div className="fixed bottom-5 left-1/2 z-[130] w-[min(620px,calc(100vw-2rem))] -translate-x-1/2 rounded-3xl border border-[#8ed8ff]/35 bg-[#0b1014]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-xl">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8ed8ff]">Unsaved changes</p>
+              <p className="mt-1 text-sm text-white/62">You changed admin content. Save everything or dismiss the local changes.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={dismissChanges}
+                disabled={saving}
+                className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white/62 transition hover:border-white/25 hover:text-white disabled:opacity-50"
+              >
+                Dismiss
+              </button>
+              <button
+                type="button"
+                onClick={saveAllChanges}
+                disabled={saving}
+                className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#05070b] disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {tab === 'content' && (
@@ -534,9 +627,6 @@ export default function AdminPage() {
                 <Field label="Footer tagline EN" value={data.sections.footer.tagline} onChange={(value) => setSection('footer', 'tagline', value)} />
                 <Field label="Footer tagline AR" value={data.sections.footer.tagline_ar} onChange={(value) => setSection('footer', 'tagline_ar', value)} />
               </div>
-              <button onClick={saveContent} disabled={saving} className="accent-gradient mt-6 px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-[#090909] disabled:opacity-50">
-                {saving ? 'Saving...' : 'Save main page'}
-              </button>
             </div>
           </section>
         )}
@@ -632,9 +722,9 @@ export default function AdminPage() {
                     <button
                       onClick={async () => {
                         if (!confirm('Delete this project?')) return;
-                        await deleteRecord('projects', project.id);
-                        setData((current) => ({ ...current, projects: current.projects.filter((item) => item.id !== project.id) }));
-                        notify('Project deleted');
+                        stageDelete('projects', project.id);
+                        updateData((current) => ({ ...current, projects: current.projects.filter((item) => item.id !== project.id) }));
+                        notify('Project deleted. Save changes to publish.');
                       }}
                       className="rounded-full border border-red-400/25 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-red-200 transition hover:bg-red-500/10"
                     >
@@ -651,9 +741,8 @@ export default function AdminPage() {
           <ClientsManager
             clients={data.clients}
             uploadFile={uploadFile}
-            onChange={(clients) => setData((current) => ({ ...current, clients }))}
-            saveRecord={saveRecord}
-            deleteRecord={deleteRecord}
+            onChange={(clients) => updateData((current) => ({ ...current, clients }))}
+            onDelete={stageDelete}
             notify={notify}
           />
         )}
@@ -666,9 +755,8 @@ export default function AdminPage() {
               table="contact_info"
               fields={['icon', 'title', 'content', 'href']}
               newItem={{ id: '', icon: '@', title: 'Email', content: '', href: '' }}
-              onChange={(contacts) => setData((current) => ({ ...current, contacts: contacts as ContactInfo[] }))}
-              saveRecord={saveRecord}
-              deleteRecord={deleteRecord}
+              onChange={(contacts) => updateData((current) => ({ ...current, contacts: contacts as ContactInfo[] }))}
+              onDelete={stageDelete}
               notify={notify}
             />
             <EditableList
@@ -677,9 +765,8 @@ export default function AdminPage() {
               table="social_links"
               fields={['name', 'url', 'icon', 'sort_order']}
               newItem={{ id: '', name: 'Instagram', url: '', icon: '', sort_order: data.socials.length + 1 }}
-              onChange={(socials) => setData((current) => ({ ...current, socials: socials as SocialLink[] }))}
-              saveRecord={saveRecord}
-              deleteRecord={deleteRecord}
+              onChange={(socials) => updateData((current) => ({ ...current, socials: socials as SocialLink[] }))}
+              onDelete={stageDelete}
               notify={notify}
             />
           </section>
@@ -693,16 +780,14 @@ export default function AdminPage() {
               table="stats"
               fields={['value', 'label']}
               newItem={{ id: '', value: '10+', label: 'Projects' }}
-              onChange={(stats) => setData((current) => ({ ...current, stats: stats as Stat[] }))}
-              saveRecord={saveRecord}
-              deleteRecord={deleteRecord}
+              onChange={(stats) => updateData((current) => ({ ...current, stats: stats as Stat[] }))}
+              onDelete={stageDelete}
               notify={notify}
             />
             <SkillsManager
               skills={data.skills}
-              onChange={(skills) => setData((current) => ({ ...current, skills }))}
-              saveRecord={saveRecord}
-              deleteRecord={deleteRecord}
+              onChange={(skills) => updateData((current) => ({ ...current, skills }))}
+              onDelete={stageDelete}
               notify={notify}
             />
           </section>
@@ -732,9 +817,8 @@ export default function AdminPage() {
             </div>
             <TestimonialsManager
               testimonials={data.testimonials}
-              onChange={(testimonials) => setData((current) => ({ ...current, testimonials }))}
-              saveRecord={saveRecord}
-              deleteRecord={deleteRecord}
+              onChange={(testimonials) => updateData((current) => ({ ...current, testimonials }))}
+              onDelete={stageDelete}
               notify={notify}
             />
           </section>
@@ -748,13 +832,12 @@ export default function AdminPage() {
           uploadFile={uploadFile}
           onClose={() => setEditingProject(null)}
           onSave={async (project) => {
-            await saveRecord('projects', project);
-            setData((current) => ({
+            updateData((current) => ({
               ...current,
               projects: [...current.projects.filter((item) => item.id !== project.id), project].sort((a, b) => a.sort_order - b.sort_order),
             }));
             setEditingProject(null);
-            notify('Project saved');
+            notify('Project updated. Save changes to publish.');
           }}
           onError={notify}
         />
@@ -766,15 +849,13 @@ export default function AdminPage() {
 function ClientsManager({
   clients,
   onChange,
-  saveRecord,
-  deleteRecord,
+  onDelete,
   notify,
   uploadFile,
 }: {
   clients: Client[];
   onChange: (clients: Client[]) => void;
-  saveRecord: (table: string, record: object) => Promise<void>;
-  deleteRecord: (table: string, id: string) => Promise<void>;
+  onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
   uploadFile: (file: File) => Promise<string>;
 }) {
@@ -852,7 +933,7 @@ function ClientsManager({
                     try {
                       const url = await uploadFile(file);
                       updateClient(client.id, { logo_url: url });
-                      notify('Client logo uploaded. Save the client to keep it.');
+                      notify('Client logo uploaded. Save changes to keep it.');
                     } catch (uploadError) {
                       notify(uploadError instanceof Error ? uploadError.message : 'Logo upload failed');
                     }
@@ -865,19 +946,10 @@ function ClientsManager({
             <div className="mt-4 flex gap-2">
               <button
                 onClick={async () => {
-                  await saveRecord('clients', client);
-                  notify('Client saved');
-                }}
-                className="accent-gradient px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
-              >
-                Save
-              </button>
-              <button
-                onClick={async () => {
                   if (!confirm('Delete this client? Projects will keep their manual client text.')) return;
-                  await deleteRecord('clients', client.id);
+                  onDelete('clients', client.id);
                   onChange(clients.filter((item) => item.id !== client.id));
-                  notify('Client deleted');
+                  notify('Client deleted. Save changes to publish.');
                 }}
                 className="border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200"
               >
@@ -894,14 +966,12 @@ function ClientsManager({
 function SkillsManager({
   skills,
   onChange,
-  saveRecord,
-  deleteRecord,
+  onDelete,
   notify,
 }: {
   skills: Skill[];
   onChange: (skills: Skill[]) => void;
-  saveRecord: (table: string, record: object) => Promise<void>;
-  deleteRecord: (table: string, id: string) => Promise<void>;
+  onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
 }) {
   const addSkill = (program = 'Adobe After Effects') => {
@@ -973,19 +1043,10 @@ function SkillsManager({
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
-                      onClick={async () => {
-                        await saveRecord('skills', skill);
-                        notify('Skill saved');
-                      }}
-                      className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={async () => {
-                        await deleteRecord('skills', skill.id);
+                      onClick={() => {
+                        onDelete('skills', skill.id);
                         onChange(skills.filter((item) => item.id !== skill.id));
-                        notify('Skill deleted');
+                        notify('Skill deleted. Save changes to publish.');
                       }}
                       className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
                     >
@@ -1005,14 +1066,12 @@ function SkillsManager({
 function TestimonialsManager({
   testimonials,
   onChange,
-  saveRecord,
-  deleteRecord,
+  onDelete,
   notify,
 }: {
   testimonials: Testimonial[];
   onChange: (testimonials: Testimonial[]) => void;
-  saveRecord: (table: string, record: object) => Promise<void>;
-  deleteRecord: (table: string, id: string) => Promise<void>;
+  onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
 }) {
   const updateTestimonial = (id: string, patch: Partial<Testimonial>) => {
@@ -1054,19 +1113,10 @@ function TestimonialsManager({
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
-              onClick={async () => {
-                await saveRecord('testimonials', testimonial);
-                notify('Testimonial saved');
-              }}
-              className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
-            >
-              Save
-            </button>
-            <button
-              onClick={async () => {
-                await deleteRecord('testimonials', testimonial.id);
+              onClick={() => {
+                onDelete('testimonials', testimonial.id);
                 onChange(testimonials.filter((item) => item.id !== testimonial.id));
-                notify('Testimonial deleted');
+                notify('Testimonial deleted. Save changes to publish.');
               }}
               className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
             >
@@ -1086,8 +1136,7 @@ function EditableList({
   fields,
   newItem,
   onChange,
-  saveRecord,
-  deleteRecord,
+  onDelete,
   notify,
 }: {
   title: string;
@@ -1096,8 +1145,7 @@ function EditableList({
   fields: string[];
   newItem: Record<string, any>;
   onChange: (items: Array<Record<string, any>>) => void;
-  saveRecord: (table: string, record: object) => Promise<void>;
-  deleteRecord: (table: string, id: string) => Promise<void>;
+  onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
 }) {
   return (
@@ -1127,19 +1175,10 @@ function EditableList({
             </div>
             <div className="mt-4 flex gap-2">
               <button
-                onClick={async () => {
-                  await saveRecord(table, item);
-                  notify(`${title} saved`);
-                }}
-                className="accent-gradient px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#090909]"
-              >
-                Save
-              </button>
-              <button
-                onClick={async () => {
-                  await deleteRecord(table, String(item.id));
+                onClick={() => {
+                  onDelete(table, String(item.id));
                   onChange(items.filter((row) => row.id !== item.id));
-                  notify(`${title} deleted`);
+                  notify(`${title} deleted. Save changes to publish.`);
                 }}
                 className="border border-red-400/30 px-3 py-2 text-xs font-bold text-red-200"
               >
@@ -1169,14 +1208,22 @@ function ProjectEditor({
   uploadFile: (file: File) => Promise<string>;
 }) {
   const [form, setForm] = useState(project);
-  const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>(project.technologies);
+  const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>(project.technologies || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const availableTechnologies = ['After Effects', 'AI tools', 'Illustrator', 'Photoshop', 'Blender3D', 'Premier Pro'];
+  const isDirty = useMemo(() => {
+    return JSON.stringify({ ...form, technologies: selectedTechnologies }) !== JSON.stringify({ ...project, technologies: project.technologies || [] });
+  }, [form, project, selectedTechnologies]);
 
   const set = (key: keyof Project, value: string | number | boolean | string[] | null) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const closeEditor = () => {
+    if (isDirty && !confirm('Discard project changes?')) return;
+    onClose();
   };
 
   return (
@@ -1187,7 +1234,7 @@ function ProjectEditor({
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8ed8ff]">{project.title ? 'Editing project' : 'Create project'}</p>
             <h2 className="mt-1 text-2xl font-black">{project.title || 'New project'}</h2>
           </div>
-          <button onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full border border-white/10 text-lg font-black text-white/70 transition hover:border-white/25 hover:text-white">X</button>
+          <button onClick={closeEditor} className="grid h-11 w-11 place-items-center rounded-full border border-white/10 text-lg font-black text-white/70 transition hover:border-white/25 hover:text-white">X</button>
         </div>
         <div className="grid gap-4 p-5 md:grid-cols-2">
           <Field label="Title EN" value={form.title} onChange={(value) => set('title', value)} />
@@ -1296,7 +1343,7 @@ function ProjectEditor({
         </div>
         <div className="sticky bottom-0 flex flex-col gap-3 border-t border-white/10 bg-[#0d0f12]/92 p-5 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-end">
           {error && <p className="mr-auto max-w-md text-sm leading-6 text-red-300">{error}</p>}
-          <button onClick={onClose} className="rounded-full border border-white/10 px-5 py-3 text-sm font-bold text-white/64 transition hover:border-white/25 hover:text-white">Cancel</button>
+          <button onClick={closeEditor} className="rounded-full border border-white/10 px-5 py-3 text-sm font-bold text-white/64 transition hover:border-white/25 hover:text-white">Cancel</button>
           <button
             disabled={saving || !(form.title || form.title_ar) || !(form.description || form.description_ar)}
             onClick={async () => {
@@ -1314,7 +1361,7 @@ function ProjectEditor({
             }}
             className="accent-gradient rounded-full px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#090909] disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save project'}
+            {saving ? 'Applying...' : 'Apply project changes'}
           </button>
         </div>
       </div>
