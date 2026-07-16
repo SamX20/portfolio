@@ -13,27 +13,29 @@ const TABLES = new Set([
   'testimonials',
 ]);
 
-function withoutMissingColumn(record: Record<string, unknown>, message: string) {
+function withoutMissingColumn(records: Record<string, unknown>[], message: string) {
   const match = message.match(/Could not find the '([^']+)' column/);
   const column = match?.[1];
 
-  if (!column || !(column in record)) return null;
+  if (!column || !records.some((record) => column in record)) return null;
 
-  const next = { ...record };
-  delete next[column];
-  return { record: next, column };
+  const next = records.map((record) => {
+    const cleaned = { ...record };
+    delete cleaned[column];
+    return cleaned;
+  });
+  return { records: next, column };
 }
 
-async function upsertWithSchemaFallback(table: string, record: Record<string, unknown>) {
+async function upsertWithSchemaFallback(table: string, records: Record<string, unknown>[]) {
   const missingColumns: string[] = [];
-  let payload = { ...record };
+  let payload = records.map((record) => ({ ...record }));
 
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const result = await supabaseAdmin!
       .from(table)
       .upsert(payload)
-      .select()
-      .single();
+      .select();
 
     if (!result.error) {
       return { ...result, missingColumns };
@@ -45,7 +47,7 @@ async function upsertWithSchemaFallback(table: string, record: Record<string, un
     }
 
     missingColumns.push(fallback.column);
-    payload = fallback.record;
+    payload = fallback.records;
   }
 
   return {
@@ -123,15 +125,19 @@ export async function POST(request: Request) {
   const body = await request.json();
   const table = String(body.table || '');
   const record = body.record as Record<string, unknown> | undefined;
+  const records = body.records as Record<string, unknown>[] | undefined;
+  const sourceRecords = records?.length ? records : record ? [record] : [];
 
-  if (!TABLES.has(table) || !record) {
-    return NextResponse.json({ error: 'Invalid table or record.' }, { status: 400 });
+  if (!TABLES.has(table) || !sourceRecords.length) {
+    return NextResponse.json({ error: 'Invalid table or records.' }, { status: 400 });
   }
 
-  const payload = {
-    ...record,
-    updated_at: table === 'projects' || table === 'clients' ? new Date().toISOString() : undefined,
-  };
+  const timestamp = new Date().toISOString();
+  const payload = sourceRecords.map((item) => (
+    table === 'projects' || table === 'clients'
+      ? { ...item, updated_at: timestamp }
+      : item
+  ));
 
   const { data, error, missingColumns } = await upsertWithSchemaFallback(table, payload);
 

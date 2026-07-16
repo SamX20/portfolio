@@ -201,6 +201,7 @@ export default function AdminPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingDeletes, setPendingDeletes] = useState<PendingDelete[]>([]);
+  const [savedData, setSavedData] = useState<AdminData | null>(null);
   const [data, setData] = useState<AdminData>({
     projects: defaultProjects,
     stats: defaultStats,
@@ -257,7 +258,7 @@ export default function AdminPage() {
         .filter(Boolean)
         .map((name, index) => ({ id: `program-${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, name, sort_order: index + 1 }));
 
-      setData({
+      const nextData: AdminData = {
         projects: response.projects,
         stats: response.stats,
         contacts: response.contacts,
@@ -268,7 +269,10 @@ export default function AdminPage() {
         testimonials: response.testimonials || [],
         profile: response.profile || defaultProfile,
         sections: mapSections(response.sections),
-      });
+      };
+
+      setData(nextData);
+      setSavedData(structuredClone(nextData));
       setHasUnsavedChanges(false);
       setPendingDeletes([]);
     } catch (error) {
@@ -333,47 +337,66 @@ export default function AdminPage() {
     }
   };
 
-  const saveRecord = async (table: string, record: object) => {
+  const saveRecords = async (table: string, records: object[]) => {
+    if (!records.length) return [];
+
     const result = await api<{ missingColumns?: string[] }>('/api/admin/data', {
       method: 'POST',
-      body: JSON.stringify({ table, record }),
+      body: JSON.stringify({ table, records }),
     });
 
     if (result.missingColumns?.length) {
       notify(`Saved, but missing DB columns were skipped: ${result.missingColumns.join(', ')}`);
     }
+
+    return records;
   };
 
   const saveAllChanges = async () => {
     setSaving(true);
     try {
-      await api('/api/admin/data', {
-        method: 'PUT',
-        body: JSON.stringify({ profile: data.profile, sections: data.sections }),
-      });
-
-      const saveRows = async (table: string, records: object[]) => {
-        for (const record of records) {
-          await saveRecord(table, record);
-        }
+      const changedRecords = <T extends { id: string }>(current: T[], saved: T[] = []) => {
+        const savedById = new Map(saved.map((record) => [record.id, record]));
+        return current.filter((record) => JSON.stringify(record) !== JSON.stringify(savedById.get(record.id)));
       };
 
-      for (const item of pendingDeletes) {
-        await deleteRecord(item.table, item.id);
+      const profileChanged = !savedData || JSON.stringify(data.profile) !== JSON.stringify(savedData.profile);
+      const sectionsChanged = !savedData || JSON.stringify(data.sections) !== JSON.stringify(savedData.sections);
+      const recordGroups = [
+        ['projects', changedRecords(data.projects, savedData?.projects)],
+        ['clients', changedRecords(data.clients, savedData?.clients)],
+        ['stats', changedRecords(data.stats, savedData?.stats)],
+        ['contact_info', changedRecords(data.contacts, savedData?.contacts)],
+        ['social_links', changedRecords(data.socials, savedData?.socials)],
+        ['skill_programs', changedRecords(data.skillPrograms, savedData?.skillPrograms)],
+        ['skills', changedRecords(data.skills, savedData?.skills)],
+        ['testimonials', changedRecords(data.testimonials, savedData?.testimonials)],
+      ] as const;
+
+      const requests: Promise<unknown>[] = recordGroups.map(([table, records]) => saveRecords(table, records));
+
+      if (profileChanged || sectionsChanged) {
+        requests.push(api('/api/admin/data', {
+          method: 'PUT',
+          body: JSON.stringify({
+            profile: profileChanged ? data.profile : undefined,
+            sections: sectionsChanged ? data.sections : undefined,
+          }),
+        }));
       }
 
-      await saveRows('projects', data.projects);
-      await saveRows('clients', data.clients);
-      await saveRows('stats', data.stats);
-      await saveRows('contact_info', data.contacts);
-      await saveRows('social_links', data.socials);
-      await saveRows('skill_programs', data.skillPrograms);
-      await saveRows('skills', data.skills);
-      await saveRows('testimonials', data.testimonials);
+      requests.push(...pendingDeletes.map((item) => deleteRecord(item.table, item.id)));
+      await Promise.all(requests);
 
+      const savedCount = recordGroups.reduce((total, [, records]) => total + records.length, 0)
+        + pendingDeletes.length
+        + Number(profileChanged)
+        + Number(sectionsChanged);
+
+      setSavedData(structuredClone(data));
       setHasUnsavedChanges(false);
       setPendingDeletes([]);
-      notify('All changes saved');
+      notify(savedCount ? `${savedCount} change${savedCount === 1 ? '' : 's'} saved` : 'No changes to save');
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Save failed');
     } finally {
