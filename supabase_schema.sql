@@ -122,6 +122,12 @@ create table if not exists skills (
   sort_order integer default 0
 );
 
+create table if not exists skill_programs (
+  id text primary key,
+  name text not null unique,
+  sort_order integer default 0
+);
+
 create table if not exists testimonials (
   id text primary key,
   name text not null,
@@ -192,12 +198,23 @@ on conflict (id) do update set
   editing_field = excluded.editing_field,
   sort_order = excluded.sort_order;
 
+insert into skill_programs (id, name, sort_order)
+select
+  'program-' || substr(md5(program), 1, 12),
+  program,
+  min(sort_order)
+from skills
+where program is not null and btrim(program) <> ''
+group by program
+on conflict (name) do update set sort_order = excluded.sort_order;
+
 alter table projects enable row level security;
 alter table clients enable row level security;
 alter table stats enable row level security;
 alter table contact_info enable row level security;
 alter table social_links enable row level security;
 alter table sections enable row level security;
+alter table skill_programs enable row level security;
 alter table profile enable row level security;
 alter table skills enable row level security;
 alter table testimonials enable row level security;

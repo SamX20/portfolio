@@ -8,6 +8,7 @@ const TABLES = new Set([
   'stats',
   'contact_info',
   'social_links',
+  'skill_programs',
   'skills',
   'testimonials',
 ]);
@@ -73,7 +74,7 @@ export async function GET() {
   const authError = await requireAdmin();
   if (authError) return authError;
 
-  const [projects, stats, contacts, clients, socials, sections, profile, skills, testimonials] =
+  const [projects, stats, contacts, clients, socials, sections, profile, skillPrograms, skills, testimonials] =
     await Promise.all([
       supabaseAdmin!.from('projects').select('*').order('sort_order'),
       supabaseAdmin!.from('stats').select('*'),
@@ -82,6 +83,7 @@ export async function GET() {
       supabaseAdmin!.from('social_links').select('*').order('sort_order'),
       supabaseAdmin!.from('sections').select('*'),
       supabaseAdmin!.from('profile').select('*').eq('id', 'main').single(),
+      supabaseAdmin!.from('skill_programs').select('*').order('sort_order'),
       supabaseAdmin!.from('skills').select('*'),
       supabaseAdmin!.from('testimonials').select('*'),
     ]);
@@ -108,6 +110,7 @@ export async function GET() {
     socials: socials.data || [],
     sections: sections.data || [],
     profile: profile.data || null,
+    skillPrograms: skillPrograms.data || [],
     skills: skills.data || [],
     testimonials: testimonials.data || [],
   });

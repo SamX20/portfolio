@@ -2,8 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat, Testimonial } from '@/types';
-import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
+import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
+import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
 
 type Tab = 'content' | 'projects' | 'clients' | 'contacts' | 'skills' | 'testimonials';
 
@@ -20,6 +20,7 @@ interface AdminData {
   contacts: ContactInfo[];
   clients: Client[];
   socials: SocialLink[];
+  skillPrograms: SkillProgram[];
   skills: Skill[];
   testimonials: Testimonial[];
   profile: Profile;
@@ -206,6 +207,7 @@ export default function AdminPage() {
     contacts: defaultContacts,
     clients: defaultClients,
     socials: defaultSocials,
+    skillPrograms: defaultSkillPrograms,
     skills: defaultSkills,
     testimonials: defaultTestimonials,
     profile: defaultProfile,
@@ -244,11 +246,16 @@ export default function AdminPage() {
         contacts: ContactInfo[];
         clients: Client[];
         socials: SocialLink[];
+        skillPrograms?: SkillProgram[];
         skills: Skill[];
         testimonials: Testimonial[];
         profile: Profile | null;
         sections: { section: string; key: string; value: string }[];
       }>('/api/admin/data');
+
+      const derivedPrograms = Array.from(new Set(response.skills.map((skill) => skill.program || skill.name)))
+        .filter(Boolean)
+        .map((name, index) => ({ id: `program-${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, name, sort_order: index + 1 }));
 
       setData({
         projects: response.projects,
@@ -256,6 +263,7 @@ export default function AdminPage() {
         contacts: response.contacts,
         clients: response.clients || [],
         socials: response.socials,
+        skillPrograms: response.skillPrograms?.length ? response.skillPrograms : derivedPrograms,
         skills: response.skills,
         testimonials: response.testimonials || [],
         profile: response.profile || defaultProfile,
@@ -359,6 +367,7 @@ export default function AdminPage() {
       await saveRows('stats', data.stats);
       await saveRows('contact_info', data.contacts);
       await saveRows('social_links', data.socials);
+      await saveRows('skill_programs', data.skillPrograms);
       await saveRows('skills', data.skills);
       await saveRows('testimonials', data.testimonials);
 
@@ -785,7 +794,9 @@ export default function AdminPage() {
               notify={notify}
             />
             <SkillsManager
+              programs={data.skillPrograms}
               skills={data.skills}
+              onProgramsChange={(skillPrograms) => updateData((current) => ({ ...current, skillPrograms }))}
               onChange={(skills) => updateData((current) => ({ ...current, skills }))}
               onDelete={stageDelete}
               notify={notify}
@@ -964,79 +975,192 @@ function ClientsManager({
 }
 
 function SkillsManager({
+  programs,
   skills,
+  onProgramsChange,
   onChange,
   onDelete,
   notify,
 }: {
+  programs: SkillProgram[];
   skills: Skill[];
+  onProgramsChange: (programs: SkillProgram[]) => void;
   onChange: (skills: Skill[]) => void;
   onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
 }) {
-  const addSkill = (program = 'Adobe After Effects') => {
+  const [addMode, setAddMode] = useState<'program' | 'skill' | null>(null);
+  const [programName, setProgramName] = useState('');
+  const [skillDraft, setSkillDraft] = useState({ program: '', name: '', level: 90 });
+
+  const sortedPrograms = [...programs].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+  const addSkill = (program: string, name = 'New skill', level = 90) => {
     onChange([
       ...skills,
       {
         id: crypto.randomUUID(),
-        name: 'New skill',
-        level: 90,
+        name,
+        level,
         category: '',
         program,
-        program_skill: 'New skill',
+        program_skill: name,
         editing_field: '',
         sort_order: skills.length + 1,
       },
     ]);
   };
 
+  const openSkillForm = () => {
+    setSkillDraft({ program: sortedPrograms[0]?.name || '', name: '', level: 90 });
+    setAddMode('skill');
+  };
+
+  const createProgram = () => {
+    const name = programName.trim();
+    if (!name) return notify('Enter a program name');
+    if (programs.some((program) => program.name.toLowerCase() === name.toLowerCase())) {
+      return notify('This program already exists');
+    }
+
+    onProgramsChange([
+      ...programs,
+      { id: crypto.randomUUID(), name, sort_order: programs.length + 1 },
+    ]);
+    setProgramName('');
+    setAddMode(null);
+    notify('Program added. Save changes to publish.');
+  };
+
+  const createSkill = () => {
+    const name = skillDraft.name.trim();
+    if (!skillDraft.program) return notify('Choose a program first');
+    if (!name) return notify('Enter a skill name');
+
+    addSkill(skillDraft.program, name, Math.min(100, Math.max(0, skillDraft.level)));
+    setAddMode(null);
+    notify('Skill added. Save changes to publish.');
+  };
+
   const updateSkill = (id: string, patch: Partial<Skill>) => {
     onChange(skills.map((skill) => (skill.id === id ? { ...skill, ...patch } : skill)));
   };
 
-  const sortedSkills = [...skills].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-  const programs = Array.from(
-    sortedSkills.reduce<Map<string, Skill[]>>((acc, skill) => {
-      const program = skill.program || 'Adobe After Effects';
-      acc.set(program, [...(acc.get(program) || []), skill]);
-      return acc;
-    }, new Map()).entries(),
-  );
+  const renameProgram = (programId: string, oldName: string, nextName: string) => {
+    onProgramsChange(programs.map((program) => (program.id === programId ? { ...program, name: nextName } : program)));
+    onChange(skills.map((skill) => (skill.program === oldName ? { ...skill, program: nextName } : skill)));
+  };
+
+  const deleteProgram = (program: SkillProgram) => {
+    const programSkills = skills.filter((skill) => skill.program === program.name);
+    const warning = programSkills.length
+      ? `Delete ${program.name} and its ${programSkills.length} skills?`
+      : `Delete ${program.name}?`;
+    if (!confirm(warning)) return;
+
+    onDelete('skill_programs', program.id);
+    programSkills.forEach((skill) => onDelete('skills', skill.id));
+    onProgramsChange(programs.filter((item) => item.id !== program.id));
+    onChange(skills.filter((skill) => skill.program !== program.name));
+    notify('Program deleted. Save changes to publish.');
+  };
 
   return (
     <div className="border border-white/10 bg-white/[0.025] p-5">
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h2 className="text-xl font-black">Skills Settings</h2>
-          <p className="mt-1 text-sm text-white/45">Write the software, skill name, and level freely. Matching software names are grouped together.</p>
+          <p className="mt-1 text-sm text-white/45">Create programs first, then add and organize their skills.</p>
         </div>
-        <button onClick={() => addSkill()} className="rounded-full border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
-          Add skill
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => { setProgramName(''); setAddMode('program'); }} className="border border-white/20 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:border-white/50">
+            Add program
+          </button>
+          <button onClick={openSkillForm} disabled={!programs.length} className="border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff] transition hover:border-[#8ed8ff] disabled:cursor-not-allowed disabled:opacity-35">
+            Add skill
+          </button>
+        </div>
       </div>
+
+      {addMode === 'program' && (
+        <div className="mb-4 border border-[#8ed8ff]/35 bg-[#8ed8ff]/[0.06] p-4">
+          <p className="mb-3 text-sm font-black text-white">Add a new program</p>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+            <Field label="Program name" value={programName} placeholder="e.g. Cinema 4D" onChange={setProgramName} />
+            <div className="flex gap-2">
+              <button onClick={createProgram} className="bg-[#8ed8ff] px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black">Add program</button>
+              <button onClick={() => setAddMode(null)} className="border border-white/15 px-4 py-2.5 text-xs font-bold text-white/65">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {addMode === 'skill' && (
+        <div className="mb-4 border border-[#8ed8ff]/35 bg-[#8ed8ff]/[0.06] p-4">
+          <p className="mb-3 text-sm font-black text-white">Add a new skill</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            <label className="block">
+              <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Program</span>
+              <select value={skillDraft.program} onChange={(event) => setSkillDraft((current) => ({ ...current, program: event.target.value }))} className="w-full border border-white/10 bg-black/60 px-3 py-2.5 text-sm text-white outline-none focus:border-[#8ed8ff]/70">
+                {sortedPrograms.map((program) => <option key={program.id} value={program.name}>{program.name}</option>)}
+              </select>
+            </label>
+            <Field label="Skill name" value={skillDraft.name} placeholder="e.g. Character animation" onChange={(name) => setSkillDraft((current) => ({ ...current, name }))} />
+            <Field label="Level %" value={skillDraft.level} type="number" onChange={(level) => setSkillDraft((current) => ({ ...current, level: Number(level) }))} />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button onClick={createSkill} className="bg-[#8ed8ff] px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black">Add skill</button>
+            <button onClick={() => setAddMode(null)} className="border border-white/15 px-4 py-2.5 text-xs font-bold text-white/65">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {!programs.length && (
+        <div className="border border-dashed border-white/15 px-4 py-10 text-center text-sm text-white/45">
+          Add your first program, then create skills inside it.
+        </div>
+      )}
+
       <div className="grid gap-4">
-        {programs.map(([program, programSkills]) => (
-          <section key={program} className="rounded-3xl border border-white/10 bg-black/20 p-4">
+        {sortedPrograms.map((program) => {
+          const programSkills = [...skills]
+            .filter((skill) => skill.program === program.name)
+            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+          return (
+          <section key={program.id} className="rounded-lg border border-white/10 bg-black/20 p-4">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-lg font-black text-white">{program}</p>
+              <div className="min-w-0 flex-1">
+                <input
+                  value={program.name}
+                  onChange={(event) => renameProgram(program.id, program.name, event.target.value)}
+                  aria-label="Program name"
+                  className="w-full border-0 bg-transparent p-0 text-lg font-black text-white outline-none focus:text-[#8ed8ff]"
+                />
                 <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/38">
                   {programSkills.length} skills inside this software
                 </p>
               </div>
-              <button
-                onClick={() => addSkill(program)}
-                className="rounded-full border border-[#8ed8ff]/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:text-white"
-              >
-                Add skill to this program
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => { addSkill(program.name); notify('Skill added. Complete its details, then save changes.'); }} className="border border-[#8ed8ff]/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:text-white">
+                  Add skill here
+                </button>
+                <button onClick={() => deleteProgram(program)} className="border border-red-400/25 px-3 py-2 text-xs font-bold text-red-200/75 transition hover:border-red-400/60 hover:text-red-100">
+                  Delete program
+                </button>
+              </div>
             </div>
 
             <div className="grid gap-3">
               {programSkills.map((skill) => (
                 <article key={skill.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                   <div className="grid gap-3 md:grid-cols-2">
-                    <Field label="Program" value={skill.program || ''} onChange={(value) => updateSkill(skill.id, { program: value })} />
+                    <label className="block">
+                      <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Program</span>
+                      <select value={skill.program || ''} onChange={(event) => updateSkill(skill.id, { program: event.target.value })} className="w-full border border-white/10 bg-black/60 px-3 py-2.5 text-sm text-white outline-none focus:border-[#8ed8ff]/70">
+                        {sortedPrograms.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
+                      </select>
+                    </label>
                     <Field label="Skill name" value={skill.program_skill || skill.name} onChange={(value) => updateSkill(skill.id, { program_skill: value, name: value })} />
                     <Field label="Level %" value={skill.level} type="number" onChange={(value) => updateSkill(skill.id, { level: Number(value) })} />
                     <Field label="Sort order" value={skill.sort_order ?? 0} type="number" onChange={(value) => updateSkill(skill.id, { sort_order: Number(value) })} />
@@ -1057,7 +1181,7 @@ function SkillsManager({
               ))}
             </div>
           </section>
-        ))}
+        )})}
       </div>
     </div>
   );

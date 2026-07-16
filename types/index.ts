@@ -93,6 +93,12 @@ export interface Skill {
   sort_order?: number;
 }
 
+export interface SkillProgram {
+  id: string;
+  name: string;
+  sort_order?: number;
+}
+
 export interface Testimonial {
   id: string;
   name: string;

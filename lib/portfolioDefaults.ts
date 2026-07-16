@@ -138,4 +138,11 @@ export const defaultSkills: Skill[] = [
   { id: 'skill-blender', name: 'Blender 3D', level: 78, category: '3d-modeling', program: 'Blender 3D', program_skill: '3D Motion', editing_field: 'Product Promo', sort_order: 4 },
 ];
 
+export const defaultSkillPrograms = [
+  { id: 'program-after-effects', name: 'Adobe After Effects', sort_order: 1 },
+  { id: 'program-premiere', name: 'Adobe Premiere Pro', sort_order: 2 },
+  { id: 'program-ai-tools', name: 'AI Tools', sort_order: 3 },
+  { id: 'program-blender', name: 'Blender 3D', sort_order: 4 },
+];
+
 export const defaultTestimonials: Testimonial[] = [];
