@@ -28,7 +28,7 @@ export default function Testimonials({ testimonials = [], locale }: Testimonials
           viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8ed8ff]">{isAr ? 'آراء العملاء' : 'Client feedback'}</p>
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--accent)]">{isAr ? 'آراء العملاء' : 'Client feedback'}</p>
           <h2 className="mt-3 text-4xl font-black leading-tight md:text-5xl">
             {isAr ? 'تجارب حقيقية من عملاء اشتغلوا معي.' : 'What clients say after the final cut.'}
           </h2>
@@ -49,7 +49,7 @@ export default function Testimonials({ testimonials = [], locale }: Testimonials
                   <svg
                     key={starIndex}
                     viewBox="0 0 24 24"
-                    className={`h-4 w-4 ${starIndex < testimonial.rating ? 'fill-[#8ed8ff]' : 'fill-white/14'}`}
+                    className={`h-4 w-4 ${starIndex < testimonial.rating ? 'fill-[var(--accent)]' : 'fill-white/14'}`}
                     aria-hidden="true"
                   >
                     <path d="m12 2 2.9 6.2 6.7.8-4.9 4.6 1.3 6.6-6-3.3-6 3.3 1.3-6.6L2.4 9l6.7-.8L12 2Z" />

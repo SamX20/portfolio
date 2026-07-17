@@ -26,7 +26,7 @@ export default function ProjectCard({ project, locale, onOpen, featuredLayout = 
     <motion.button
       type="button"
       onClick={() => onOpen(project)}
-      className={`group relative overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[#4aa3ff]/70 ${
+      className={`group relative overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[var(--accent-mid)]/70 ${
         featuredLayout ? 'min-h-[420px] lg:min-h-[520px]' : 'min-h-[360px] lg:min-h-[430px]'
       }`}
       whileHover={isPortable ? undefined : { y: -8 }}
@@ -41,7 +41,7 @@ export default function ProjectCard({ project, locale, onOpen, featuredLayout = 
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/42 to-black/12" />
         <motion.div
-          className="absolute inset-y-0 w-1/2 bg-[#4aa3ff]/14 blur-xl"
+          className="absolute inset-y-0 w-1/2 bg-[var(--accent-mid)]/14 blur-xl"
           animate={isPortable ? { x: '40%' } : { x: ['-120%', '230%'] }}
           transition={isPortable ? { duration: 0 } : { duration: 3.2, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
         />
@@ -65,10 +65,10 @@ export default function ProjectCard({ project, locale, onOpen, featuredLayout = 
           <span className="bg-white/8 px-2.5 py-1 text-xs text-white/70">{project.year}</span>
         </div>
         <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-[#8ed8ff]">
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">
             {isAr ? 'مشاهدة العمل' : 'Play'}
           </span>
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-black transition group-hover:bg-[#4aa3ff]">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-black transition group-hover:bg-[var(--accent-mid)]">
             <svg viewBox="0 0 24 24" className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true">
               <path d="M8 5v14l11-7L8 5Z" />
             </svg>

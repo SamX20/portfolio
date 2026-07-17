@@ -18,6 +18,13 @@ export const defaultSections: SectionsData = {
     cta_text: 'Watch the reel',
     cta_link: '#projects',
     video_url: '',
+    video_url_alt: '',
+    theme_accent: '#8ed8ff',
+    theme_accent_mid: '#4aa3ff',
+    theme_accent_deep: '#2563eb',
+    theme_alt_accent: '#ff9a57',
+    theme_alt_accent_mid: '#e5682f',
+    theme_alt_accent_deep: '#405044',
   },
   about: {
     title: 'Samer Jaber',

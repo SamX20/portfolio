@@ -196,6 +196,9 @@ export default function AdminPage() {
   const [uploadingHeroVideo, setUploadingHeroVideo] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedHeroVideoFile, setSelectedHeroVideoFile] = useState<File | null>(null);
+  const [uploadingAltHeroVideo, setUploadingAltHeroVideo] = useState(false);
+  const [altUploadProgress, setAltUploadProgress] = useState(0);
+  const [selectedAltHeroVideoFile, setSelectedAltHeroVideoFile] = useState<File | null>(null);
   const [tab, setTab] = useState<Tab>('content');
   const [toast, setToast] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -584,6 +587,7 @@ export default function AdminPage() {
                 <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
                 <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
                 <div className="grid gap-3">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8ed8ff]">Primary hero reel</p>
                   <div className="flex flex-col gap-2">
                     <Field label="Hero video URL" value={data.sections.hero.video_url} onChange={(value) => setSection('hero', 'video_url', value)} placeholder="YouTube, Vimeo, or direct video link" />
                     {data.sections.hero.video_url ? (
@@ -645,6 +649,70 @@ export default function AdminPage() {
                       <div className="h-full bg-[#8ed8ff] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
                     </div>
                   ) : null}
+                </div>
+
+                <div className="grid gap-4 border-t border-white/10 pt-5">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ff9a57]">Alternate hero reel</p>
+                    <p className="mt-1 text-xs leading-5 text-white/38">Loaded only when a visitor switches reels.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Field label="Alternate video URL" value={data.sections.hero.video_url_alt} onChange={(value) => setSection('hero', 'video_url_alt', value)} placeholder="YouTube, Vimeo, or direct video link" />
+                    {data.sections.hero.video_url_alt ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSection('hero', 'video_url_alt', '');
+                          notify('Alternate hero video cleared. Save to apply the change.');
+                        }}
+                        className="self-start border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm font-bold uppercase tracking-[0.12em] text-red-200 hover:bg-red-500/15"
+                      >
+                        Clear alternate video
+                      </button>
+                    ) : null}
+                  </div>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Select alternate hero video file</span>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(event) => setSelectedAltHeroVideoFile(event.target.files?.[0] || null)}
+                      className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={!selectedAltHeroVideoFile || uploadingAltHeroVideo}
+                    onClick={async () => {
+                      if (!selectedAltHeroVideoFile) return;
+                      try {
+                        setUploadingAltHeroVideo(true);
+                        setAltUploadProgress(0);
+                        const url = await uploadFile(selectedAltHeroVideoFile, setAltUploadProgress);
+                        setSection('hero', 'video_url_alt', url);
+                        setSelectedAltHeroVideoFile(null);
+                        notify('Alternate hero video uploaded. Save changes to publish.');
+                      } catch (uploadError) {
+                        notify(uploadError instanceof Error ? uploadError.message : 'Alternate hero video upload failed');
+                      } finally {
+                        setUploadingAltHeroVideo(false);
+                        setAltUploadProgress(0);
+                      }
+                    }}
+                    className="w-full bg-[#ff9a57] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#160b06] disabled:opacity-50"
+                  >
+                    {uploadingAltHeroVideo ? `Uploading ${altUploadProgress}%` : 'Upload alternate hero video'}
+                  </button>
+                  {uploadingAltHeroVideo ? (
+                    <div className="h-2 overflow-hidden border border-white/10 bg-white/5">
+                      <div className="h-full bg-[#ff9a57] transition-all duration-200" style={{ width: `${altUploadProgress}%` }} />
+                    </div>
+                  ) : null}
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Field label="Light accent" value={data.sections.hero.theme_alt_accent} type="color" onChange={(value) => setSection('hero', 'theme_alt_accent', value)} />
+                    <Field label="Mid accent" value={data.sections.hero.theme_alt_accent_mid} type="color" onChange={(value) => setSection('hero', 'theme_alt_accent_mid', value)} />
+                    <Field label="Deep accent" value={data.sections.hero.theme_alt_accent_deep} type="color" onChange={(value) => setSection('hero', 'theme_alt_accent_deep', value)} />
+                  </div>
                 </div>
               </div>
             </div>

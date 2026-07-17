@@ -49,7 +49,7 @@ export default function Navigation({ sections, locale, onLocaleChange }: Navigat
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-3">
-          <span className="accent-gradient grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-[#4aa3ff]/50 text-sm font-black text-[#090909]">
+          <span className="accent-gradient grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-[var(--accent-mid)]/50 text-sm font-black text-[#090909]">
             {isImageLogo(logo) ? (
               <img src={logo} alt={`${siteTitle} logo`} className="h-full w-full object-cover" />
             ) : (
@@ -71,14 +71,14 @@ export default function Navigation({ sections, locale, onLocaleChange }: Navigat
           <button
             type="button"
             onClick={() => onLocaleChange(locale === 'en' ? 'ar' : 'en')}
-            className="h-9 rounded-full border border-white/12 px-3 text-xs font-black uppercase tracking-[0.16em] text-white/85 transition hover:border-[#8ed8ff]/60 hover:text-[#8ed8ff]"
+            className="h-9 rounded-full border border-white/12 px-3 text-xs font-black uppercase tracking-[0.16em] text-white/85 transition hover:border-[var(--accent)]/60 hover:text-[var(--accent)]"
             aria-label="Toggle language"
           >
             {locale === 'en' ? 'AR' : 'EN'}
           </button>
           <a
             href="#contact"
-            className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#4aa3ff]"
+            className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-[var(--accent-mid)]"
           >
             {t.book}
           </a>

@@ -65,7 +65,7 @@ export default function ClientsShowcase({
       <div className="mx-auto max-w-7xl">
         <ScrollReveal className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className={isAr ? 'text-right' : 'text-left'}>
-            <p className="mb-3 text-xs font-black uppercase tracking-[0.32em] text-[#8ed8ff]">
+            <p className="mb-3 text-xs font-black uppercase tracking-[0.32em] text-[var(--accent)]">
               {isAr ? 'عملاء مختارون' : 'Selected Clients'}
             </p>
             <h2 className="max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
@@ -76,7 +76,7 @@ export default function ClientsShowcase({
             <button
               type="button"
               onClick={() => onSelectClient(null)}
-              className="self-start rounded-full border border-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white/58 transition hover:border-[#8ed8ff]/60 hover:text-white md:self-end"
+              className="self-start rounded-full border border-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white/58 transition hover:border-[var(--accent)]/60 hover:text-white md:self-end"
             >
               {isAr ? 'عرض كل المشاريع' : 'Show all work'}
             </button>
@@ -93,20 +93,20 @@ export default function ClientsShowcase({
                   onClick={() => onSelectClient(active ? null : client.id)}
                   className={`group flex min-h-[94px] w-full items-center gap-4 border p-4 text-left transition ${
                     active
-                      ? 'border-[#4aa3ff] bg-[#8ed8ff]/12'
-                      : 'border-white/10 bg-white/[0.025] hover:border-[#8ed8ff]/45 hover:bg-white/[0.045]'
+                      ? 'border-[var(--accent-mid)] bg-[var(--accent)]/12'
+                      : 'border-white/10 bg-white/[0.025] hover:border-[var(--accent)]/45 hover:bg-white/[0.045]'
                   } ${isAr ? 'text-right' : 'text-left'}`}
                 >
                   <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-black/35">
                     {client.logo_url ? (
                       <img src={client.logo_url} alt={client.name} className="h-full w-full object-contain p-2" />
                     ) : (
-                      <span className="text-sm font-black uppercase tracking-[0.1em] text-[#8ed8ff]">{getInitials(client.name)}</span>
+                      <span className="text-sm font-black uppercase tracking-[0.1em] text-[var(--accent)]">{getInitials(client.name)}</span>
                     )}
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-base font-black text-white">{client.name}</span>
-                    <span className="mt-1 block text-xs font-bold uppercase tracking-[0.14em] text-white/35 group-hover:text-[#8ed8ff]/80">
+                    <span className="mt-1 block text-xs font-bold uppercase tracking-[0.14em] text-white/35 group-hover:text-[var(--accent)]/80">
                       {isAr ? 'عرض الأعمال' : 'View projects'}
                     </span>
                   </span>

@@ -57,7 +57,7 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8ed8ff]">{isAr ? 'المهارات والأدوات' : 'Tools and Skills'}</p>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--accent)]">{isAr ? 'المهارات والأدوات' : 'Tools and Skills'}</p>
             <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
               {isAr ? 'برامج ومهارات أشتغل عليها.' : 'Programs and craft skills I build with.'}
             </h2>
@@ -86,7 +86,7 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
                   {getProgramIcon(program) ? (
                     <img src={getProgramIcon(program) || ''} alt={`${program} icon`} className="h-full w-full object-contain" />
                   ) : (
-                    <span className="text-lg font-black text-[#8ed8ff]">{getProgramInitial(program)}</span>
+                    <span className="text-lg font-black text-[var(--accent)]">{getProgramInitial(program)}</span>
                   )}
                 </div>
                 <div className="min-w-0">
@@ -104,11 +104,11 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-white">{skill.program_skill || skill.name}</p>
                       </div>
-                      <span className="text-sm font-black text-[#8ed8ff]">{skill.level}%</span>
+                      <span className="text-sm font-black text-[var(--accent)]">{skill.level}%</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-[#8ed8ff] to-[#2f7dff]"
+                        className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-deep)]"
                         initial={!disableMotion ? { width: 0 } : undefined}
                         whileInView={!disableMotion ? { width: `${skill.level}%` } : undefined}
                         viewport={!disableMotion ? { once: true, amount: 0.2 } : undefined}

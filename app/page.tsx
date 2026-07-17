@@ -72,6 +72,13 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
       cta_text: resolveText(heroMap.cta_text, defaultSections.hero.cta_text),
       cta_link: heroMap.cta_link || defaultSections.hero.cta_link,
       video_url: heroMap.video_url || defaultSections.hero.video_url,
+      video_url_alt: heroMap.video_url_alt || defaultSections.hero.video_url_alt,
+      theme_accent: heroMap.theme_accent || defaultSections.hero.theme_accent,
+      theme_accent_mid: heroMap.theme_accent_mid || defaultSections.hero.theme_accent_mid,
+      theme_accent_deep: heroMap.theme_accent_deep || defaultSections.hero.theme_accent_deep,
+      theme_alt_accent: heroMap.theme_alt_accent || defaultSections.hero.theme_alt_accent,
+      theme_alt_accent_mid: heroMap.theme_alt_accent_mid || defaultSections.hero.theme_alt_accent_mid,
+      theme_alt_accent_deep: heroMap.theme_alt_accent_deep || defaultSections.hero.theme_alt_accent_deep,
     },
     about: {
       ...defaultSections.about,

@@ -107,7 +107,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[#8ed8ff]">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[var(--accent)]">
               {isAr ? 'أعمال مختارة' : 'Selected Work'}
             </p>
             <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
@@ -120,7 +120,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
           <ScrollReveal className="mb-14" delay={120}>
             <div className="mb-5 flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.26em] text-[#8ed8ff]">
+                <p className="text-xs font-black uppercase tracking-[0.26em] text-[var(--accent)]">
                   {isAr ? 'في الواجهة' : 'Featured Projects'}
                 </p>
                 <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
@@ -144,7 +144,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
 
         {selectedClientId && selectedClientName && (
           <ScrollReveal className="mb-5 flex flex-wrap items-center gap-3" delay={160}>
-            <span className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">
+            <span className="border border-[var(--accent)]/35 bg-[var(--accent)]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[var(--accent)]">
               {isAr ? `مشاريع ${selectedClientName}` : `${selectedClientName} projects`}
             </span>
             <button
@@ -165,7 +165,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               onClick={() => setActiveCategory(category.value as ProjectCategory)}
               className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.16em] transition ${
                 activeCategory === category.value
-                  ? 'accent-gradient border-[#4aa3ff] text-[#090909]'
+                  ? 'accent-gradient border-[var(--accent-mid)] text-[#090909]'
                   : 'border-white/10 text-white/55 hover:border-white/35 hover:text-white'
               }`}
             >
@@ -189,7 +189,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
             <button
               type="button"
               onClick={() => setVisibleProjectCount((current) => current + INITIAL_PROJECT_COUNT)}
-              className="rounded-full border border-white/14 bg-white/[0.035] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/72 transition hover:border-[#8ed8ff]/55 hover:text-white"
+              className="rounded-full border border-white/14 bg-white/[0.035] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/72 transition hover:border-[var(--accent)]/55 hover:text-white"
             >
               {isAr ? 'عرض المزيد' : 'View more'}
             </button>
@@ -222,7 +222,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               <button
                 type="button"
                 onClick={closeProject}
-                className="absolute right-3 top-3 z-[5] grid h-11 w-11 place-items-center rounded-full border border-white/18 bg-black/70 text-2xl leading-none text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:border-[#8ed8ff]/70 hover:text-[#8ed8ff]"
+                className="absolute right-3 top-3 z-[5] grid h-11 w-11 place-items-center rounded-full border border-white/18 bg-black/70 text-2xl leading-none text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:border-[var(--accent)]/70 hover:text-[var(--accent)]"
                 aria-label="Close project"
                 title="Close"
               >
@@ -230,7 +230,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               </button>
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-[#8ed8ff]">
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent)]">
                     {selected.client || selected.category.join(' / ')}
                   </p>
                   <h3 className="mt-1 text-xl font-black text-white">{modalTitle}</h3>
@@ -255,7 +255,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                       href={selected.video_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex rounded-full border border-[#8ed8ff]/55 bg-[#8ed8ff] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[#4aa3ff]/20 transition hover:border-white hover:bg-white"
+                      className="inline-flex rounded-full border border-[var(--accent)]/55 bg-[var(--accent)] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[var(--accent-mid)]/20 transition hover:border-white hover:bg-white"
                     >
                       {isAr ? 'فتح الرابط المباشر' : 'Open direct link'}
                     </a>

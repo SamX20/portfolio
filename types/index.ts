@@ -125,6 +125,13 @@ export interface SectionsData {
     cta_text: string;
     cta_link: string;
     video_url?: string;
+    video_url_alt?: string;
+    theme_accent?: string;
+    theme_accent_mid?: string;
+    theme_accent_deep?: string;
+    theme_alt_accent?: string;
+    theme_alt_accent_mid?: string;
+    theme_alt_accent_deep?: string;
     title_ar?: string;
     subtitle_ar?: string;
     description_ar?: string;

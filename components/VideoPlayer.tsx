@@ -283,7 +283,7 @@ export default function VideoPlayer({
                 event.stopPropagation();
                 void togglePlayback();
               }}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#8ed8ff] text-[#05070b] transition hover:bg-white"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-[#05070b] transition hover:bg-white"
               aria-label={isPlaying ? 'Pause video' : 'Play video'}
             >
               {isPlaying ? (
@@ -306,7 +306,7 @@ export default function VideoPlayer({
               step="0.1"
               value={Math.min(currentTime, duration || currentTime)}
               onChange={(event) => seekTo(event.target.value)}
-              className="h-1.5 min-w-0 flex-1 accent-[#8ed8ff]"
+              className="h-1.5 min-w-0 flex-1 accent-[var(--accent)]"
               aria-label="Video progress"
             />
           </div>

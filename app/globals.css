@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #8ed8ff;
+}
+
+@property --accent-mid {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4aa3ff;
+}
+
+@property --accent-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2563eb;
+}
+
 @layer base {
   :root {
     --background: #080808;
@@ -7,7 +25,10 @@
     --accent: #8ed8ff;
     --accent-mid: #4aa3ff;
     --accent-deep: #2563eb;
-    --accent-gradient: linear-gradient(135deg, #8ed8ff 0%, #4aa3ff 48%, #2563eb 100%);
+    transition:
+      --accent 650ms cubic-bezier(0.22, 1, 0.36, 1),
+      --accent-mid 650ms cubic-bezier(0.22, 1, 0.36, 1),
+      --accent-deep 650ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   html {
@@ -37,7 +58,7 @@
 }
 
 ::selection {
-  background: #4aa3ff;
+  background: var(--accent-mid);
   color: #080808;
 }
 
@@ -50,15 +71,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3f8cff, #4aa3ff, #2563eb);
+  background: linear-gradient(180deg, var(--accent), var(--accent-mid), var(--accent-deep));
 }
 
 .accent-gradient {
-  background: var(--accent-gradient);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-mid) 48%, var(--accent-deep) 100%);
 }
 
 .accent-gradient-text {
-  background: var(--accent-gradient);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-mid) 48%, var(--accent-deep) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
