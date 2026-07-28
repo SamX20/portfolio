@@ -207,7 +207,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#080808] pt-16" dir={isAr ? 'rtl' : 'ltr'}>
+    <section className="relative overflow-hidden bg-[#080808]" dir={isAr ? 'rtl' : 'ltr'}>
       {showHeroLoader ? (
         <HeroLoadingOverlay
           started={introStarted}
@@ -218,6 +218,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
         />
       ) : null}
 
+      <div className="hero-stage relative min-h-[100svh] overflow-hidden pt-16">
       {activeVideoUrl ? (
         <div className="absolute inset-0 z-0">
           <VideoPlayer
@@ -233,6 +234,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
             fadeInAudio
             waitForStart={!heroVideoReady}
             startEventName={HERO_START_EVENT}
+            fill
             className="absolute inset-0 h-full w-full rounded-none opacity-95"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,.86)_0%,rgba(8,8,8,.58)_42%,rgba(8,8,8,.22)_100%)]" />
@@ -258,7 +260,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
         <button
           type="button"
           onClick={() => setHeroMuted((current) => !current)}
-          className="fixed bottom-6 right-6 z-30 grid h-12 w-12 place-items-center rounded-full border border-white/18 bg-black/36 text-white/88 shadow-2xl shadow-black/30 backdrop-blur transition hover:border-[var(--accent)]/70 hover:text-[var(--accent)]"
+          className="absolute bottom-5 right-5 z-30 grid h-12 w-12 place-items-center rounded-full border border-white/18 bg-black/36 text-white/88 shadow-2xl shadow-black/30 backdrop-blur transition hover:border-[var(--accent)]/70 hover:text-[var(--accent)] sm:bottom-6 sm:right-6"
           aria-label={heroMuted ? 'Unmute hero video' : 'Mute hero video'}
           title={heroMuted ? 'Unmute' : 'Mute'}
         >
@@ -296,27 +298,15 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
           >
             &#8594;
           </button>
-          <div className="absolute bottom-20 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 border border-white/12 bg-black/36 px-3 py-2 backdrop-blur-md md:bottom-8">
-            {[0, 1].map((index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => switchHero(index as 0 | 1)}
-                aria-label={`Show hero reel ${index + 1}`}
-                aria-current={activeHero === index ? 'true' : undefined}
-                className={`h-1.5 transition-all duration-500 ${activeHero === index ? 'w-8 bg-[var(--accent)]' : 'w-3 bg-white/30 hover:bg-white/60'}`}
-              />
-            ))}
-          </div>
         </>
       ) : null}
 
-      <div className={`relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col justify-center px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:pt-32 ${hasAlternateHero ? 'md:px-20 lg:px-24' : 'lg:px-8'}`}>
+      <div className={`hero-stage-content relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] max-w-7xl flex-col justify-center px-4 pb-20 pt-20 sm:px-6 sm:pb-24 sm:pt-24 lg:pt-28 ${hasAlternateHero ? 'md:px-20 lg:px-24' : 'lg:px-8'}`}>
         <div className={`max-w-4xl ${isAr ? 'text-right' : 'text-left'}`}>
           <p className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[var(--accent)] transition-colors duration-700">
             {subtitle}
           </p>
-          <h1 className={`max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)] ${isAr ? 'leading-[1.16]' : 'leading-[1.02]'}`}>
+          <h1 className={`hero-stage-title max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)] ${isAr ? 'leading-[1.16]' : 'leading-[1.02]'}`}>
             {title}
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/78 drop-shadow-[0_8px_24px_rgba(0,0,0,.68)] sm:text-lg">
@@ -333,7 +323,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
           </div>
         </div>
 
-        <div className="mt-12 max-w-xl">
+        <div className="hero-stage-about mt-10 max-w-xl sm:mt-12">
           {!activeVideoUrl ? (
             <div className="relative aspect-video overflow-hidden border border-white/14 bg-[linear-gradient(145deg,#161616,#090909)]">
               <motion.div
@@ -364,6 +354,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
             <p className="mt-3 text-sm leading-6 text-white/72">{about}</p>
           </div>
         </div>
+      </div>
       </div>
 
       <div

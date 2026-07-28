@@ -20,6 +20,7 @@ interface VideoPlayerProps {
   onReady?: () => void;
   onAutoPlayBlocked?: () => void;
   startEventName?: string;
+  fill?: boolean;
 }
 
 function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): string {
@@ -97,6 +98,7 @@ export default function VideoPlayer({
   onReady,
   onAutoPlayBlocked,
   startEventName,
+  fill = false,
 }: VideoPlayerProps) {
   const [showVideo, setShowVideo] = useState(autoPlay);
   const [aspectRatio, setAspectRatio] = useState(3 / 4);
@@ -110,7 +112,8 @@ export default function VideoPlayer({
   const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay, muted) : undefined;
   const driveFileId = getGoogleDriveFileId(videoUrl);
   const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
-  const wrapperStyle = { aspectRatio, maxHeight: '80vh', maxWidth: '100%' };
+  const wrapperStyle = fill ? undefined : { aspectRatio, maxHeight: '80vh', maxWidth: '100%' };
+  const wrapperRadius = fill ? 'rounded-none' : 'rounded-xl';
   const showCompactControls = !autoPlay;
 
   const handleThumbnailLoad = (event: SyntheticEvent<HTMLImageElement>) => {
@@ -234,7 +237,7 @@ export default function VideoPlayer({
   }, [startEventName]);
 
   const renderDirectVideo = (src: string) => (
-    <div className={`group relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
+    <div className={`group relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
       <video
         ref={videoRef}
         controls={false}
@@ -319,7 +322,7 @@ export default function VideoPlayer({
     const directUrl = getGoogleDriveDirectUrl(id);
 
     return (
-      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
+      <div className={`relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
         <video
           ref={videoRef}
           controls
@@ -342,7 +345,7 @@ export default function VideoPlayer({
 
   if (embedCode) {
     return (
-      <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
+      <div className={`relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
         <div dangerouslySetInnerHTML={{ __html: embedCode }} />
       </div>
     );
@@ -361,7 +364,7 @@ export default function VideoPlayer({
 
     if (isEmbedVideo) {
       return (
-        <div className={`relative w-full overflow-hidden rounded-xl bg-black ${className}`} style={wrapperStyle}>
+        <div className={`relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
           <iframe
             src={resolvedVideoUrl}
             title={title}
@@ -380,7 +383,7 @@ export default function VideoPlayer({
   if (videoUrl && thumbnail && !showVideo) {
     return (
       <div
-        className={`relative w-full cursor-pointer overflow-hidden rounded-xl bg-black ${className}`}
+        className={`relative w-full cursor-pointer overflow-hidden ${wrapperRadius} bg-black ${className}`}
         style={wrapperStyle}
         onClick={() => setShowVideo(true)}
       >
@@ -403,7 +406,7 @@ export default function VideoPlayer({
   }
 
   return (
-    <div className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-sky-900/20 to-blue-900/20 ${className}`} style={wrapperStyle}>
+    <div className={`relative flex w-full items-center justify-center overflow-hidden ${wrapperRadius} border border-white/10 bg-gradient-to-br from-sky-900/20 to-blue-900/20 ${className}`} style={wrapperStyle}>
       <div className="text-center text-white/60">
         <svg className="mx-auto mb-4 h-16 w-16 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />

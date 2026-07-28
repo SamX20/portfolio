@@ -244,6 +244,22 @@ section:has(.hero-start-toggle:checked) .hero-loader-overlay,
   }
 }
 
+@media (min-width: 768px) and (max-height: 820px) {
+  .hero-stage-content {
+    justify-content: flex-start;
+    padding-top: 4.5rem;
+    padding-bottom: 4.75rem;
+  }
+
+  .hero-stage-title {
+    font-size: clamp(3rem, 5.8vw, 5.6rem);
+  }
+
+  .hero-stage-about {
+    margin-top: 1.75rem;
+  }
+}
+
 /* Fix Arabic text spacing issues */
 [dir="rtl"] {
   letter-spacing: normal !important;
