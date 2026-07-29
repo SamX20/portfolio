@@ -15,6 +15,7 @@ create table if not exists projects (
   duration text,
   technologies text[] default '{}',
   video_url text,
+  hover_video_url text,
   embed_code text,
   thumbnail text,
   featured boolean default false,
@@ -28,6 +29,7 @@ alter table projects add column if not exists description_ar text;
 alter table projects add column if not exists client_id text;
 alter table projects add column if not exists client text;
 alter table projects add column if not exists role text;
+alter table projects add column if not exists hover_video_url text;
 
 do $$
 begin

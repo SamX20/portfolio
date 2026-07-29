@@ -24,6 +24,7 @@ export interface Project {
   duration?: string;
   technologies: string[];
   video_url?: string;
+  hover_video_url?: string;
   embed_code?: string;
   thumbnail?: string;
   featured: boolean;

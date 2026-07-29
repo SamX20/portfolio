@@ -50,15 +50,6 @@ export default function HomeClient({ data }: { data: HomeData }) {
     <main className="relative isolate overflow-hidden bg-[#080808] text-white">
       <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} />
       <Hero locale={locale} profile={data.profile} sections={data.sections} stats={data.stats} />
-      <Skills locale={locale} skills={data.skills} />
-      <Testimonials locale={locale} testimonials={data.testimonials} />
-      <ClientsShowcase
-        clients={data.clients}
-        projects={data.projects}
-        locale={locale}
-        selectedClientId={selectedClientId}
-        onSelectClient={setSelectedClientId}
-      />
       <Portfolio
         locale={locale}
         projects={data.projects}
@@ -66,6 +57,20 @@ export default function HomeClient({ data }: { data: HomeData }) {
         selectedClientId={selectedClientId}
         onClearClient={() => setSelectedClientId(null)}
       />
+      <ClientsShowcase
+        clients={data.clients}
+        projects={data.projects}
+        locale={locale}
+        selectedClientId={selectedClientId}
+        onSelectClient={(clientId) => {
+          setSelectedClientId(clientId);
+          if (clientId) {
+            window.requestAnimationFrame(() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+          }
+        }}
+      />
+      <Skills locale={locale} skills={data.skills} />
+      <Testimonials locale={locale} testimonials={data.testimonials} />
       <Contact locale={locale} contacts={data.contacts} socialLinks={data.socials} />
       <Footer locale={locale} sections={data.sections} socialLinks={data.socials} />
     </main>

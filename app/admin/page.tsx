@@ -4,8 +4,9 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
 import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
+import VideoOptimizer from '@/components/admin/VideoOptimizer';
 
-type Tab = 'content' | 'projects' | 'clients' | 'contacts' | 'skills' | 'testimonials';
+type Tab = 'content' | 'projects' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
 
 interface UploadTicket {
   bucket: string;
@@ -45,6 +46,7 @@ const emptyProject: Project = {
   duration: '',
   technologies: [],
   video_url: '',
+  hover_video_url: '',
   embed_code: '',
   thumbnail: '',
   featured: false,
@@ -438,6 +440,7 @@ export default function AdminPage() {
       .from(ticket.bucket)
       .uploadToSignedUrl(ticket.path, ticket.token, file, {
         contentType: file.type,
+        cacheControl: '31536000',
         upsert: true,
       });
 
@@ -515,6 +518,7 @@ export default function AdminPage() {
             {[
               ['content', 'Main page'],
               ['projects', 'Projects'],
+              ['media', 'Video Optimizer'],
               ['clients', 'Clients'],
               ['contacts', 'Contact / Social'],
               ['skills', 'Skills / Stats'],
@@ -834,6 +838,22 @@ export default function AdminPage() {
                 </article>
               ))}
             </div>
+          </section>
+        )}
+
+        {tab === 'media' && (
+          <section className="pb-24">
+            <div className="mb-6 max-w-3xl">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Media pipeline</p>
+              <h2 className="mt-2 text-3xl font-black">Video Optimizer</h2>
+              <p className="mt-2 text-sm leading-6 text-white/46">
+                Process locally before upload. Each source creates a fast-start 720p/30fps master and a silent six-second hover preview.
+              </p>
+            </div>
+            <VideoOptimizer
+              uploadFile={uploadFile}
+              onComplete={() => notify('Optimized video and hover preview uploaded.')}
+            />
           </section>
         )}
 
@@ -1506,6 +1526,7 @@ function ProjectEditor({
           <Field label="Duration" value={form.duration} onChange={(value) => set('duration', value)} />
           <Field label="Sort order" value={form.sort_order} type="number" onChange={(value) => set('sort_order', Number(value))} />
           <Field label="Video URL (Drive / YouTube / Vimeo / direct)" value={form.video_url} onChange={(value) => set('video_url', value)} />
+          <Field label="Hover preview URL" value={form.hover_video_url} onChange={(value) => set('hover_video_url', value)} />
           <Field label="Thumbnail URL" value={form.thumbnail} onChange={(value) => set('thumbnail', value)} />
           <label className="block md:col-span-2">
             <span className="mb-3 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Technologies</span>
@@ -1530,18 +1551,17 @@ function ProjectEditor({
             </div>
           </label>
           <label className="block">
-            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload thumbnail or video</span>
+            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Upload thumbnail</span>
             <input
               type="file"
-              accept="image/*,video/*"
+              accept="image/*"
               onChange={async (event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
                 try {
                   setError('');
                   const url = await uploadFile(file);
-                  if (file.type.startsWith('image/')) set('thumbnail', url);
-                  if (file.type.startsWith('video/')) set('video_url', url);
+                  set('thumbnail', url);
                 } catch (uploadError) {
                   const message = uploadError instanceof Error ? uploadError.message : 'Upload failed';
                   setError(message);
@@ -1551,6 +1571,26 @@ function ProjectEditor({
               className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
           </label>
+          <div className="md:col-span-2">
+            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Optimize and upload project video</span>
+            <VideoOptimizer
+              uploadFile={uploadFile}
+              multiple={false}
+              compact
+              onComplete={(result) => {
+                const minutes = Math.floor(result.metadata.duration / 60);
+                const seconds = Math.round(result.metadata.duration % 60).toString().padStart(2, '0');
+                setForm((current) => ({
+                  ...current,
+                  video_url: result.fullUrl,
+                  hover_video_url: result.hoverUrl,
+                  duration: current.duration || `${minutes}:${seconds}`,
+                }));
+                setError('');
+                onError('Video optimized and uploaded. Apply the project, then save changes.');
+              }}
+            />
+          </div>
           <label className="flex items-center gap-3 rounded-2xl border border-[#8ed8ff]/20 bg-[#8ed8ff]/10 p-3 text-sm font-bold text-white/78">
             <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#8ed8ff]" />
             Featured project

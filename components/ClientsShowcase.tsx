@@ -61,7 +61,7 @@ export default function ClientsShowcase({
   if (!visibleClients.length) return null;
 
   return (
-    <section className="relative bg-[#080808] px-4 py-16 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
+    <section className="deferred-section relative bg-[#080808] px-4 py-16 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="mx-auto max-w-7xl">
         <ScrollReveal className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className={isAr ? 'text-right' : 'text-left'}>
@@ -99,7 +99,7 @@ export default function ClientsShowcase({
                 >
                   <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-black/35">
                     {client.logo_url ? (
-                      <img src={client.logo_url} alt={client.name} className="h-full w-full object-contain p-2" />
+                      <img src={client.logo_url} alt={client.name} loading="lazy" decoding="async" className="h-full w-full object-contain p-2" />
                     ) : (
                       <span className="text-sm font-black uppercase tracking-[0.1em] text-[var(--accent)]">{getInitials(client.name)}</span>
                     )}

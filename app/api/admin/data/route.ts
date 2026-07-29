@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { isAdminAuthed } from '@/lib/adminAuth';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -145,6 +146,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  revalidatePath('/');
   return NextResponse.json({ data, missingColumns });
 }
 
@@ -212,6 +214,7 @@ export async function PUT(request: Request) {
     }
   }
 
+  revalidatePath('/');
   return NextResponse.json({ ok: true });
 }
 
@@ -233,5 +236,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  revalidatePath('/');
   return NextResponse.json({ ok: true });
 }

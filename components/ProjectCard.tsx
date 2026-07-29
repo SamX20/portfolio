@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useRef, useState } from 'react';
 import { CATEGORIES, Locale, Project } from '@/types';
 import usePortableMotion from '@/lib/usePortableMotion';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
@@ -10,10 +11,19 @@ interface ProjectCardProps {
   locale: Locale;
   onOpen: (project: Project) => void;
   featuredLayout?: boolean;
+  compactLayout?: boolean;
 }
 
-export default function ProjectCard({ project, locale, onOpen, featuredLayout = false }: ProjectCardProps) {
+export default function ProjectCard({
+  project,
+  locale,
+  onOpen,
+  featuredLayout = false,
+  compactLayout = false,
+}: ProjectCardProps) {
   const isPortable = usePortableMotion();
+  const hoverVideoRef = useRef<HTMLVideoElement>(null);
+  const [showHoverVideo, setShowHoverVideo] = useState(false);
   const isAr = locale === 'ar';
   const categoryLabels = CATEGORIES
     .filter((item) => project.category.includes(item.value))
@@ -21,24 +31,70 @@ export default function ProjectCard({ project, locale, onOpen, featuredLayout = 
   const title = isAr ? project.title_ar || project.title : project.title;
   const description = isAr ? project.description_ar || project.description : project.description;
   const thumbnailUrl = project.thumbnail || getGoogleDriveThumbnail(project.video_url);
+  const cardHeight = featuredLayout
+    ? 'min-h-[520px] lg:min-h-[560px]'
+    : compactLayout
+      ? 'min-h-[250px]'
+      : 'min-h-[350px] lg:min-h-[390px]';
+
+  const startPreview = () => {
+    if (isPortable || !project.hover_video_url) return;
+    setShowHoverVideo(true);
+    window.requestAnimationFrame(() => {
+      const video = hoverVideoRef.current;
+      if (!video) return;
+      video.currentTime = 0;
+      void video.play().catch(() => undefined);
+    });
+  };
+
+  const stopPreview = () => {
+    const video = hoverVideoRef.current;
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+    setShowHoverVideo(false);
+  };
 
   return (
     <motion.button
       type="button"
       onClick={() => onOpen(project)}
-      className={`group relative overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[var(--accent-mid)]/70 ${
-        featuredLayout ? 'min-h-[420px] lg:min-h-[520px]' : 'min-h-[360px] lg:min-h-[430px]'
-      }`}
-      whileHover={isPortable ? undefined : { y: -8 }}
+      onMouseEnter={startPreview}
+      onMouseLeave={stopPreview}
+      onFocus={startPreview}
+      onBlur={stopPreview}
+      className={`group relative w-full overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[var(--accent-mid)]/70 ${cardHeight}`}
+      whileHover={isPortable ? undefined : { y: -5 }}
       transition={isPortable ? undefined : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       dir={isAr ? 'rtl' : 'ltr'}
     >
       <div className="absolute inset-0">
         {thumbnailUrl ? (
-          <img src={thumbnailUrl} alt={title} className="h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-100" />
+          <img
+            src={thumbnailUrl}
+            alt={title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
+          />
         ) : (
           <div className="h-full w-full bg-[radial-gradient(circle_at_24%_28%,rgba(142,216,255,.28),transparent_34%),radial-gradient(circle_at_76%_64%,rgba(37,99,235,.18),transparent_30%),linear-gradient(135deg,#191919,#0b0b0b_52%,#171225)]" />
         )}
+        {project.hover_video_url && showHoverVideo ? (
+          <video
+            ref={hoverVideoRef}
+            src={project.hover_video_url}
+            poster={thumbnailUrl}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="absolute inset-0 h-full w-full object-cover"
+            aria-hidden="true"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/42 to-black/12" />
         <motion.div
           className="absolute inset-y-0 w-1/2 bg-[var(--accent-mid)]/14 blur-xl"
@@ -53,18 +109,18 @@ export default function ProjectCard({ project, locale, onOpen, featuredLayout = 
         </span>
       )}
 
-      <div className={`relative z-10 flex flex-col justify-end p-5 ${featuredLayout ? 'min-h-[420px] lg:min-h-[520px] lg:p-7' : 'min-h-[360px] lg:min-h-[430px]'}`}>
+      <div className={`relative z-10 flex flex-col justify-end p-5 ${cardHeight} ${featuredLayout ? 'lg:p-7' : ''}`}>
         <span className="mb-3 w-fit border border-white/16 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/70 backdrop-blur">
           {categoryLabels.length > 0 ? categoryLabels.join(' / ') : project.category.join(', ')}
         </span>
-        <h3 className={`${featuredLayout ? 'text-3xl sm:text-4xl' : 'text-2xl'} font-black leading-tight text-white`}>{title}</h3>
-        <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/62">{description}</p>
+        <h3 className={`${featuredLayout ? 'text-3xl sm:text-4xl' : compactLayout ? 'text-xl' : 'text-2xl'} font-black leading-tight text-white`}>{title}</h3>
+        {!compactLayout ? <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/62">{description}</p> : null}
         <div className="mt-5 flex flex-wrap gap-2">
           {project.client && <span className="bg-white/8 px-2.5 py-1 text-xs text-white/70">{project.client}</span>}
           {project.duration && <span className="bg-white/8 px-2.5 py-1 text-xs text-white/70">{project.duration}</span>}
           <span className="bg-white/8 px-2.5 py-1 text-xs text-white/70">{project.year}</span>
         </div>
-        <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+        <div className={`${compactLayout ? 'mt-4' : 'mt-6'} flex items-center justify-between border-t border-white/10 pt-4`}>
           <span className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">
             {isAr ? 'مشاهدة العمل' : 'Play'}
           </span>

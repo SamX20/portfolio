@@ -21,6 +21,7 @@ interface VideoPlayerProps {
   onAutoPlayBlocked?: () => void;
   startEventName?: string;
   fill?: boolean;
+  preload?: 'none' | 'metadata' | 'auto';
 }
 
 function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): string {
@@ -99,6 +100,7 @@ export default function VideoPlayer({
   onAutoPlayBlocked,
   startEventName,
   fill = false,
+  preload = 'metadata',
 }: VideoPlayerProps) {
   const [showVideo, setShowVideo] = useState(autoPlay);
   const [aspectRatio, setAspectRatio] = useState(3 / 4);
@@ -243,7 +245,7 @@ export default function VideoPlayer({
         controls={false}
         poster={thumbnail}
         className={`h-full w-full ${objectFitClass}`}
-        preload="auto"
+        preload={preload}
         autoPlay={autoPlay}
         muted={muted}
         loop={loop}

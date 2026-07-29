@@ -47,7 +47,7 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
   const programNames = programs.map(([program]) => program);
 
   return (
-    <section className="bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" id="skills" dir={isAr ? 'rtl' : 'ltr'}>
+    <section className="deferred-section bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" id="skills" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="mx-auto max-w-7xl">
         <motion.div
           className="mb-12 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
@@ -84,7 +84,7 @@ export default function Skills({ skills = [], locale }: SkillsProps) {
               <div className="mb-5 flex items-center gap-4">
                 <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-2">
                   {getProgramIcon(program) ? (
-                    <img src={getProgramIcon(program) || ''} alt={`${program} icon`} className="h-full w-full object-contain" />
+                    <img src={getProgramIcon(program) || ''} alt={`${program} icon`} loading="lazy" decoding="async" className="h-full w-full object-contain" />
                   ) : (
                     <span className="text-lg font-black text-[var(--accent)]">{getProgramInitial(program)}</span>
                   )}

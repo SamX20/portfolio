@@ -235,6 +235,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
             waitForStart={!heroVideoReady}
             startEventName={HERO_START_EVENT}
             fill
+            preload="none"
             className="absolute inset-0 h-full w-full rounded-none opacity-95"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,.86)_0%,rgba(8,8,8,.58)_42%,rgba(8,8,8,.22)_100%)]" />

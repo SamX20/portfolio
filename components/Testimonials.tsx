@@ -19,7 +19,7 @@ export default function Testimonials({ testimonials = [], locale }: Testimonials
   if (!visibleTestimonials.length) return null;
 
   return (
-    <section className="bg-[#080808] px-4 pb-24 sm:px-6 lg:px-8" id="testimonials" dir={isAr ? 'rtl' : 'ltr'}>
+    <section className="deferred-section bg-[#080808] px-4 pb-24 sm:px-6 lg:px-8" id="testimonials" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="mx-auto max-w-7xl">
         <motion.div
           className="mb-10 max-w-3xl"

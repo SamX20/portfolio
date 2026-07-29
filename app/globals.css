@@ -260,6 +260,11 @@ section:has(.hero-start-toggle:checked) .hero-loader-overlay,
   }
 }
 
+.deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 /* Fix Arabic text spacing issues */
 [dir="rtl"] {
   letter-spacing: normal !important;

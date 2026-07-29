@@ -9,7 +9,7 @@ import VideoPlayer from './VideoPlayer';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
 
 const HERO_MUTE_EVENT = 'sam:set-hero-muted';
-const INITIAL_PROJECT_COUNT = 9;
+const INITIAL_PROJECT_COUNT = 6;
 
 interface PortfolioProps {
   projects?: Project[];
@@ -58,7 +58,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   );
 
   const featuredProjects = useMemo(
-    () => filtered.filter((project) => project.featured),
+    () => filtered.filter((project) => project.featured).slice(0, 5),
     [filtered],
   );
 
@@ -103,7 +103,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   };
 
   return (
-    <section id="projects" className="relative bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
+    <section id="projects" className="deferred-section relative bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
@@ -132,12 +132,19 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               </p>
             </div>
 
-            <div className="grid gap-5 lg:grid-cols-2">
-              {featuredProjects.map((project, index) => (
-                <ScrollReveal key={project.id} delay={index * 90} variant="scale">
-                  <ProjectCard project={project} locale={locale} onOpen={openProject} featuredLayout />
-                </ScrollReveal>
-              ))}
+            <div className="grid gap-5 lg:grid-cols-[1.35fr_.9fr]">
+              <ScrollReveal delay={0} variant="scale">
+                <ProjectCard project={featuredProjects[0]} locale={locale} onOpen={openProject} featuredLayout />
+              </ScrollReveal>
+              {featuredProjects.length > 1 ? (
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {featuredProjects.slice(1).map((project, index) => (
+                    <ScrollReveal key={project.id} delay={(index + 1) * 70} variant="scale">
+                      <ProjectCard project={project} locale={locale} onOpen={openProject} compactLayout />
+                    </ScrollReveal>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </ScrollReveal>
         )}
