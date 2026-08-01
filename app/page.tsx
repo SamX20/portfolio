@@ -10,7 +10,7 @@ import {
   defaultStats,
   defaultTestimonials,
 } from '@/lib/portfolioDefaults';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { Locale, SectionsData } from '@/types';
 
 export const revalidate = 300;
@@ -98,45 +98,40 @@ function mapSections(rows: { section: string; key: string; value: string }[]): S
 
 async function loadHomeData(): Promise<HomeData> {
   const fallback = fallbackData();
+  const database = supabaseAdmin || supabase;
 
-  if (!supabase) return fallback;
+  if (!database) return fallback;
 
-  try {
-    const query = Promise.all([
-      supabase.from('projects').select('*').order('sort_order'),
-      supabase.from('stats').select('*'),
-      supabase.from('contact_info').select('*'),
-      supabase.from('clients').select('*').order('sort_order'),
-      supabase.from('social_links').select('*').order('sort_order'),
-      supabase.from('sections').select('*'),
-      supabase.from('profile').select('*').eq('id', 'main').single(),
-      supabase.from('skills').select('*'),
-      supabase.from('testimonials').select('*'),
-    ]);
+  const result = await Promise.all([
+    database.from('projects').select('*').order('sort_order'),
+    database.from('stats').select('*'),
+    database.from('contact_info').select('*'),
+    database.from('clients').select('*').order('sort_order'),
+    database.from('social_links').select('*').order('sort_order'),
+    database.from('sections').select('*'),
+    database.from('profile').select('*').eq('id', 'main').single(),
+    database.from('skills').select('*'),
+    database.from('testimonials').select('*'),
+  ]);
 
-    const timeout = new Promise<null>((resolve) => {
-      setTimeout(() => resolve(null), 2500);
-    });
-
-    const result = await Promise.race([query, timeout]);
-    if (!result) return fallback;
-
-    const [projectsRes, statsRes, contactsRes, clientsRes, socialsRes, sectionsRes, profileRes, skillsRes, testimonialsRes] = result;
-
-    return {
-      projects: projectsRes.data ?? defaultProjects,
-      stats: statsRes.data ?? defaultStats,
-      contacts: contactsRes.data ?? defaultContacts,
-      clients: clientsRes.data ?? [],
-      socials: socialsRes.data ?? defaultSocials,
-      sections: sectionsRes.data?.length ? mapSections(sectionsRes.data) : defaultSections,
-      profile: profileRes.data || defaultProfile,
-      skills: skillsRes.data ?? defaultSkills,
-      testimonials: testimonialsRes.data ?? defaultTestimonials,
-    };
-  } catch {
-    return fallback;
+  const failedQuery = result.find((response) => response.error);
+  if (failedQuery?.error) {
+    throw new Error(`Could not load portfolio data: ${failedQuery.error.message}`);
   }
+
+  const [projectsRes, statsRes, contactsRes, clientsRes, socialsRes, sectionsRes, profileRes, skillsRes, testimonialsRes] = result;
+
+  return {
+    projects: projectsRes.data ?? defaultProjects,
+    stats: statsRes.data ?? defaultStats,
+    contacts: contactsRes.data ?? defaultContacts,
+    clients: clientsRes.data ?? [],
+    socials: socialsRes.data ?? defaultSocials,
+    sections: sectionsRes.data?.length ? mapSections(sectionsRes.data) : defaultSections,
+    profile: profileRes.data || defaultProfile,
+    skills: skillsRes.data ?? defaultSkills,
+    testimonials: testimonialsRes.data ?? defaultTestimonials,
+  };
 }
 
 export default async function Home() {
