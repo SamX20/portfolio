@@ -74,7 +74,7 @@ export default function ProjectCard({
             alt={title}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-contain opacity-90 transition duration-700 group-hover:scale-[1.015] group-hover:opacity-100"
+            className="h-full w-full object-cover object-center opacity-90 transition duration-700 group-hover:scale-[1.015] group-hover:opacity-100"
           />
         ) : (
           <div className="h-full w-full bg-[linear-gradient(135deg,#17191d,#08090b_52%,#111827)]" />
@@ -90,7 +90,7 @@ export default function ProjectCard({
             autoPlay
             preload="auto"
             onCanPlay={(event) => void event.currentTarget.play().catch(() => undefined)}
-            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
             aria-hidden="true"
           />
         ) : null}
