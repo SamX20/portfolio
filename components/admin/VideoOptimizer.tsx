@@ -7,20 +7,28 @@ import {
   optimizeVideo,
   VideoMetadata,
 } from '@/lib/videoOptimizer';
+import { ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
 
 export interface UploadedVideoResult {
+  draftId: string;
+  sourceFileName: string;
   fullUrl: string;
   hoverUrl: string;
+  thumbnailUrl: string;
+  analysisImage: string;
   metadata: VideoMetadata;
+  suggestion?: ProjectMetadataSuggestion;
   originalSize: number;
   fullSize: number;
   hoverSize: number;
+  thumbnailSize: number;
 }
 
 interface QueueItem {
   id: string;
+  draftId: string;
   file: File;
-  status: 'ready' | 'processing' | 'uploading' | 'done' | 'error';
+  status: 'ready' | 'processing' | 'uploading' | 'generating' | 'review' | 'done' | 'error';
   progress: number;
   stage: string;
   result?: UploadedVideoResult;
@@ -29,7 +37,9 @@ interface QueueItem {
 
 interface VideoOptimizerProps {
   uploadFile: (file: File, onProgress?: (percent: number) => void) => Promise<string>;
+  generateMetadata?: (input: Omit<ProjectMetadataInput, 'existingProjects'>) => Promise<ProjectMetadataSuggestion>;
   onComplete?: (result: UploadedVideoResult) => void;
+  onReview?: (result: UploadedVideoResult) => void;
   multiple?: boolean;
   compact?: boolean;
 }
@@ -40,7 +50,9 @@ function queueId(file: File) {
 
 export default function VideoOptimizer({
   uploadFile,
+  generateMetadata,
   onComplete,
+  onReview,
   multiple = true,
   compact = false,
 }: VideoOptimizerProps) {
@@ -64,6 +76,7 @@ export default function VideoOptimizer({
         .filter((file) => !existingIds.has(queueId(file)))
         .map((file) => ({
           id: queueId(file),
+          draftId: crypto.randomUUID(),
           file,
           status: 'ready' as const,
           progress: 0,
@@ -85,9 +98,15 @@ export default function VideoOptimizer({
 
     try {
       const optimized = await optimizeVideo(item.file, (stage, progress) => {
-        const stageLabel = stage === 'inspect' ? 'Inspecting' : stage === 'full' ? 'Creating 720p master' : 'Creating hover preview';
-        const stageBase = stage === 'inspect' ? 0 : stage === 'full' ? 5 : 65;
-        const stageWeight = stage === 'inspect' ? 5 : stage === 'full' ? 60 : 20;
+        const stageLabel = stage === 'inspect'
+          ? 'Inspecting'
+          : stage === 'thumbnail'
+            ? 'Sampling frames'
+            : stage === 'full'
+              ? 'Creating 720p master'
+              : 'Creating hover preview';
+        const stageBase = stage === 'inspect' ? 0 : stage === 'thumbnail' ? 4 : stage === 'full' ? 10 : 57;
+        const stageWeight = stage === 'inspect' ? 4 : stage === 'thumbnail' ? 6 : stage === 'full' ? 47 : 15;
         patchItem(item.id, {
           status: 'processing',
           stage: stageLabel,
@@ -95,33 +114,84 @@ export default function VideoOptimizer({
         });
       });
 
-      patchItem(item.id, { status: 'uploading', stage: 'Uploading 720p master', progress: 85 });
+      patchItem(item.id, { status: 'uploading', stage: 'Uploading 720p master', progress: 72 });
       const fullUrl = await uploadFile(optimized.full, (percent) => {
-        patchItem(item.id, { progress: 85 + Math.round(percent * 0.08) });
+        patchItem(item.id, { progress: 72 + Math.round(percent * 0.11) });
       });
 
-      patchItem(item.id, { stage: 'Uploading hover preview', progress: 93 });
+      patchItem(item.id, { stage: 'Uploading hover preview', progress: 83 });
       const hoverUrl = await uploadFile(optimized.hover, (percent) => {
-        patchItem(item.id, { progress: 93 + Math.round(percent * 0.07) });
+        patchItem(item.id, { progress: 83 + Math.round(percent * 0.08) });
+      });
+
+      patchItem(item.id, { stage: 'Uploading thumbnail', progress: 91 });
+      const thumbnailUrl = await uploadFile(optimized.thumbnail, (percent) => {
+        patchItem(item.id, { progress: 91 + Math.round(percent * 0.04) });
       });
 
       const result: UploadedVideoResult = {
+        draftId: item.draftId,
+        sourceFileName: item.file.name,
         fullUrl,
         hoverUrl,
+        thumbnailUrl,
+        analysisImage: optimized.analysisImage,
         metadata: optimized.metadata,
         originalSize: item.file.size,
         fullSize: optimized.full.size,
         hoverSize: optimized.hover.size,
+        thumbnailSize: optimized.thumbnail.size,
       };
 
-      patchItem(item.id, { status: 'done', stage: 'Uploaded', progress: 100, result });
-      onComplete?.(result);
+      await finishMetadata(item.id, result);
     } catch (error) {
       patchItem(item.id, {
         status: 'error',
         stage: 'Failed',
         error: error instanceof Error ? error.message : 'Video optimization failed.',
       });
+    }
+  };
+
+  const finishMetadata = async (id: string, result: UploadedVideoResult) => {
+    if (!generateMetadata) {
+      patchItem(id, { status: 'done', stage: 'Uploaded and ready for review', progress: 100, result, error: undefined });
+      onComplete?.(result);
+      return;
+    }
+
+    patchItem(id, { status: 'generating', stage: 'Writing bilingual project draft', progress: 96, result, error: undefined });
+
+    try {
+      const suggestion = await generateMetadata({
+        sourceFileName: result.sourceFileName,
+        duration: result.metadata.duration,
+        width: result.metadata.width,
+        height: result.metadata.height,
+        analysisImage: result.analysisImage,
+      });
+      const completedResult = { ...result, suggestion };
+      patchItem(id, { status: 'done', stage: 'Draft ready for review', progress: 100, result: completedResult, error: undefined });
+      onComplete?.(completedResult);
+    } catch (error) {
+      patchItem(id, {
+        status: 'review',
+        stage: 'Media uploaded; metadata needs attention',
+        progress: 100,
+        result,
+        error: error instanceof Error ? error.message : 'AI metadata generation failed.',
+      });
+      onComplete?.(result);
+    }
+  };
+
+  const retryMetadata = async (item: QueueItem) => {
+    if (!item.result || processing) return;
+    setProcessing(true);
+    try {
+      await finishMetadata(item.id, item.result);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -156,7 +226,7 @@ export default function VideoOptimizer({
         <div>
           <div className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-[#8ed8ff]/40 bg-[#8ed8ff]/10 text-xl text-[#8ed8ff]">+</div>
           <p className="mt-3 text-sm font-black text-white">Drop video files here</p>
-          <p className="mt-1 text-xs leading-5 text-white/42">Automatic 720p, 30fps, fast-start MP4 and a 6-second hover preview.</p>
+          <p className="mt-1 text-xs leading-5 text-white/42">Automatic 720p master, hover preview, thumbnail, and bilingual AI draft.</p>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
@@ -187,7 +257,7 @@ export default function VideoOptimizer({
                   <p className="truncate text-sm font-black text-white">{item.file.name}</p>
                   <p className="mt-1 text-xs text-white/38">
                     {formatFileSize(item.file.size)}
-                    {item.result ? ` → ${formatFileSize(item.result.fullSize)} + ${formatFileSize(item.result.hoverSize)}` : ''}
+                    {item.result ? ` -> ${formatFileSize(item.result.fullSize)} + ${formatFileSize(item.result.hoverSize)}` : ''}
                   </p>
                 </div>
                 {!processing && item.status !== 'done' ? (
@@ -197,7 +267,7 @@ export default function VideoOptimizer({
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 text-sm text-white/45 hover:border-red-300/40 hover:text-red-200"
                     aria-label={`Remove ${item.file.name}`}
                   >
-                    ×
+                    X
                   </button>
                 ) : null}
               </div>
@@ -206,32 +276,84 @@ export default function VideoOptimizer({
                 <div className="h-full bg-gradient-to-r from-[#8ed8ff] to-[#4aa3ff] transition-all duration-200" style={{ width: `${item.progress}%` }} />
               </div>
               <div className="mt-2 flex items-center justify-between gap-3 text-xs">
-                <span className={item.status === 'error' ? 'text-red-200' : item.status === 'done' ? 'text-emerald-200' : 'text-white/46'}>
+                <span className={item.status === 'error' ? 'text-red-200' : item.status === 'review' ? 'text-amber-200' : item.status === 'done' ? 'text-emerald-200' : 'text-white/46'}>
                   {item.error || item.stage}
                 </span>
                 <span className="tabular-nums text-white/35">{item.progress}%</span>
               </div>
               {item.result ? (
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs text-white/35">
-                    Source {item.result.metadata.width}×{item.result.metadata.height} · Output 720p/30fps · {formatDuration(item.result.metadata.duration)}
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={async () => navigator.clipboard.writeText(item.result?.fullUrl || '')}
-                      className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
-                    >
-                      Copy master URL
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => navigator.clipboard.writeText(item.result?.hoverUrl || '')}
-                      className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
-                    >
-                      Copy hover URL
-                    </button>
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs text-white/35">
+                      Source {item.result.metadata.width}x{item.result.metadata.height} / Output 720p 30fps / {formatDuration(item.result.metadata.duration)}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={async () => navigator.clipboard.writeText(item.result?.fullUrl || '')}
+                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
+                      >
+                        Copy master URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => navigator.clipboard.writeText(item.result?.hoverUrl || '')}
+                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
+                      >
+                        Copy hover URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => navigator.clipboard.writeText(item.result?.thumbnailUrl || '')}
+                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
+                      >
+                        Copy thumbnail URL
+                      </button>
+                      {item.status === 'review' && generateMetadata ? (
+                        <button
+                          type="button"
+                          disabled={processing}
+                          onClick={() => retryMetadata(item)}
+                          className="border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-amber-100 disabled:opacity-40"
+                        >
+                          Retry metadata only
+                        </button>
+                      ) : null}
+                      {item.result.suggestion && onReview ? (
+                        <button
+                          type="button"
+                          onClick={() => onReview(item.result!)}
+                          className="accent-gradient px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#05070b]"
+                        >
+                          {item.result.suggestion.matched_project_id ? 'Review replacement' : 'Review new project'}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
+                  {item.result.suggestion ? (
+                    <div className="grid gap-3 border border-[#8ed8ff]/20 bg-[#8ed8ff]/[0.055] p-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">English draft</p>
+                        <p className="mt-1 text-sm font-black text-white">{item.result.suggestion.title}</p>
+                        <p className="mt-1 text-xs leading-5 text-white/48">{item.result.suggestion.description}</p>
+                      </div>
+                      <div dir="rtl" className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">Arabic draft</p>
+                        <p className="mt-1 text-sm font-black text-white">{item.result.suggestion.title_ar}</p>
+                        <p className="mt-1 text-xs leading-5 text-white/48">{item.result.suggestion.description_ar}</p>
+                      </div>
+                      {item.result.suggestion.review_notes.length ? (
+                        <p className="text-xs leading-5 text-amber-100/70 md:col-span-2">
+                          Review: {item.result.suggestion.review_notes.join(' / ')}
+                        </p>
+                      ) : null}
+                      <p className="text-xs leading-5 text-white/52 md:col-span-2">
+                        {item.result.suggestion.matched_project_id
+                          ? `Existing project match: ${item.result.suggestion.match_confidence}% / ${item.result.suggestion.match_reason}`
+                          : `No safe existing match / ${item.result.suggestion.match_reason}`}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -252,7 +374,7 @@ export default function VideoOptimizer({
               disabled={processing || !queue.some((item) => item.status === 'ready' || item.status === 'error')}
               className="accent-gradient px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {processing ? 'Optimizing…' : `Optimize and upload${multiple ? ' all' : ''}`}
+              {processing ? 'Processing...' : `Create review draft${multiple ? 's' : ''}`}
             </button>
           </div>
         </div>

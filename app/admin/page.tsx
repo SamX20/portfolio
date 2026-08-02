@@ -4,7 +4,8 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
 import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
-import VideoOptimizer from '@/components/admin/VideoOptimizer';
+import VideoOptimizer, { UploadedVideoResult } from '@/components/admin/VideoOptimizer';
+import { PORTFOLIO_TECHNOLOGIES, ProjectMetadataCandidate, ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
 
 type Tab = 'content' | 'projects' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
 
@@ -93,9 +94,9 @@ function getBrowserSupabase() {
   return browserSupabase;
 }
 
-async function api<T>(url: string, init?: RequestInit): Promise<T> {
+async function api<T>(url: string, init?: RequestInit, timeoutMs = 15_000): Promise<T> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 15000);
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
   const response = await fetch(url, {
     ...init,
@@ -116,6 +117,45 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Request failed');
   return data;
+}
+
+function formatProjectDuration(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.round(seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainder}`;
+}
+
+function projectFromIngestion(result: UploadedVideoResult, sortOrder: number): Project {
+  const suggestion = result.suggestion;
+  return {
+    ...emptyProject,
+    id: result.draftId,
+    title: suggestion?.title || '',
+    title_ar: suggestion?.title_ar || '',
+    description: suggestion?.description || '',
+    description_ar: suggestion?.description_ar || '',
+    category: suggestion?.category?.length ? suggestion.category : emptyProject.category,
+    role: suggestion?.role || '',
+    technologies: suggestion?.technologies || [],
+    duration: formatProjectDuration(result.metadata.duration),
+    video_url: result.fullUrl,
+    hover_video_url: result.hoverUrl,
+    thumbnail: result.thumbnailUrl,
+    sort_order: sortOrder,
+  };
+}
+
+function projectMatchingCandidate(project: Project): ProjectMetadataCandidate {
+  return {
+    id: project.id,
+    title: (project.title || '').slice(0, 140),
+    title_ar: (project.title_ar || '').slice(0, 140),
+    description: (project.description || '').slice(0, 600),
+    description_ar: (project.description_ar || '').slice(0, 600),
+    client: (project.client || '').slice(0, 140),
+    year: project.year,
+    category: project.category,
+  };
 }
 
 function getProjectVideoSource(videoUrl?: string) {
@@ -450,6 +490,21 @@ export default function AdminPage() {
 
     onProgress?.(100);
     return ticket.url;
+  };
+
+  const generateProjectMetadata = async (input: Omit<ProjectMetadataInput, 'existingProjects'>) => {
+    const response = await api<{ metadata: ProjectMetadataSuggestion }>(
+      '/api/admin/ai/project-metadata',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          ...input,
+          existingProjects: data.projects.map(projectMatchingCandidate),
+        }),
+      },
+      65_000,
+    );
+    return response.metadata;
   };
 
   const setProfile = (key: keyof Profile, value: string) => {
@@ -847,12 +902,35 @@ export default function AdminPage() {
               <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Media pipeline</p>
               <h2 className="mt-2 text-3xl font-black">Video Optimizer</h2>
               <p className="mt-2 text-sm leading-6 text-white/46">
-                Process locally before upload. Each source creates a fast-start 720p/30fps master and a silent six-second hover preview.
+                Drop one or more sources. Each creates a fast-start 720p/30fps master, silent hover preview, thumbnail, and bilingual project draft for review.
               </p>
             </div>
             <VideoOptimizer
               uploadFile={uploadFile}
-              onComplete={() => notify('Optimized video and hover preview uploaded.')}
+              generateMetadata={generateProjectMetadata}
+              onComplete={(result) => notify(result.suggestion ? 'Media uploaded and AI draft ready for review.' : 'Media uploaded. AI metadata needs attention.')}
+              onReview={(result) => {
+                const matchedProject = result.suggestion?.matched_project_id
+                  ? data.projects.find((project) => project.id === result.suggestion?.matched_project_id)
+                  : undefined;
+
+                if (matchedProject) {
+                  setEditingProject({
+                    ...matchedProject,
+                    video_url: result.fullUrl,
+                    hover_video_url: result.hoverUrl,
+                    thumbnail: result.thumbnailUrl,
+                    embed_code: '',
+                    duration: formatProjectDuration(result.metadata.duration),
+                  });
+                  notify(`Matched ${matchedProject.title || matchedProject.title_ar}. Existing copy will be preserved.`);
+                  return;
+                }
+
+                const nextSortOrder = data.projects.reduce((highest, project) => Math.max(highest, project.sort_order), 0) + 1;
+                setEditingProject(projectFromIngestion(result, nextSortOrder));
+                notify('No safe existing match found. Review this as a new project.');
+              }}
             />
           </section>
         )}
@@ -952,6 +1030,7 @@ export default function AdminPage() {
           project={editingProject}
           clients={data.clients}
           uploadFile={uploadFile}
+          generateMetadata={generateProjectMetadata}
           onClose={() => setEditingProject(null)}
           onSave={async (project) => {
             updateData((current) => ({
@@ -1434,20 +1513,22 @@ function ProjectEditor({
   onSave,
   onError,
   uploadFile,
+  generateMetadata,
 }: {
   project: Project;
   clients: Client[];
   onClose: () => void;
   onSave: (project: Project) => Promise<void>;
   onError: (message: string) => void;
-  uploadFile: (file: File) => Promise<string>;
+  uploadFile: (file: File, onProgress?: (percent: number) => void) => Promise<string>;
+  generateMetadata: (input: Omit<ProjectMetadataInput, 'existingProjects'>) => Promise<ProjectMetadataSuggestion>;
 }) {
   const [form, setForm] = useState(project);
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>(project.technologies || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const availableTechnologies = ['After Effects', 'AI tools', 'Illustrator', 'Photoshop', 'Blender3D', 'Premier Pro'];
+  const availableTechnologies = PORTFOLIO_TECHNOLOGIES;
   const isDirty = useMemo(() => {
     return JSON.stringify({ ...form, technologies: selectedTechnologies }) !== JSON.stringify({ ...project, technologies: project.technologies || [] });
   }, [form, project, selectedTechnologies]);
@@ -1575,19 +1656,31 @@ function ProjectEditor({
             <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Optimize and upload project video</span>
             <VideoOptimizer
               uploadFile={uploadFile}
+              generateMetadata={generateMetadata}
               multiple={false}
               compact
               onComplete={(result) => {
-                const minutes = Math.floor(result.metadata.duration / 60);
-                const seconds = Math.round(result.metadata.duration % 60).toString().padStart(2, '0');
+                const suggestion = result.suggestion;
                 setForm((current) => ({
                   ...current,
+                  title: current.title || suggestion?.title || '',
+                  title_ar: current.title_ar || suggestion?.title_ar || '',
+                  description: current.description || suggestion?.description || '',
+                  description_ar: current.description_ar || suggestion?.description_ar || '',
+                  category: suggestion?.category?.length && !project.title ? suggestion.category : current.category,
+                  role: current.role || suggestion?.role || '',
                   video_url: result.fullUrl,
                   hover_video_url: result.hoverUrl,
-                  duration: current.duration || `${minutes}:${seconds}`,
+                  thumbnail: current.thumbnail || result.thumbnailUrl,
+                  duration: current.duration || formatProjectDuration(result.metadata.duration),
                 }));
+                if (!selectedTechnologies.length && suggestion?.technologies.length) {
+                  setSelectedTechnologies(suggestion.technologies);
+                }
                 setError('');
-                onError('Video optimized and uploaded. Apply the project, then save changes.');
+                onError(suggestion
+                  ? 'Video uploaded and AI copy added. Review every field, then apply and save.'
+                  : 'Video uploaded. AI copy needs attention, but the media URLs are ready.');
               }}
             />
           </div>

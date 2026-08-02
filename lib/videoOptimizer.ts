@@ -25,10 +25,12 @@ export interface VideoMetadata {
 export interface OptimizedVideo {
   full: File;
   hover: File;
+  thumbnail: File;
+  analysisImage: string;
   metadata: VideoMetadata;
 }
 
-export type VideoOptimizationProgress = (stage: 'inspect' | 'full' | 'hover', progress: number) => void;
+export type VideoOptimizationProgress = (stage: 'inspect' | 'thumbnail' | 'full' | 'hover', progress: number) => void;
 
 function baseName(fileName: string) {
   return fileName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-|-$/g, '') || 'video';
@@ -39,6 +41,130 @@ function makeInput(file: File) {
     formats: ALL_FORMATS,
     source: new BlobSource(file),
   });
+}
+
+function waitForVideoEvent(video: HTMLVideoElement, eventName: 'loadeddata' | 'seeked') {
+  return new Promise<void>((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('Timed out while reading preview frames from this video.'));
+    }, 20_000);
+
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      video.removeEventListener(eventName, handleSuccess);
+      video.removeEventListener('error', handleError);
+    };
+
+    const handleSuccess = () => {
+      cleanup();
+      resolve();
+    };
+
+    const handleError = () => {
+      cleanup();
+      reject(new Error('The browser could not decode frames from this video.'));
+    };
+
+    video.addEventListener(eventName, handleSuccess, { once: true });
+    video.addEventListener('error', handleError, { once: true });
+  });
+}
+
+async function seekVideo(video: HTMLVideoElement, time: number) {
+  const clampedTime = Math.min(Math.max(0, time), Math.max(0, video.duration - 0.05));
+  if (Math.abs(video.currentTime - clampedTime) < 0.01) return;
+  const ready = waitForVideoEvent(video, 'seeked');
+  video.currentTime = clampedTime;
+  await ready;
+}
+
+function drawContainedFrame(
+  context: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  context.fillStyle = '#050505';
+  context.fillRect(x, y, width, height);
+
+  const scale = Math.min(width / video.videoWidth, height / video.videoHeight);
+  const drawWidth = video.videoWidth * scale;
+  const drawHeight = video.videoHeight * scale;
+  context.drawImage(
+    video,
+    x + (width - drawWidth) / 2,
+    y + (height - drawHeight) / 2,
+    drawWidth,
+    drawHeight,
+  );
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Could not create a thumbnail from this video.'));
+    }, 'image/jpeg', quality);
+  });
+}
+
+async function createPreviewAssets(file: File, metadata: VideoMetadata) {
+  const sourceUrl = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  video.src = sourceUrl;
+
+  try {
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      await waitForVideoEvent(video, 'loadeddata');
+    }
+
+    const thumbnailScale = Math.min(1, 1280 / metadata.width, 1280 / metadata.height);
+    const thumbnailCanvas = document.createElement('canvas');
+    thumbnailCanvas.width = Math.max(1, Math.round(metadata.width * thumbnailScale));
+    thumbnailCanvas.height = Math.max(1, Math.round(metadata.height * thumbnailScale));
+    const thumbnailContext = thumbnailCanvas.getContext('2d');
+    if (!thumbnailContext) throw new Error('Canvas is unavailable in this browser.');
+
+    await seekVideo(video, metadata.duration * 0.25);
+    thumbnailContext.drawImage(video, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+    const thumbnailBlob = await canvasToBlob(thumbnailCanvas, 0.84);
+
+    const contactSheet = document.createElement('canvas');
+    contactSheet.width = 960;
+    contactSheet.height = 540;
+    const contactContext = contactSheet.getContext('2d');
+    if (!contactContext) throw new Error('Canvas is unavailable in this browser.');
+
+    const samplePoints = [0.1, 0.36, 0.62, 0.88];
+    for (let index = 0; index < samplePoints.length; index += 1) {
+      await seekVideo(video, metadata.duration * samplePoints[index]);
+      drawContainedFrame(
+        contactContext,
+        video,
+        (index % 2) * 480,
+        Math.floor(index / 2) * 270,
+        480,
+        270,
+      );
+    }
+
+    const name = baseName(file.name);
+    return {
+      thumbnail: new File([thumbnailBlob], `${name}-thumbnail.jpg`, { type: 'image/jpeg' }),
+      analysisImage: contactSheet.toDataURL('image/jpeg', 0.72),
+    };
+  } finally {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    URL.revokeObjectURL(sourceUrl);
+  }
 }
 
 function getResizeOptions(metadata: VideoMetadata) {
@@ -161,6 +287,10 @@ export async function optimizeVideo(
   const metadata = await inspectVideo(file);
   onProgress?.('inspect', 1);
 
+  onProgress?.('thumbnail', 0);
+  const previewAssets = await createPreviewAssets(file, metadata);
+  onProgress?.('thumbnail', 1);
+
   let fullBitrate = getFullBitrate(metadata.duration);
   let fullBuffer = await convertVideo({
     file,
@@ -195,6 +325,8 @@ export async function optimizeVideo(
   return {
     full: new File([fullBuffer], `${name}-720p.mp4`, { type: 'video/mp4' }),
     hover: new File([hoverBuffer], `${name}-hover-720p.mp4`, { type: 'video/mp4' }),
+    thumbnail: previewAssets.thumbnail,
+    analysisImage: previewAssets.analysisImage,
     metadata,
   };
 }
