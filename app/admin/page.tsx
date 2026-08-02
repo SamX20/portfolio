@@ -908,10 +908,18 @@ export default function AdminPage() {
             <VideoOptimizer
               uploadFile={uploadFile}
               generateMetadata={generateProjectMetadata}
+              existingProjects={data.projects.map((project) => ({
+                id: project.id,
+                title: project.title,
+                title_ar: project.title_ar,
+                client: project.client,
+                year: project.year,
+              }))}
               onComplete={(result) => notify(result.suggestion ? 'Media uploaded and AI draft ready for review.' : 'Media uploaded. AI metadata needs attention.')}
-              onReview={(result) => {
-                const matchedProject = result.suggestion?.matched_project_id
-                  ? data.projects.find((project) => project.id === result.suggestion?.matched_project_id)
+              onReview={(result, replacementProjectId) => {
+                const matchedProjectId = replacementProjectId || result.suggestion?.matched_project_id;
+                const matchedProject = matchedProjectId
+                  ? data.projects.find((project) => project.id === matchedProjectId)
                   : undefined;
 
                 if (matchedProject) {

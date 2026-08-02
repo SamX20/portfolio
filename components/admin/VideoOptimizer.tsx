@@ -24,6 +24,14 @@ export interface UploadedVideoResult {
   thumbnailSize: number;
 }
 
+export interface ExistingProjectOption {
+  id: string;
+  title: string;
+  title_ar?: string;
+  client?: string;
+  year: number;
+}
+
 interface QueueItem {
   id: string;
   draftId: string;
@@ -32,6 +40,7 @@ interface QueueItem {
   progress: number;
   stage: string;
   result?: UploadedVideoResult;
+  replacementProjectId?: string;
   error?: string;
 }
 
@@ -39,7 +48,8 @@ interface VideoOptimizerProps {
   uploadFile: (file: File, onProgress?: (percent: number) => void) => Promise<string>;
   generateMetadata?: (input: Omit<ProjectMetadataInput, 'existingProjects'>) => Promise<ProjectMetadataSuggestion>;
   onComplete?: (result: UploadedVideoResult) => void;
-  onReview?: (result: UploadedVideoResult) => void;
+  onReview?: (result: UploadedVideoResult, replacementProjectId?: string) => void;
+  existingProjects?: ExistingProjectOption[];
   multiple?: boolean;
   compact?: boolean;
 }
@@ -53,6 +63,7 @@ export default function VideoOptimizer({
   generateMetadata,
   onComplete,
   onReview,
+  existingProjects = [],
   multiple = true,
   compact = false,
 }: VideoOptimizerProps) {
@@ -319,17 +330,44 @@ export default function VideoOptimizer({
                           Retry metadata only
                         </button>
                       ) : null}
-                      {item.result.suggestion && onReview ? (
+                      {(item.result.suggestion || item.replacementProjectId) && onReview ? (
                         <button
                           type="button"
-                          onClick={() => onReview(item.result!)}
+                          onClick={() => onReview(
+                            item.result!,
+                            item.replacementProjectId ?? item.result?.suggestion?.matched_project_id ?? undefined,
+                          )}
                           className="accent-gradient px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#05070b]"
                         >
-                          {item.result.suggestion.matched_project_id ? 'Review replacement' : 'Review new project'}
+                          {(item.replacementProjectId ?? item.result.suggestion?.matched_project_id)
+                            ? 'Review replacement'
+                            : 'Review new project'}
                         </button>
                       ) : null}
                     </div>
                   </div>
+                  {existingProjects.length && onReview ? (
+                    <label className="block border-t border-white/10 pt-3">
+                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">Target existing project</span>
+                      <select
+                        value={item.replacementProjectId ?? item.result.suggestion?.matched_project_id ?? ''}
+                        onChange={(event) => patchItem(item.id, { replacementProjectId: event.target.value })}
+                        className="mt-2 w-full border border-white/12 bg-[#0d0f12] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#8ed8ff]/70"
+                      >
+                        <option value="">Create as a new project</option>
+                        {existingProjects.map((project) => (
+                          <option key={project.id} value={project.id}>
+                            {project.title || project.title_ar || 'Untitled project'}
+                            {project.client ? ` / ${project.client}` : ''}
+                            {project.year ? ` / ${project.year}` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="mt-2 block text-xs leading-5 text-white/38">
+                        If the filename does not match, choose the project manually. Its copy and settings will be preserved while the media is replaced.
+                      </span>
+                    </label>
+                  ) : null}
                   {item.result.suggestion ? (
                     <div className="grid gap-3 border border-[#8ed8ff]/20 bg-[#8ed8ff]/[0.055] p-4 md:grid-cols-2">
                       <div>
