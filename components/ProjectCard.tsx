@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CATEGORIES, Locale, Project } from '@/types';
 import usePortableMotion from '@/lib/usePortableMotion';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
@@ -12,6 +12,7 @@ interface ProjectCardProps {
   onOpen: (project: Project) => void;
   featuredLayout?: boolean;
   compactLayout?: boolean;
+  autoPreview?: boolean;
 }
 
 export default function ProjectCard({
@@ -20,10 +21,11 @@ export default function ProjectCard({
   onOpen,
   featuredLayout = false,
   compactLayout = false,
+  autoPreview = false,
 }: ProjectCardProps) {
   const isPortable = usePortableMotion();
   const hoverVideoRef = useRef<HTMLVideoElement>(null);
-  const [showHoverVideo, setShowHoverVideo] = useState(false);
+  const [desktopHovered, setDesktopHovered] = useState(false);
   const isAr = locale === 'ar';
   const categoryLabels = CATEGORIES
     .filter((item) => project.category.includes(item.value))
@@ -36,35 +38,30 @@ export default function ProjectCard({
     : compactLayout
       ? 'min-h-[250px]'
       : 'min-h-[350px] lg:min-h-[390px]';
+  const shouldPlayPreview = Boolean(project.hover_video_url) && (isPortable ? autoPreview : desktopHovered);
 
-  const startPreview = () => {
-    if (isPortable || !project.hover_video_url) return;
-    setShowHoverVideo(true);
-    window.requestAnimationFrame(() => {
-      const video = hoverVideoRef.current;
-      if (!video) return;
-      video.currentTime = 0;
-      void video.play().catch(() => undefined);
-    });
-  };
-
-  const stopPreview = () => {
+  useEffect(() => {
     const video = hoverVideoRef.current;
-    if (video) {
+    if (!video || !shouldPlayPreview) return;
+
+    video.currentTime = 0;
+    void video.play().catch(() => undefined);
+
+    return () => {
       video.pause();
       video.currentTime = 0;
-    }
-    setShowHoverVideo(false);
-  };
+    };
+  }, [shouldPlayPreview]);
 
   return (
     <motion.button
       type="button"
       onClick={() => onOpen(project)}
-      onMouseEnter={startPreview}
-      onMouseLeave={stopPreview}
-      onFocus={startPreview}
-      onBlur={stopPreview}
+      onMouseEnter={() => setDesktopHovered(true)}
+      onMouseLeave={() => setDesktopHovered(false)}
+      onFocus={() => setDesktopHovered(true)}
+      onBlur={() => setDesktopHovered(false)}
+      data-preview-project-id={project.hover_video_url ? project.id : undefined}
       className={`group relative w-full overflow-hidden border border-white/10 bg-[#111] text-left transition hover:border-[var(--accent-mid)]/70 ${cardHeight}`}
       whileHover={isPortable ? undefined : { y: -5 }}
       transition={isPortable ? undefined : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
@@ -82,7 +79,7 @@ export default function ProjectCard({
         ) : (
           <div className="h-full w-full bg-[radial-gradient(circle_at_24%_28%,rgba(142,216,255,.28),transparent_34%),radial-gradient(circle_at_76%_64%,rgba(37,99,235,.18),transparent_30%),linear-gradient(135deg,#191919,#0b0b0b_52%,#171225)]" />
         )}
-        {project.hover_video_url && showHoverVideo ? (
+        {project.hover_video_url && shouldPlayPreview ? (
           <video
             ref={hoverVideoRef}
             src={project.hover_video_url}
@@ -90,8 +87,10 @@ export default function ProjectCard({
             muted
             loop
             playsInline
-            preload="metadata"
-            className="absolute inset-0 h-full w-full object-cover"
+            autoPlay
+            preload="auto"
+            onCanPlay={(event) => void event.currentTarget.play().catch(() => undefined)}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             aria-hidden="true"
           />
         ) : null}

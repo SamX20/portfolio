@@ -1,12 +1,13 @@
 ﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CATEGORIES, Client, Locale, Project, ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
 import ScrollReveal from './ScrollReveal';
 import VideoPlayer from './VideoPlayer';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
+import usePortableMotion from '@/lib/usePortableMotion';
 
 const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 const INITIAL_PROJECT_COUNT = 6;
@@ -28,6 +29,9 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   const [selected, setSelected] = useState<Project | null>(null);
   const [showModalDescriptionExpanded, setShowModalDescriptionExpanded] = useState(false);
   const [visibleProjectCount, setVisibleProjectCount] = useState(INITIAL_PROJECT_COUNT);
+  const [activePreviewId, setActivePreviewId] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const isPortable = usePortableMotion();
   const isAr = locale === 'ar';
 
   const sortedProjects = useMemo(
@@ -84,6 +88,56 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
     setVisibleProjectCount(INITIAL_PROJECT_COUNT);
   }, [activeCategory, selectedClientId]);
 
+  useEffect(() => {
+    if (!isPortable || selected) {
+      setActivePreviewId(null);
+      return;
+    }
+
+    let animationFrame = 0;
+    let scrollSettleTimer = 0;
+    const updateActivePreview = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        const cards = Array.from(
+          sectionRef.current?.querySelectorAll<HTMLElement>('[data-preview-project-id]') || [],
+        );
+        const viewportCenter = window.innerHeight / 2;
+        let closest: { id: string; distance: number } | null = null;
+
+        cards.forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          const visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+          if (visibleHeight < Math.min(120, rect.height * 0.3)) return;
+
+          const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter);
+          const id = card.dataset.previewProjectId;
+          if (id && (!closest || distance < closest.distance)) {
+            closest = { id, distance };
+          }
+        });
+
+        setActivePreviewId((current) => current === closest?.id ? current : closest?.id || null);
+      });
+    };
+    const handleScroll = () => {
+      setActivePreviewId(null);
+      window.clearTimeout(scrollSettleTimer);
+      scrollSettleTimer = window.setTimeout(updateActivePreview, 140);
+    };
+
+    updateActivePreview();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', updateActivePreview);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(scrollSettleTimer);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updateActivePreview);
+    };
+  }, [activeCategory, isPortable, selected, selectedClientId, visibleProjectCount]);
+
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
   const selectedThumbnail = selected?.thumbnail || getGoogleDriveThumbnail(selected?.video_url);
@@ -103,7 +157,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   };
 
   return (
-    <section id="projects" className="deferred-section relative bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
+    <section ref={sectionRef} id="projects" className="deferred-section relative bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
@@ -134,13 +188,13 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
 
             <div className="grid gap-5 lg:grid-cols-[1.35fr_.9fr]">
               <ScrollReveal delay={0} variant="scale">
-                <ProjectCard project={featuredProjects[0]} locale={locale} onOpen={openProject} featuredLayout />
+                <ProjectCard project={featuredProjects[0]} locale={locale} onOpen={openProject} featuredLayout autoPreview={activePreviewId === featuredProjects[0].id} />
               </ScrollReveal>
               {featuredProjects.length > 1 ? (
                 <div className="grid gap-5 sm:grid-cols-2">
                   {featuredProjects.slice(1).map((project, index) => (
                     <ScrollReveal key={project.id} delay={(index + 1) * 70} variant="scale">
-                      <ProjectCard project={project} locale={locale} onOpen={openProject} compactLayout />
+                      <ProjectCard project={project} locale={locale} onOpen={openProject} compactLayout autoPreview={activePreviewId === project.id} />
                     </ScrollReveal>
                   ))}
                 </div>
@@ -185,7 +239,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
             {visibleRegularProjects.map((project, index) => (
               <div key={project.id}>
                 <ScrollReveal delay={index * 90} variant="scale">
-                  <ProjectCard project={project} locale={locale} onOpen={openProject} />
+                  <ProjectCard project={project} locale={locale} onOpen={openProject} autoPreview={activePreviewId === project.id} />
                 </ScrollReveal>
               </div>
             ))}
