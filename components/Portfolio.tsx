@@ -31,6 +31,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   const [visibleProjectCount, setVisibleProjectCount] = useState(INITIAL_PROJECT_COUNT);
   const [activePreviewId, setActivePreviewId] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const isPortable = usePortableMotion();
   const isAr = locale === 'ar';
 
@@ -137,6 +138,27 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
       window.removeEventListener('resize', updateActivePreview);
     };
   }, [activeCategory, isPortable, selected, selectedClientId, visibleProjectCount]);
+
+  useEffect(() => {
+    if (!selected) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const resetFrame = window.requestAnimationFrame(() => {
+      modalRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    });
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelected(null);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(resetFrame);
+      document.body.style.overflow = previousBodyOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selected]);
 
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
@@ -267,14 +289,15 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
       <AnimatePresence>
         {selected && (
           <motion.div
-            className="fixed inset-0 z-[80] grid place-items-center bg-black/82 p-4 backdrop-blur-xl"
+            className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/82 p-3 backdrop-blur-xl sm:p-5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeProject}
           >
             <motion.div
-              className="relative w-full max-w-6xl overflow-hidden border border-white/12 bg-[#0d0d0d]"
+              ref={modalRef}
+              className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl overflow-y-auto overscroll-contain border border-white/12 bg-[#0d0d0d] sm:max-h-[calc(100dvh-2.5rem)]"
               initial={{ scale: 0.96, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.96, opacity: 0, y: 20 }}
@@ -298,13 +321,13 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                 </div>
               </div>
 
-              <div className="bg-black">
+              <div className="flex min-h-[220px] w-full items-center justify-center overflow-hidden bg-black sm:min-h-[320px]">
                 <VideoPlayer
                   embedCode={selected.embed_code || undefined}
                   videoUrl={selected.video_url || undefined}
                   thumbnail={selectedThumbnail}
                   title={modalTitle}
-                  className="inline-block w-auto rounded-none"
+                  className="mx-auto block w-full rounded-none"
                   objectFit="contain"
                 />
               </div>
