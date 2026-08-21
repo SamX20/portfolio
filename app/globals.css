@@ -87,24 +87,17 @@
 }
 
 .hero-loader-overlay {
-  cursor: pointer;
   outline: none;
 }
 
-.hero-start-toggle:checked + .hero-loader-overlay,
-section:has(.hero-start-toggle:checked) .hero-loader-overlay,
-.hero-loader-started,
-.hero-loader-overlay:focus {
-  animation: hero-loader-release 2000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
 .hero-loader-overlay.hero-loader-started {
-  animation-fill-mode: forwards;
+  cursor: progress;
 }
 
 .hero-loader-overlay.hero-loader-fading {
   opacity: 0;
-  transition: opacity 2s ease-out;
+  pointer-events: none;
+  transition: opacity 700ms ease-out;
 }
 
 .hero-loader-name {
@@ -146,21 +139,6 @@ section:has(.hero-start-toggle:checked) .hero-loader-overlay,
   75%,
   100% {
     content: "...";
-  }
-}
-
-@keyframes hero-loader-release {
-  0% {
-    opacity: 1;
-    visibility: visible;
-  }
-  99% {
-    opacity: 0;
-    visibility: visible;
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
   }
 }
 

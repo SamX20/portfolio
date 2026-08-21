@@ -21,6 +21,7 @@ interface VideoPlayerProps {
   startEventName?: string;
   fill?: boolean;
   preload?: 'none' | 'metadata' | 'auto';
+  showLoadingIndicator?: boolean;
 }
 
 function getVideoEmbedUrl(videoUrl: string, autoplay = false, muted = false): string {
@@ -100,6 +101,7 @@ export default function VideoPlayer({
   startEventName,
   fill = false,
   preload = 'metadata',
+  showLoadingIndicator = true,
 }: VideoPlayerProps) {
   const [playbackRequested, setPlaybackRequested] = useState(autoPlay);
   const [isLoading, setIsLoading] = useState(autoPlay);
@@ -161,19 +163,20 @@ export default function VideoPlayer({
     return () => query.removeEventListener('change', update);
   }, []);
 
-  const playVideo = async () => {
+  const playVideo = async (mutedOverride?: boolean) => {
     const video = videoRef.current;
     if (!video) return;
 
+    const effectiveMuted = mutedOverride ?? muted;
     setPlaybackRequested(true);
     setIsLoading(true);
-    video.muted = muted;
-    video.volume = muted || fadeInAudio ? 0 : volume;
+    video.muted = effectiveMuted;
+    video.volume = effectiveMuted || fadeInAudio ? 0 : volume;
 
     try {
       await video.play();
       setIsPlaying(true);
-      if (fadeInAudio && !muted) {
+      if (fadeInAudio && !effectiveMuted) {
         const startedAt = performance.now();
         const fadeDuration = 1600;
 
@@ -252,8 +255,9 @@ export default function VideoPlayer({
   useEffect(() => {
     if (!startEventName) return undefined;
 
-    const handleStart = () => {
-      void playVideo();
+    const handleStart = (event: Event) => {
+      const requestedMuted = (event as CustomEvent<{ muted?: boolean }>).detail?.muted;
+      void playVideo(requestedMuted);
     };
 
     window.addEventListener(startEventName, handleStart);
@@ -276,7 +280,7 @@ export default function VideoPlayer({
         poster={thumbnail}
         className={`h-full w-full ${objectFitClass}`}
         preload={preload}
-        autoPlay={autoPlay}
+        autoPlay={autoPlay && !waitForStart}
         muted={muted}
         loop={loop}
         playsInline
@@ -327,7 +331,7 @@ export default function VideoPlayer({
         Your browser does not support video playback.
       </video>
 
-      {loadingOverlay(isLoading && (playbackRequested || autoPlay))}
+      {showLoadingIndicator ? loadingOverlay(isLoading && (playbackRequested || autoPlay)) : null}
 
       {showCompactControls && !isPlaying && !isLoading ? (
         <button
@@ -416,7 +420,7 @@ export default function VideoPlayer({
           <source src={directUrl} type="video/mp4" />
           Your browser does not support video playback.
         </video>
-        {loadingOverlay(isLoading)}
+        {showLoadingIndicator ? loadingOverlay(isLoading) : null}
       </div>
     );
   };
@@ -452,7 +456,7 @@ export default function VideoPlayer({
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
             allowFullScreen
           />
-          {loadingOverlay(isEmbedLoading)}
+          {showLoadingIndicator ? loadingOverlay(isEmbedLoading) : null}
         </div>
       );
     }

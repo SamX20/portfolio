@@ -63,22 +63,32 @@ function HeroLoadingOverlay({
             ? '\u0644\u062A\u062C\u0631\u0628\u0629 \u0623\u0641\u0636\u0644\u060C \u0627\u0641\u062A\u062D \u0627\u0644\u0645\u0648\u0642\u0639 \u0639\u0644\u0649 \u0643\u0645\u0628\u064A\u0648\u062A\u0631 \u0623\u0648 \u0644\u0627\u0628\u062A\u0648\u0628.'
             : 'For the best experience, open this site on a PC or laptop.'}
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            onClick={onStartWithSound}
-            className="rounded-full bg-[var(--accent)] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#06111f] transition hover:brightness-110"
-          >
-            {isAr ? '\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 \u0627\u0644\u0645\u0648\u0633\u064A\u0642\u0649' : 'Continue with music'}
-          </button>
-          <button
-            type="button"
-            onClick={onStartWithoutSound}
-            className="rounded-full border border-white/15 bg-black/60 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:border-white/30 hover:bg-white/5"
-          >
-            {isAr ? '\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0628\u062F\u0648\u0646 \u0645\u0648\u0633\u064A\u0642\u0649' : 'Continue without music'}
-          </button>
-        </div>
+        {started ? (
+          <div className="mx-auto mt-8 h-px w-40 overflow-hidden bg-white/10" aria-hidden="true">
+            <motion.div
+              className="h-full w-1/2 bg-[var(--accent)]"
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 1.1, ease: 'easeInOut', repeat: Infinity }}
+            />
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button
+              type="button"
+              onClick={onStartWithSound}
+              className="rounded-full bg-[var(--accent)] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#06111f] transition hover:brightness-110"
+            >
+              {isAr ? '\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 \u0627\u0644\u0645\u0648\u0633\u064A\u0642\u0649' : 'Continue with music'}
+            </button>
+            <button
+              type="button"
+              onClick={onStartWithoutSound}
+              className="rounded-full border border-white/15 bg-black/60 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:border-white/30 hover:bg-white/5"
+            >
+              {isAr ? '\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0628\u062F\u0648\u0646 \u0645\u0648\u0633\u064A\u0642\u0649' : 'Continue without music'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -90,7 +100,9 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
   const hasHeroVideo = Boolean(sections.hero.video_url);
   const hasAlternateHero = Boolean(sections.hero.video_url_alt);
   const manuallyStartedRef = useRef(false);
+  const introStartedAtRef = useRef(0);
   const revealTimerRef = useRef<number | null>(null);
+  const hideTimerRef = useRef<number | null>(null);
   const switchTimerRef = useRef<number | null>(null);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
   const [heroLoaderFading, setHeroLoaderFading] = useState(false);
@@ -135,31 +147,22 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
       window.clearTimeout(revealTimerRef.current);
       revealTimerRef.current = null;
     }
+    if (hideTimerRef.current) {
+      window.clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
     setIntroStarted(!hasHeroVideo);
     setHeroVideoReady(!hasHeroVideo);
+    setHeroLoaderFading(false);
     setHeroMuted(false);
     setActiveHero(0);
   }, [hasHeroVideo, sections.hero.video_url]);
 
   useEffect(() => () => {
     if (switchTimerRef.current) window.clearTimeout(switchTimerRef.current);
+    if (revealTimerRef.current) window.clearTimeout(revealTimerRef.current);
+    if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
   }, []);
-
-  useEffect(() => {
-    if (!introStarted || !hasHeroVideo) return undefined;
-
-    const fadeTimer = window.setTimeout(() => {
-      setHeroLoaderFading(true);
-      // After 2 seconds of fading, hide completely
-      window.setTimeout(() => {
-        setHeroVideoReady(true);
-      }, 2000);
-    }, 3000);
-
-    return () => {
-      window.clearTimeout(fadeTimer);
-    };
-  }, [hasHeroVideo, introStarted]);
 
   useEffect(() => {
     const handleHeroMute = (event: Event) => {
@@ -171,25 +174,36 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
     return () => window.removeEventListener(HERO_MUTE_EVENT, handleHeroMute);
   }, []);
 
+  const revealHero = () => {
+    if (revealTimerRef.current) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+    setHeroLoaderFading(true);
+    hideTimerRef.current = window.setTimeout(() => {
+      setHeroVideoReady(true);
+      hideTimerRef.current = null;
+    }, 700);
+  };
+
   const beginHeroIntro = (mute: boolean) => {
     manuallyStartedRef.current = true;
+    introStartedAtRef.current = performance.now();
     setIntroStarted(true);
     setHeroMuted(mute);
-    window.dispatchEvent(new Event(HERO_START_EVENT));
+    window.dispatchEvent(new CustomEvent(HERO_START_EVENT, { detail: { muted: mute } }));
     if (revealTimerRef.current) {
       window.clearTimeout(revealTimerRef.current);
     }
+    revealTimerRef.current = window.setTimeout(revealHero, 3000);
+  };
 
-    window.setTimeout(() => {
-      setHeroLoaderFading(true);
-      window.setTimeout(() => {
-        setHeroVideoReady(true);
-      }, 2000);
-    }, 3000);
-
-    revealTimerRef.current = window.setTimeout(() => {
-      revealTimerRef.current = null;
-    }, 5000);
+  const handleHeroMediaReady = () => {
+    if (!manuallyStartedRef.current || heroLoaderFading || heroVideoReady) return;
+    const elapsed = performance.now() - introStartedAtRef.current;
+    const remainingMinimum = Math.max(0, 1200 - elapsed);
+    if (revealTimerRef.current) window.clearTimeout(revealTimerRef.current);
+    revealTimerRef.current = window.setTimeout(revealHero, remainingMinimum);
   };
 
   const startHeroWithSound = () => beginHeroIntro(false);
@@ -232,10 +246,12 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
             muted={heroMuted}
             volume={0.4}
             fadeInAudio
-            waitForStart={!heroVideoReady}
+            waitForStart={!introStarted}
+            onReady={handleHeroMediaReady}
             startEventName={HERO_START_EVENT}
             fill
             preload="none"
+            showLoadingIndicator={false}
             className="absolute inset-0 h-full w-full rounded-none opacity-95"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,.86)_0%,rgba(8,8,8,.58)_42%,rgba(8,8,8,.22)_100%)]" />
