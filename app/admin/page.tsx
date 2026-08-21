@@ -1537,6 +1537,7 @@ function ProjectEditor({
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>(project.technologies || []);
   const [saving, setSaving] = useState(false);
   const [frameSource, setFrameSource] = useState<File | null>(null);
+  const [fetchingFrameSource, setFetchingFrameSource] = useState(false);
   const [uploadingFrame, setUploadingFrame] = useState(false);
   const [error, setError] = useState('');
 
@@ -1547,6 +1548,53 @@ function ProjectEditor({
 
   const set = (key: keyof Project, value: string | number | boolean | string[] | null) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const isDirectFrameSource = (url?: string) => {
+    if (!url) return false;
+    return !/(youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com|docs\.google\.com)/i.test(url);
+  };
+
+  const openExistingVideoFramePicker = async () => {
+    const sourceUrl = isDirectFrameSource(form.video_url)
+      ? form.video_url
+      : isDirectFrameSource(form.hover_video_url)
+        ? form.hover_video_url
+        : '';
+
+    if (!sourceUrl) {
+      const message = 'This project does not have a direct video file. YouTube and Drive do not allow frame capture; use the local source option instead.';
+      setError(message);
+      onError(message);
+      return;
+    }
+
+    setFetchingFrameSource(true);
+    setError('');
+    let timeout = 0;
+    try {
+      const controller = new AbortController();
+      timeout = window.setTimeout(() => controller.abort(), 60_000);
+      const response = await fetch(sourceUrl, { signal: controller.signal });
+      if (!response.ok) throw new Error(`Could not load the project video (${response.status}).`);
+
+      const blob = await response.blob();
+      const parsedUrl = new URL(sourceUrl, window.location.origin);
+      const rawName = decodeURIComponent(parsedUrl.pathname.split('/').filter(Boolean).pop() || 'project-video.mp4');
+      const fileName = /\.[a-z0-9]{2,5}$/i.test(rawName) ? rawName : `${rawName}.mp4`;
+      setFrameSource(new File([blob], fileName, { type: blob.type || 'video/mp4' }));
+    } catch (fetchError) {
+      const message = fetchError instanceof DOMException && fetchError.name === 'AbortError'
+        ? 'Loading the project video timed out. Try again or use the local source option.'
+        : fetchError instanceof Error
+          ? `${fetchError.message} Use the local source option if this host blocks frame capture.`
+          : 'Could not load the project video. Use the local source option.';
+      setError(message);
+      onError(message);
+    } finally {
+      window.clearTimeout(timeout);
+      setFetchingFrameSource(false);
+    }
   };
 
   const closeEditor = () => {
@@ -1675,13 +1723,21 @@ function ProjectEditor({
               <div className="min-w-0">
                 <button
                   type="button"
-                  disabled={uploadingFrame}
-                  onClick={() => frameSourceInputRef.current?.click()}
+                  disabled={uploadingFrame || fetchingFrameSource}
+                  onClick={openExistingVideoFramePicker}
                   className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff] hover:text-[#05070b] disabled:opacity-45"
                 >
-                  {uploadingFrame ? 'Uploading Frame...' : 'Choose a Frame'}
+                  {uploadingFrame ? 'Uploading Frame...' : fetchingFrameSource ? 'Loading Video...' : 'Choose a Frame'}
                 </button>
-                <p className="mt-2 text-xs leading-5 text-white/35">Select the source video, then pick the exact moment.</p>
+                <p className="mt-2 text-xs leading-5 text-white/35">Uses the project&apos;s current video. Only the selected image is uploaded.</p>
+                <button
+                  type="button"
+                  disabled={uploadingFrame || fetchingFrameSource}
+                  onClick={() => frameSourceInputRef.current?.click()}
+                  className="mt-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/40 underline decoration-white/20 underline-offset-4 transition hover:text-white"
+                >
+                  Use local source instead
+                </button>
               </div>
             </div>
             <input
