@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { CATEGORIES, Client, Locale, Project, ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
 import ScrollReveal from './ScrollReveal';
@@ -286,10 +287,12 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
         )}
       </div>
 
-      <AnimatePresence>
-        {selected && (
+      {typeof document !== 'undefined' ? createPortal(
+        <AnimatePresence>
+          {selected && (
           <motion.div
             className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/82 p-3 backdrop-blur-xl sm:p-5"
+            dir={isAr ? 'rtl' : 'ltr'}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -367,8 +370,10 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body,
+      ) : null}
     </section>
   );
 }
