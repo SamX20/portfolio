@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { SyntheticEvent } from 'react';
 import { getGoogleDriveFileId } from '@/lib/videoUtils';
 
 interface VideoPlayerProps {
@@ -102,7 +101,9 @@ export default function VideoPlayer({
   fill = false,
   preload = 'metadata',
 }: VideoPlayerProps) {
-  const [showVideo, setShowVideo] = useState(autoPlay);
+  const [playbackRequested, setPlaybackRequested] = useState(autoPlay);
+  const [isLoading, setIsLoading] = useState(autoPlay);
+  const [isEmbedLoading, setIsEmbedLoading] = useState(true);
   const [aspectRatio, setAspectRatio] = useState(3 / 4);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -111,19 +112,13 @@ export default function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
-  const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay, muted) : undefined;
+  const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay || playbackRequested, muted) : undefined;
   const driveFileId = getGoogleDriveFileId(videoUrl);
+  const isEmbedVideo = Boolean(resolvedVideoUrl && /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl));
   const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
   const wrapperStyle = fill ? undefined : { aspectRatio, maxHeight: '80vh', maxWidth: '100%' };
   const wrapperRadius = fill ? 'rounded-none' : 'rounded-xl';
   const showCompactControls = !autoPlay;
-
-  const handleThumbnailLoad = (event: SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget;
-    if (img.naturalWidth && img.naturalHeight) {
-      setAspectRatio(img.naturalWidth / img.naturalHeight);
-    }
-  };
 
   const markReady = () => {
     if (readyCalledRef.current) return;
@@ -132,10 +127,22 @@ export default function VideoPlayer({
   };
 
   const markBlocked = () => {
+    setIsLoading(false);
     if (blockedCalledRef.current || readyCalledRef.current) return;
     blockedCalledRef.current = true;
     onAutoPlayBlocked?.();
   };
+
+  useEffect(() => {
+    setPlaybackRequested(autoPlay);
+    setIsLoading(autoPlay);
+    setIsEmbedLoading(true);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    readyCalledRef.current = false;
+    blockedCalledRef.current = false;
+  }, [autoPlay, embedCode, videoUrl]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -158,6 +165,8 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
+    setPlaybackRequested(true);
+    setIsLoading(true);
     video.muted = muted;
     video.volume = muted || fadeInAudio ? 0 : volume;
 
@@ -189,16 +198,29 @@ export default function VideoPlayer({
     if (!video) return;
 
     if (video.paused) {
+      setPlaybackRequested(true);
+      setIsLoading(true);
       try {
         await video.play();
         setIsPlaying(true);
       } catch {
+        setIsLoading(false);
         setIsPlaying(false);
         markBlocked();
       }
     } else {
       video.pause();
+      setIsLoading(false);
       setIsPlaying(false);
+    }
+  };
+
+  const requestPlayback = () => {
+    setPlaybackRequested(true);
+    setIsLoading(true);
+
+    if (videoRef.current) {
+      void playVideo();
     }
   };
 
@@ -238,6 +260,14 @@ export default function VideoPlayer({
     return () => window.removeEventListener(startEventName, handleStart);
   }, [startEventName]);
 
+  const loadingOverlay = (visible: boolean) => visible ? (
+    <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-black/28 backdrop-blur-[1px]" role="status" aria-label="Loading video">
+      <div className="grid h-14 w-14 place-items-center rounded-full border border-white/15 bg-black/60 shadow-2xl shadow-black/40 backdrop-blur-xl">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/25 border-t-[var(--accent)]" />
+      </div>
+    </div>
+  ) : null;
+
   const renderDirectVideo = (src: string) => (
     <div className={`group relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
       <video
@@ -253,31 +283,67 @@ export default function VideoPlayer({
         onClick={() => {
           if (showCompactControls) void togglePlayback();
         }}
+        onLoadStart={() => {
+          if (playbackRequested || autoPlay) setIsLoading(true);
+        }}
+        onWaiting={() => setIsLoading(true)}
+        onStalled={() => setIsLoading(true)}
         onCanPlayThrough={() => {
+          setIsLoading(false);
           if (autoPlay && !waitForStart) void playVideo();
           else markReady();
         }}
         onCanPlay={() => {
+          setIsLoading(false);
           if (autoPlay && !waitForStart) void playVideo();
         }}
         onLoadedMetadata={handleMetadata}
         onLoadedData={() => {
+          setIsLoading(false);
           if (autoPlay && !waitForStart) void playVideo();
           else markReady();
         }}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
         onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
         onPlaying={() => {
+          setIsLoading(false);
           setIsPlaying(true);
           markReady();
         }}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onError={markReady}
+        onPause={() => {
+          setIsLoading(false);
+          setIsPlaying(false);
+        }}
+        onEnded={() => {
+          setIsLoading(false);
+          setIsPlaying(false);
+        }}
+        onError={() => {
+          setIsLoading(false);
+          markReady();
+        }}
       >
         <source src={src} type="video/mp4" />
         Your browser does not support video playback.
       </video>
+
+      {loadingOverlay(isLoading && (playbackRequested || autoPlay))}
+
+      {showCompactControls && !isPlaying && !isLoading ? (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            requestPlayback();
+          }}
+          className="absolute left-1/2 top-1/2 z-[15] grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/58 text-white shadow-2xl shadow-black/45 backdrop-blur-xl transition hover:scale-105 hover:border-[var(--accent)]/65 hover:bg-[var(--accent)] hover:text-[#05070b]"
+          aria-label="Play video"
+        >
+          <svg viewBox="0 0 24 24" className="ml-1 h-7 w-7 fill-current" aria-hidden="true">
+            <path d="M8 5v14l11-7L8 5Z" />
+          </svg>
+        </button>
+      ) : null}
 
       {showCompactControls && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-3 pt-12 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
@@ -332,15 +398,25 @@ export default function VideoPlayer({
           className={`h-full w-full ${objectFitClass}`}
           preload="metadata"
           playsInline
+          onPlay={() => setIsLoading(true)}
+          onWaiting={() => setIsLoading(true)}
+          onStalled={() => setIsLoading(true)}
           onLoadedMetadata={handleMetadata}
-          onLoadedData={markReady}
+          onLoadedData={() => {
+            setIsLoading(false);
+            markReady();
+          }}
+          onCanPlay={() => setIsLoading(false)}
+          onPlaying={() => setIsLoading(false)}
           onError={() => {
+            setIsLoading(false);
             markReady();
           }}
         >
           <source src={directUrl} type="video/mp4" />
           Your browser does not support video playback.
         </video>
+        {loadingOverlay(isLoading)}
       </div>
     );
   };
@@ -357,12 +433,10 @@ export default function VideoPlayer({
     return renderDirectVideo(videoUrl);
   }
 
-  if (videoUrl && resolvedVideoUrl && (showVideo || autoPlay || !thumbnail)) {
+  if (videoUrl && resolvedVideoUrl) {
     if (driveFileId && isMobilePlayer && !autoPlay) {
       return renderNativeMobileDriveVideo(driveFileId);
     }
-
-    const isEmbedVideo = /youtube\.com\/embed|player\.vimeo\.com|drive\.google\.com\/file\//.test(resolvedVideoUrl);
 
     if (isEmbedVideo) {
       return (
@@ -371,40 +445,19 @@ export default function VideoPlayer({
             src={resolvedVideoUrl}
             title={title}
             className="h-full w-full"
-            onLoad={markReady}
+            onLoad={() => {
+              setIsEmbedLoading(false);
+              markReady();
+            }}
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
             allowFullScreen
           />
+          {loadingOverlay(isEmbedLoading)}
         </div>
       );
     }
 
     return renderDirectVideo(resolvedVideoUrl);
-  }
-
-  if (videoUrl && thumbnail && !showVideo) {
-    return (
-      <div
-        className={`relative w-full cursor-pointer overflow-hidden ${wrapperRadius} bg-black ${className}`}
-        style={wrapperStyle}
-        onClick={() => setShowVideo(true)}
-      >
-        <img
-          src={thumbnail}
-          alt={title}
-          className="h-full w-full object-contain"
-          onLoad={handleThumbnailLoad}
-        />
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute inset-0 grid place-items-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/40 text-white shadow-lg shadow-black/30">
-            <svg viewBox="0 0 24 24" className="ml-1 h-8 w-8 fill-current" aria-hidden="true">
-              <path d="M8 5v14l11-7L8 5Z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
