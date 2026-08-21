@@ -8,6 +8,7 @@ import {
   VideoMetadata,
 } from '@/lib/videoOptimizer';
 import { ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
+import VideoFramePicker from './VideoFramePicker';
 
 export interface UploadedVideoResult {
   draftId: string;
@@ -22,6 +23,7 @@ export interface UploadedVideoResult {
   fullSize: number;
   hoverSize: number;
   thumbnailSize: number;
+  thumbnailWasSelected: boolean;
 }
 
 export interface ExistingProjectOption {
@@ -41,6 +43,9 @@ interface QueueItem {
   stage: string;
   result?: UploadedVideoResult;
   replacementProjectId?: string;
+  thumbnailOverride?: File;
+  thumbnailPreviewUrl?: string;
+  thumbnailTime?: number;
   error?: string;
 }
 
@@ -71,6 +76,8 @@ export default function VideoOptimizer({
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [processing, setProcessing] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [framePickerItemId, setFramePickerItemId] = useState<string | null>(null);
+  const framePickerItem = queue.find((item) => item.id === framePickerItemId);
 
   const patchItem = (id: string, patch: Partial<QueueItem>) => {
     setQueue((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
@@ -123,7 +130,7 @@ export default function VideoOptimizer({
           stage: stageLabel,
           progress: Math.round(stageBase + progress * stageWeight),
         });
-      });
+      }, { thumbnail: item.thumbnailOverride });
 
       patchItem(item.id, { status: 'uploading', stage: 'Uploading 720p master', progress: 72 });
       const fullUrl = await uploadFile(optimized.full, (percent) => {
@@ -152,6 +159,7 @@ export default function VideoOptimizer({
         fullSize: optimized.full.size,
         hoverSize: optimized.hover.size,
         thumbnailSize: optimized.thumbnail.size,
+        thumbnailWasSelected: Boolean(item.thumbnailOverride),
       };
 
       await finishMetadata(item.id, result);
@@ -282,6 +290,42 @@ export default function VideoOptimizer({
                   </button>
                 ) : null}
               </div>
+
+              {item.status === 'ready' || item.status === 'error' ? (
+                <div className="mt-3 flex flex-col gap-3 border border-white/10 bg-white/[0.025] p-3 sm:flex-row sm:items-center">
+                  {item.thumbnailPreviewUrl ? (
+                    <img src={item.thumbnailPreviewUrl} alt="Selected thumbnail frame" className="aspect-video w-full object-cover sm:w-36" />
+                  ) : (
+                    <div className="grid aspect-video w-full place-items-center bg-black/35 text-[10px] font-black uppercase tracking-[0.14em] text-white/28 sm:w-36">Auto frame</div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black text-white">{item.thumbnailOverride ? 'Custom thumbnail selected' : 'Automatic thumbnail enabled'}</p>
+                    <p className="mt-1 text-xs leading-5 text-white/38">
+                      {item.thumbnailOverride && item.thumbnailTime !== undefined
+                        ? `Using the frame at ${item.thumbnailTime.toFixed(2)} seconds.`
+                        : 'A frame will be selected automatically at 25% of the video.'}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    {item.thumbnailOverride ? (
+                      <button
+                        type="button"
+                        onClick={() => patchItem(item.id, { thumbnailOverride: undefined, thumbnailPreviewUrl: undefined, thumbnailTime: undefined, stage: 'Ready' })}
+                        className="border border-white/12 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/48 transition hover:border-white/30 hover:text-white"
+                      >
+                        Use automatic
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setFramePickerItemId(item.id)}
+                      className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff] hover:text-[#05070b]"
+                    >
+                      Choose a Frame
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
                 <div className="h-full bg-gradient-to-r from-[#8ed8ff] to-[#4aa3ff] transition-all duration-200" style={{ width: `${item.progress}%` }} />
@@ -416,6 +460,24 @@ export default function VideoOptimizer({
             </button>
           </div>
         </div>
+      ) : null}
+
+      {framePickerItem ? (
+        <VideoFramePicker
+          source={framePickerItem.file}
+          onCancel={() => setFramePickerItemId(null)}
+          onConfirm={(selection) => {
+            patchItem(framePickerItem.id, {
+              thumbnailOverride: selection.file,
+              thumbnailPreviewUrl: selection.previewUrl,
+              thumbnailTime: selection.time,
+              status: 'ready',
+              stage: 'Ready with custom thumbnail',
+              error: undefined,
+            });
+            setFramePickerItemId(null);
+          }}
+        />
       ) : null}
     </div>
   );

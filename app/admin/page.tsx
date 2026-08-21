@@ -1,10 +1,11 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
 import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
 import VideoOptimizer, { UploadedVideoResult } from '@/components/admin/VideoOptimizer';
+import VideoFramePicker from '@/components/admin/VideoFramePicker';
 import { PORTFOLIO_TECHNOLOGIES, ProjectMetadataCandidate, ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
 
 type Tab = 'content' | 'projects' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
@@ -1531,9 +1532,12 @@ function ProjectEditor({
   uploadFile: (file: File, onProgress?: (percent: number) => void) => Promise<string>;
   generateMetadata: (input: Omit<ProjectMetadataInput, 'existingProjects'>) => Promise<ProjectMetadataSuggestion>;
 }) {
+  const frameSourceInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(project);
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>(project.technologies || []);
   const [saving, setSaving] = useState(false);
+  const [frameSource, setFrameSource] = useState<File | null>(null);
+  const [uploadingFrame, setUploadingFrame] = useState(false);
   const [error, setError] = useState('');
 
   const availableTechnologies = PORTFOLIO_TECHNOLOGIES;
@@ -1660,6 +1664,38 @@ function ProjectEditor({
               className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
           </label>
+          <div className="border border-white/10 bg-black/20 p-4">
+            <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/42">Choose thumbnail from video</span>
+            <div className="mt-3 flex items-center gap-3">
+              {form.thumbnail ? (
+                <img src={form.thumbnail} alt="Current project thumbnail" className="aspect-video w-28 shrink-0 object-cover" />
+              ) : (
+                <div className="grid aspect-video w-28 shrink-0 place-items-center bg-white/[0.035] text-[9px] font-black uppercase tracking-[0.12em] text-white/25">No frame</div>
+              )}
+              <div className="min-w-0">
+                <button
+                  type="button"
+                  disabled={uploadingFrame}
+                  onClick={() => frameSourceInputRef.current?.click()}
+                  className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff] hover:text-[#05070b] disabled:opacity-45"
+                >
+                  {uploadingFrame ? 'Uploading Frame...' : 'Choose a Frame'}
+                </button>
+                <p className="mt-2 text-xs leading-5 text-white/35">Select the source video, then pick the exact moment.</p>
+              </div>
+            </div>
+            <input
+              ref={frameSourceInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) setFrameSource(file);
+                event.target.value = '';
+              }}
+            />
+          </div>
           <div className="md:col-span-2">
             <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Optimize and upload project video</span>
             <VideoOptimizer
@@ -1679,7 +1715,7 @@ function ProjectEditor({
                   role: current.role || suggestion?.role || '',
                   video_url: result.fullUrl,
                   hover_video_url: result.hoverUrl,
-                  thumbnail: current.thumbnail || result.thumbnailUrl,
+                  thumbnail: result.thumbnailWasSelected ? result.thumbnailUrl : current.thumbnail || result.thumbnailUrl,
                   duration: current.duration || formatProjectDuration(result.metadata.duration),
                 }));
                 if (!selectedTechnologies.length && suggestion?.technologies.length) {
@@ -1721,6 +1757,29 @@ function ProjectEditor({
           </button>
         </div>
       </div>
+      {frameSource ? (
+        <VideoFramePicker
+          source={frameSource}
+          onCancel={() => setFrameSource(null)}
+          onConfirm={async (selection) => {
+            setUploadingFrame(true);
+            setError('');
+            try {
+              const url = await uploadFile(selection.file);
+              set('thumbnail', url);
+              setFrameSource(null);
+              onError('Custom thumbnail uploaded. Apply project changes to keep it.');
+            } catch (uploadError) {
+              const message = uploadError instanceof Error ? uploadError.message : 'Thumbnail upload failed';
+              setError(message);
+              onError(message);
+              throw uploadError;
+            } finally {
+              setUploadingFrame(false);
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 }

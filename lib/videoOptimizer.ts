@@ -30,6 +30,10 @@ export interface OptimizedVideo {
   metadata: VideoMetadata;
 }
 
+export interface VideoOptimizationOptions {
+  thumbnail?: File;
+}
+
 export type VideoOptimizationProgress = (stage: 'inspect' | 'thumbnail' | 'full' | 'hover', progress: number) => void;
 
 function baseName(fileName: string) {
@@ -111,7 +115,7 @@ function canvasToBlob(canvas: HTMLCanvasElement, quality: number) {
   });
 }
 
-async function createPreviewAssets(file: File, metadata: VideoMetadata) {
+async function createPreviewAssets(file: File, metadata: VideoMetadata, thumbnailOverride?: File) {
   const sourceUrl = URL.createObjectURL(file);
   const video = document.createElement('video');
   video.muted = true;
@@ -124,16 +128,20 @@ async function createPreviewAssets(file: File, metadata: VideoMetadata) {
       await waitForVideoEvent(video, 'loadeddata');
     }
 
-    const thumbnailScale = Math.min(1, 1280 / metadata.width, 1280 / metadata.height);
-    const thumbnailCanvas = document.createElement('canvas');
-    thumbnailCanvas.width = Math.max(1, Math.round(metadata.width * thumbnailScale));
-    thumbnailCanvas.height = Math.max(1, Math.round(metadata.height * thumbnailScale));
-    const thumbnailContext = thumbnailCanvas.getContext('2d');
-    if (!thumbnailContext) throw new Error('Canvas is unavailable in this browser.');
+    let thumbnail = thumbnailOverride;
+    if (!thumbnail) {
+      const thumbnailScale = Math.min(1, 1280 / metadata.width, 1280 / metadata.height);
+      const thumbnailCanvas = document.createElement('canvas');
+      thumbnailCanvas.width = Math.max(1, Math.round(metadata.width * thumbnailScale));
+      thumbnailCanvas.height = Math.max(1, Math.round(metadata.height * thumbnailScale));
+      const thumbnailContext = thumbnailCanvas.getContext('2d');
+      if (!thumbnailContext) throw new Error('Canvas is unavailable in this browser.');
 
-    await seekVideo(video, metadata.duration * 0.25);
-    thumbnailContext.drawImage(video, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
-    const thumbnailBlob = await canvasToBlob(thumbnailCanvas, 0.84);
+      await seekVideo(video, metadata.duration * 0.25);
+      thumbnailContext.drawImage(video, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+      const thumbnailBlob = await canvasToBlob(thumbnailCanvas, 0.84);
+      thumbnail = new File([thumbnailBlob], `${baseName(file.name)}-thumbnail.jpg`, { type: 'image/jpeg' });
+    }
 
     const contactSheet = document.createElement('canvas');
     contactSheet.width = 960;
@@ -154,9 +162,8 @@ async function createPreviewAssets(file: File, metadata: VideoMetadata) {
       );
     }
 
-    const name = baseName(file.name);
     return {
-      thumbnail: new File([thumbnailBlob], `${name}-thumbnail.jpg`, { type: 'image/jpeg' }),
+      thumbnail,
       analysisImage: contactSheet.toDataURL('image/jpeg', 0.72),
     };
   } finally {
@@ -282,13 +289,14 @@ export async function inspectVideo(file: File): Promise<VideoMetadata> {
 export async function optimizeVideo(
   file: File,
   onProgress?: VideoOptimizationProgress,
+  options: VideoOptimizationOptions = {},
 ): Promise<OptimizedVideo> {
   onProgress?.('inspect', 0);
   const metadata = await inspectVideo(file);
   onProgress?.('inspect', 1);
 
   onProgress?.('thumbnail', 0);
-  const previewAssets = await createPreviewAssets(file, metadata);
+  const previewAssets = await createPreviewAssets(file, metadata, options.thumbnail);
   onProgress?.('thumbnail', 1);
 
   let fullBitrate = getFullBitrate(metadata.duration);
