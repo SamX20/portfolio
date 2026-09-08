@@ -19,16 +19,16 @@ export default function Testimonials({ testimonials = [], locale }: Testimonials
   if (!visibleTestimonials.length) return null;
 
   return (
-    <section className="deferred-section bg-[#080808] px-4 pb-24 sm:px-6 lg:px-8" id="testimonials" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="mx-auto max-w-7xl">
+    <section className="site-section deferred-section px-4 py-24 sm:px-6 lg:px-10 lg:py-28" id="testimonials" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="mx-auto max-w-[1440px]">
         <motion.div
-          className="mb-10 max-w-3xl"
+          className="mb-10 max-w-3xl border-b border-white/10 pb-8"
           initial={!disableMotion ? { opacity: 0, y: 22 } : undefined}
           whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
           viewport={!disableMotion ? { once: true, amount: 0.18, margin: '-120px' } : undefined}
           transition={!disableMotion ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } : undefined}
         >
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--accent)]">{isAr ? 'آراء العملاء' : 'Client feedback'}</p>
+          <p className="section-kicker text-xs font-black uppercase tracking-[0.28em]">{isAr ? '04 / آراء العملاء' : '04 / Client feedback'}</p>
           <h2 className="mt-3 text-4xl font-black leading-tight md:text-5xl">
             {isAr ? 'تجارب حقيقية من عملاء اشتغلوا معي.' : 'What clients say after the final cut.'}
           </h2>
@@ -38,7 +38,7 @@ export default function Testimonials({ testimonials = [], locale }: Testimonials
           {visibleTestimonials.map((testimonial, index) => (
             <motion.article
               key={testimonial.id}
-              className="rounded-3xl border border-white/10 bg-white/[0.025] p-5 shadow-2xl shadow-black/10"
+              className="testimonial-card border border-white/10 bg-[#0b0d0f]/90 p-6 shadow-2xl shadow-black/10"
               initial={!disableMotion ? { opacity: 0, y: 24 } : undefined}
               whileInView={!disableMotion ? { opacity: 1, y: 0 } : undefined}
               viewport={!disableMotion ? { once: true, amount: 0.16, margin: '-100px' } : undefined}
@@ -56,7 +56,7 @@ export default function Testimonials({ testimonials = [], locale }: Testimonials
                   </svg>
                 ))}
               </div>
-              <p className="text-sm leading-7 text-white/66">"{testimonial.content}"</p>
+              <p className="text-base leading-8 text-white/72">"{testimonial.content}"</p>
               <div className="mt-6 border-t border-white/10 pt-4">
                 <p className="font-black text-white">{testimonial.name}</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.14em] text-white/38">

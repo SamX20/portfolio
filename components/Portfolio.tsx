@@ -180,12 +180,12 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   };
 
   return (
-    <section ref={sectionRef} id="projects" className="deferred-section relative bg-[#080808] px-4 py-24 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+    <section ref={sectionRef} id="projects" className="site-section deferred-section px-4 py-24 sm:px-6 lg:px-10 lg:py-32" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="relative z-10 mx-auto max-w-[1440px]">
+        <div className="mb-14 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.34em] text-[var(--accent)]">
-              {isAr ? 'أعمال مختارة' : 'Selected Work'}
+            <p className="section-kicker mb-4 text-xs font-black uppercase tracking-[0.34em]">
+              {isAr ? '01 / أعمال مختارة' : '01 / Selected Work'}
             </p>
             <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
               {isAr ? 'معرض حد الإيقاع، مصمم للحركة.' : 'A sharp gallery built for motion.'}
@@ -300,7 +300,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
           >
             <motion.div
               ref={modalRef}
-              className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl overflow-y-auto overscroll-contain border border-white/12 bg-[#0d0d0d] sm:max-h-[calc(100dvh-2.5rem)]"
+              className="brand-panel relative max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl overflow-y-auto overscroll-contain bg-[#0d0f12] sm:max-h-[calc(100dvh-2.5rem)]"
               initial={{ scale: 0.96, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.96, opacity: 0, y: 20 }}

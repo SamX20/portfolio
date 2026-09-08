@@ -62,7 +62,7 @@ export default function ProjectCard({
       onFocus={() => setDesktopHovered(true)}
       onBlur={() => setDesktopHovered(false)}
       data-preview-project-id={project.hover_video_url ? project.id : undefined}
-      className="group relative flex h-full w-full flex-col overflow-hidden border border-white/10 bg-[#101114] text-left transition hover:border-[var(--accent-mid)]/70 hover:shadow-[0_22px_60px_rgba(0,0,0,.34)]"
+      className="project-card group relative flex h-full w-full flex-col overflow-hidden border border-white/10 text-left transition hover:border-[var(--accent-mid)]/70 hover:shadow-[0_22px_60px_rgba(0,0,0,.34)]"
       whileHover={isPortable ? undefined : { y: -5 }}
       transition={isPortable ? undefined : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       dir={isAr ? 'rtl' : 'ltr'}
@@ -132,7 +132,7 @@ export default function ProjectCard({
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition-colors group-hover:text-white">
             {isAr ? 'عرض المشروع' : 'View project'}
           </span>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/15 text-white transition duration-300 group-hover:border-[var(--accent-mid)] group-hover:bg-[var(--accent-mid)] group-hover:text-[#05070b]">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-white/15 text-white transition duration-300 group-hover:border-[var(--accent-mid)] group-hover:bg-[var(--accent-mid)] group-hover:text-[#05070b]">
             <svg viewBox="0 0 24 24" className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true">
               <path d="M8 5v14l11-7L8 5Z" />
             </svg>

@@ -47,7 +47,7 @@ export default function HomeClient({ data }: { data: HomeData }) {
   }, [locale]);
 
   return (
-    <main className="relative isolate overflow-hidden bg-[#080808] text-white">
+    <main className="site-shell relative isolate overflow-hidden text-white">
       <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} />
       <Hero locale={locale} profile={data.profile} sections={data.sections} stats={data.stats} />
       <Portfolio

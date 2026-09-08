@@ -61,12 +61,12 @@ export default function ClientsShowcase({
   if (!visibleClients.length) return null;
 
   return (
-    <section className="deferred-section relative bg-[#080808] px-4 py-16 sm:px-6 lg:px-8" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="mx-auto max-w-7xl">
-        <ScrollReveal className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <section className="site-section deferred-section px-4 py-24 sm:px-6 lg:px-10 lg:py-28" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="mx-auto max-w-[1440px]">
+        <ScrollReveal className="mb-9 flex flex-col gap-3 border-b border-white/10 pb-7 md:flex-row md:items-end md:justify-between">
           <div className={isAr ? 'text-right' : 'text-left'}>
-            <p className="mb-3 text-xs font-black uppercase tracking-[0.32em] text-[var(--accent)]">
-              {isAr ? 'عملاء مختارون' : 'Selected Clients'}
+            <p className="section-kicker mb-3 text-xs font-black uppercase tracking-[0.32em]">
+              {isAr ? '02 / عملاء مختارون' : '02 / Selected Clients'}
             </p>
             <h2 className="max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
               {isAr ? 'أسماء وثقت بالحركة، والنتيجة تقودك للأعمال.' : 'Trusted names, directly tied to the work.'}
@@ -91,13 +91,13 @@ export default function ClientsShowcase({
                 <button
                   type="button"
                   onClick={() => onSelectClient(active ? null : client.id)}
-                  className={`group flex min-h-[94px] w-full items-center gap-4 border p-4 text-left transition ${
+                  className={`client-tile group flex min-h-[104px] w-full items-center gap-4 border p-4 text-left transition ${
                     active
                       ? 'border-[var(--accent-mid)] bg-[var(--accent)]/12'
                       : 'border-white/10 bg-white/[0.025] hover:border-[var(--accent)]/45 hover:bg-white/[0.045]'
                   } ${isAr ? 'text-right' : 'text-left'}`}
                 >
-                  <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-black/35">
+                  <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md border border-white/10 bg-black/35">
                     {client.logo_url ? (
                       <img src={client.logo_url} alt={client.name} loading="lazy" decoding="async" className="h-full w-full object-contain p-2" />
                     ) : (

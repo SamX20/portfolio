@@ -2,12 +2,13 @@
 
 export default function LoadingScreen() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
-      <div className="flex flex-col items-center gap-6 px-6 py-10 rounded-[32px] bg-white/5 border border-white/10 shadow-2xl shadow-black/20 backdrop-blur-xl">
-        <div className="flex items-center justify-center w-20 h-20 rounded-full border-4 border-white/10 border-t-sky-300 animate-spin" />
+    <main className="flex min-h-screen items-center justify-center bg-[#070809] px-5 text-white">
+      <div className="admin-login-panel flex w-full max-w-md flex-col items-center gap-6 border border-white/10 px-7 py-12 backdrop-blur-xl">
+        <p className="text-3xl font-black uppercase tracking-[0.18em]">SAMER JABER</p>
+        <div className="h-px w-40 overflow-hidden bg-white/10"><div className="h-full w-1/2 animate-pulse bg-sky-300" /></div>
         <div className="text-center">
-          <p className="text-lg font-semibold">جاري التحميل...</p>
-          <p className="text-sm text-gray-400 mt-2">الرجاء الانتظار لحظة. نحن نتأكد من أن كل شيء جاهز.</p>
+          <p className="text-sm font-black uppercase tracking-[0.16em]">Loading portfolio</p>
+          <p className="mt-2 text-sm text-gray-400" dir="rtl">جاري تجهيز الأعمال...</p>
         </div>
       </div>
     </main>

@@ -523,15 +523,15 @@ export default function AdminPage() {
   };
 
   if (loading && !authed) {
-    return <div className="grid min-h-screen place-items-center bg-[#080808] text-white">Loading admin...</div>;
+    return <div className="admin-shell grid min-h-screen place-items-center text-white">Loading admin...</div>;
   }
 
   if (!authed) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#080808] px-4 text-white">
-        <form onSubmit={login} className="w-full max-w-md border border-white/10 bg-white/[0.03] p-7">
+      <main className="admin-shell grid min-h-screen place-items-center px-4 text-white">
+        <form onSubmit={login} className="admin-login-panel w-full max-w-md border border-white/10 p-8 sm:p-10">
           <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#8ed8ff]">Sam Admin</p>
-          <h1 className="text-4xl font-black">Control room</h1>
+          <h1 className="text-4xl font-black leading-tight">Control room</h1>
           <p className="mt-3 text-sm leading-7 text-white/52">
             Server-protected admin for projects, main page copy, uploads, and contact content.
           </p>
@@ -557,18 +557,18 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white">
+    <main className="admin-shell min-h-screen text-white">
       {toast && (
         <div className="fixed right-4 top-4 z-[120] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-[#8ed8ff]/35 bg-[#0b1014]/95 p-4 text-sm font-bold leading-6 text-[#dff5ff] shadow-2xl shadow-black/35 backdrop-blur-xl">
           <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.2em] text-[#8ed8ff]">Admin update</span>
           {toast}
         </div>
       )}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#080808]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <header className="admin-header sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.32em] text-[#8ed8ff]">Sam Motion Admin</p>
-            <h1 className="text-2xl font-black">Portfolio control panel</h1>
+            <h1 className="mt-1 text-2xl font-black">Portfolio control panel</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             {[
@@ -583,8 +583,8 @@ export default function AdminPage() {
               <button
                 key={value}
                 onClick={() => changeTab(value as Tab)}
-                className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
-                  tab === value ? 'accent-gradient border-[#4aa3ff] text-[#090909]' : 'border-white/10 text-white/55 hover:text-white'
+                className={`rounded-md border px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] transition ${
+                  tab === value ? 'accent-gradient border-[#4aa3ff] text-[#090909] shadow-[0_8px_24px_rgba(74,163,255,.14)]' : 'border-white/10 bg-white/[0.02] text-white/55 hover:border-white/30 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
                 {label}
@@ -623,7 +623,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="admin-content mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-10">
         {tab === 'content' && (
           <section className="grid gap-5 lg:grid-cols-2">
             <div className="border border-white/10 bg-white/[0.025] p-5">

@@ -43,25 +43,25 @@ export default function Navigation({ sections, locale, onLocaleChange }: Navigat
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? 'border-b border-white/10 bg-[#080808]/88 backdrop-blur-xl' : 'bg-transparent'
+      className={`site-nav fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled ? 'border-b border-white/10 bg-[#070809]/92 backdrop-blur-xl' : 'bg-gradient-to-b from-black/55 to-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[4.5rem] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <Link href="/" className="group flex items-center gap-3">
-          <span className="accent-gradient grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-[var(--accent-mid)]/50 text-sm font-black text-[#090909]">
+          <span className="accent-gradient grid h-10 w-10 place-items-center overflow-hidden rounded-md border border-[var(--accent-mid)]/50 text-sm font-black text-[#090909] shadow-[0_0_28px_color-mix(in_srgb,var(--accent)_18%,transparent)]">
             {isImageLogo(logo) ? (
               <img src={logo} alt={`${siteTitle} logo`} className="h-full w-full object-cover" />
             ) : (
               logo
             )}
           </span>
-          <span className="text-sm font-black uppercase tracking-[0.22em] text-white">
+          <span className="hidden text-[13px] font-black uppercase tracking-[0.24em] text-white sm:block">
             {siteTitle}
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-5">
+        <div className="flex items-center gap-2 sm:gap-6">
           <a href="#projects" className="hidden text-sm font-semibold text-white/62 transition hover:text-white sm:block">
             {t.work}
           </a>
@@ -78,7 +78,7 @@ export default function Navigation({ sections, locale, onLocaleChange }: Navigat
           </button>
           <a
             href="#contact"
-            className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-[var(--accent-mid)]"
+            className="whitespace-nowrap rounded-md bg-white px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.12em] text-black transition hover:bg-[var(--accent)] sm:px-4 sm:text-xs sm:tracking-[0.14em]"
           >
             {t.book}
           </a>

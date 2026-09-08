@@ -42,7 +42,7 @@ function HeroLoadingOverlay({
     >
       <div className="absolute inset-0 opacity-40">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:64px_64px]" />
-        <div className="absolute left-1/2 top-1/2 h-[44vw] max-h-[520px] w-[44vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent-mid)]/18 blur-3xl" />
+        <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-[var(--accent)]/45 to-transparent shadow-[0_0_42px_var(--accent-mid)]" />
       </div>
 
       <div className="relative text-center">
@@ -221,7 +221,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#080808]" dir={isAr ? 'rtl' : 'ltr'}>
+    <section className="relative overflow-hidden bg-[#070809]" dir={isAr ? 'rtl' : 'ltr'}>
       {showHeroLoader ? (
         <HeroLoadingOverlay
           started={introStarted}
@@ -232,7 +232,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
         />
       ) : null}
 
-      <div className="hero-stage relative min-h-[100svh] overflow-hidden pt-16">
+      <div className="hero-stage relative min-h-[100svh] overflow-hidden pt-[4.5rem]">
       {activeVideoUrl ? (
         <div className="absolute inset-0 z-0">
           <VideoPlayer
@@ -318,12 +318,12 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
         </>
       ) : null}
 
-      <div className={`hero-stage-content relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] max-w-7xl flex-col justify-center px-4 pb-20 pt-20 sm:px-6 sm:pb-24 sm:pt-24 lg:pt-28 ${hasAlternateHero ? 'md:px-20 lg:px-24' : 'lg:px-8'}`}>
+      <div className={`hero-stage-content relative z-10 mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-[1440px] flex-col justify-center px-4 pb-20 pt-16 sm:px-6 sm:pb-24 sm:pt-20 lg:pb-28 lg:pt-24 ${hasAlternateHero ? 'md:px-20 lg:px-24' : 'lg:px-10'}`}>
         <div className={`max-w-4xl ${isAr ? 'text-right' : 'text-left'}`}>
           <p className="mb-5 text-xs font-black uppercase tracking-[0.34em] text-[var(--accent)] transition-colors duration-700">
             {subtitle}
           </p>
-          <h1 className={`hero-stage-title max-w-5xl text-[clamp(3rem,8vw,7.4rem)] font-black tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)] ${isAr ? 'leading-[1.16]' : 'leading-[1.02]'}`}>
+          <h1 className={`hero-stage-title max-w-5xl text-5xl font-black tracking-normal text-white drop-shadow-[0_12px_42px_rgba(0,0,0,.72)] sm:text-6xl lg:text-7xl xl:text-[6rem] ${isAr ? 'leading-[1.18]' : 'leading-[1.02]'}`}>
             {title}
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/78 drop-shadow-[0_8px_24px_rgba(0,0,0,.68)] sm:text-lg">
@@ -340,7 +340,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
           </div>
         </div>
 
-        <div className="hero-stage-about mt-10 max-w-xl sm:mt-12">
+        <div className="hero-stage-about mt-9 max-w-xl sm:mt-11">
           {!activeVideoUrl ? (
             <div className="relative aspect-video overflow-hidden border border-white/14 bg-[linear-gradient(145deg,#161616,#090909)]">
               <motion.div
@@ -365,7 +365,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
             </div>
           ) : null}
 
-          <div className="border border-white/12 bg-[#101010]/82 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl">
+          <div className="hero-credential border-l-2 border-l-[var(--accent)] border-y border-r border-white/12 bg-[#0b0d0f]/88 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
             <p className="text-xs uppercase tracking-[0.22em] text-white/42">{isAr ? '\u0645\u0646 \u0623\u0646\u0627' : 'Who I Am'}</p>
             <p className="mt-2 text-2xl font-black leading-tight text-white">{aboutTitle}</p>
             <p className="mt-3 text-sm leading-6 text-white/72">{about}</p>
@@ -376,7 +376,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none relative z-[2] hidden -rotate-2 overflow-hidden border-y border-white/[0.075] bg-white/[0.018] py-3 text-xs font-black uppercase tracking-[0.32em] text-white/[0.24] backdrop-blur-[1px] lg:flex"
+        className="pointer-events-none relative z-[2] hidden overflow-hidden border-y border-white/[0.075] bg-white/[0.018] py-3 text-xs font-black uppercase tracking-[0.32em] text-white/[0.24] backdrop-blur-[1px] lg:flex"
       >
         <div className="flex min-w-max gap-7 whitespace-nowrap">
           {[...Array(10)].map((_, index) => (
@@ -387,7 +387,7 @@ export default function Hero({ locale, profile, sections, stats }: HeroProps) {
         </div>
       </div>
 
-      <ScrollReveal className="relative z-10 mx-auto grid max-w-7xl gap-px border-y border-white/10 bg-white/10 sm:grid-cols-3">
+      <ScrollReveal className="relative z-10 mx-auto grid max-w-[1440px] gap-px border-y border-white/10 bg-white/10 sm:grid-cols-3">
         {stats.slice(0, 3).map((stat) => (
           <div key={stat.id} className="bg-[#080808]/92 px-4 py-5 text-center backdrop-blur">
             <p className="text-3xl font-black text-white">{stat.value}</p>
