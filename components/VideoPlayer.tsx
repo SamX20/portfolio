@@ -111,7 +111,11 @@ export default function VideoPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMobilePlayer, setIsMobilePlayer] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const controlsTimerRef = useRef<number | null>(null);
   const readyCalledRef = useRef(false);
   const blockedCalledRef = useRef(false);
   const resolvedVideoUrl = videoUrl ? getVideoEmbedUrl(videoUrl, autoPlay || playbackRequested, muted) : undefined;
@@ -162,6 +166,53 @@ export default function VideoPlayer({
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
   }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const fullscreen = Boolean(document.fullscreenElement);
+      setIsFullscreen(fullscreen);
+      if (!fullscreen) screen.orientation?.unlock?.();
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => () => {
+    if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current);
+  }, []);
+
+  const revealControls = (autoHide = isPlaying) => {
+    setControlsVisible(true);
+    if (controlsTimerRef.current) window.clearTimeout(controlsTimerRef.current);
+    if (autoHide) {
+      controlsTimerRef.current = window.setTimeout(() => setControlsVisible(false), 1500);
+    }
+  };
+
+  const toggleFullscreen = async () => {
+    const wrapper = wrapperRef.current;
+    const video = videoRef.current;
+    if (!wrapper || !video) return;
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      if (wrapper.requestFullscreen) {
+        await wrapper.requestFullscreen();
+        const orientation = screen.orientation as ScreenOrientation & { lock?: (mode: 'portrait' | 'landscape') => Promise<void> };
+        await orientation.lock?.(aspectRatio < 1 ? 'portrait' : 'landscape').catch(() => undefined);
+      } else {
+        const iosVideo = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+        iosVideo.webkitEnterFullscreen?.();
+      }
+    } catch {
+      const iosVideo = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+      iosVideo.webkitEnterFullscreen?.();
+    }
+  };
 
   const playVideo = async (mutedOverride?: boolean) => {
     const video = videoRef.current;
@@ -273,7 +324,13 @@ export default function VideoPlayer({
   ) : null;
 
   const renderDirectVideo = (src: string) => (
-    <div className={`group relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
+    <div
+      ref={wrapperRef}
+      className={`group relative w-full overflow-hidden ${wrapperRadius} bg-black ${isFullscreen ? 'flex h-screen max-h-none items-center justify-center rounded-none' : ''} ${className}`}
+      style={isFullscreen ? undefined : wrapperStyle}
+      onPointerMove={() => revealControls()}
+      onPointerDown={() => revealControls()}
+    >
       <video
         ref={videoRef}
         controls={false}
@@ -285,7 +342,11 @@ export default function VideoPlayer({
         loop={loop}
         playsInline
         onClick={() => {
-          if (showCompactControls) void togglePlayback();
+          if (!controlsVisible) {
+            revealControls();
+          } else if (showCompactControls) {
+            void togglePlayback();
+          }
         }}
         onLoadStart={() => {
           if (playbackRequested || autoPlay) setIsLoading(true);
@@ -312,11 +373,13 @@ export default function VideoPlayer({
         onPlaying={() => {
           setIsLoading(false);
           setIsPlaying(true);
+          revealControls(true);
           markReady();
         }}
         onPause={() => {
           setIsLoading(false);
           setIsPlaying(false);
+          revealControls(false);
         }}
         onEnded={() => {
           setIsLoading(false);
@@ -350,15 +413,15 @@ export default function VideoPlayer({
       ) : null}
 
       {showCompactControls && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-3 pt-12 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
-          <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/12 bg-black/58 px-3 py-2 shadow-2xl shadow-black/35 backdrop-blur-xl">
+        <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/75 via-black/20 to-transparent px-2 pb-2 pt-10 transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}>
+          <div className="pointer-events-auto flex items-center gap-2 border border-white/10 bg-black/62 px-2 py-1.5 shadow-2xl shadow-black/35 backdrop-blur-xl">
             <button
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
                 void togglePlayback();
               }}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-[#05070b] transition hover:bg-white"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-[#05070b] transition hover:bg-white"
               aria-label={isPlaying ? 'Pause video' : 'Play video'}
             >
               {isPlaying ? (
@@ -381,49 +444,29 @@ export default function VideoPlayer({
               step="0.1"
               value={Math.min(currentTime, duration || currentTime)}
               onChange={(event) => seekTo(event.target.value)}
-              className="h-1.5 min-w-0 flex-1 accent-[var(--accent)]"
+              className="video-progress h-1 min-w-0 flex-1 accent-[var(--accent)]"
               aria-label="Video progress"
             />
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                void toggleFullscreen();
+              }}
+              className="grid h-8 w-8 shrink-0 place-items-center text-white/75 transition hover:text-[var(--accent)]"
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              {isFullscreen ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" aria-hidden="true"><path d="M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5" strokeWidth="1.8" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" aria-hidden="true"><path d="M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5" strokeWidth="1.8" /></svg>
+              )}
+            </button>
           </div>
         </div>
       )}
     </div>
   );
-
-  const renderNativeMobileDriveVideo = (id: string) => {
-    const directUrl = getGoogleDriveDirectUrl(id);
-
-    return (
-      <div className={`relative w-full overflow-hidden ${wrapperRadius} bg-black ${className}`} style={wrapperStyle}>
-        <video
-          ref={videoRef}
-          controls
-          poster={thumbnail}
-          className={`h-full w-full ${objectFitClass}`}
-          preload="metadata"
-          playsInline
-          onPlay={() => setIsLoading(true)}
-          onWaiting={() => setIsLoading(true)}
-          onStalled={() => setIsLoading(true)}
-          onLoadedMetadata={handleMetadata}
-          onLoadedData={() => {
-            setIsLoading(false);
-            markReady();
-          }}
-          onCanPlay={() => setIsLoading(false)}
-          onPlaying={() => setIsLoading(false)}
-          onError={() => {
-            setIsLoading(false);
-            markReady();
-          }}
-        >
-          <source src={directUrl} type="video/mp4" />
-          Your browser does not support video playback.
-        </video>
-        {showLoadingIndicator ? loadingOverlay(isLoading) : null}
-      </div>
-    );
-  };
 
   if (embedCode) {
     return (
@@ -439,7 +482,7 @@ export default function VideoPlayer({
 
   if (videoUrl && resolvedVideoUrl) {
     if (driveFileId && isMobilePlayer && !autoPlay) {
-      return renderNativeMobileDriveVideo(driveFileId);
+      return renderDirectVideo(getGoogleDriveDirectUrl(driveFileId));
     }
 
     if (isEmbedVideo) {
