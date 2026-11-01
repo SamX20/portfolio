@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LuArrowUpRight, LuMenu, LuX } from 'react-icons/lu';
 import { Locale, SectionsData } from '@/types';
+import { LogoLockup } from './Logo';
 
 interface NavigationProps {
   sections?: SectionsData;
@@ -17,17 +18,11 @@ const labels = {
   ar: { work: 'الأعمال', services: 'الخدمات', about: 'الاستوديو', contact: 'التواصل', cta: 'لنتحدث' },
 };
 
-function isImageLogo(value?: string) {
-  if (!value) return false;
-  return /^(\/|https?:\/\/).+\.(svg|png|jpe?g|webp|gif)(\?.*)?$/i.test(value.trim());
-}
 
-export default function Navigation({ sections, locale, onLocaleChange, hasServices = true }: NavigationProps) {
+export default function Navigation({ locale, onLocaleChange, hasServices = true }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const t = labels[locale];
-  const logo = sections?.global.logo || '';
-  const siteTitle = sections?.global.site_title || 'Xsamer';
 
   const links = [
     { href: '#work', label: t.work },
@@ -50,11 +45,8 @@ export default function Navigation({ sections, locale, onLocaleChange, hasServic
       }`}
     >
       <div className="container-x flex h-16 items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          {isImageLogo(logo) ? (
-            <img src={logo} alt={`${siteTitle} logo`} className="h-8 w-8 rounded-full object-cover" />
-          ) : null}
-          <span className="whitespace-nowrap text-[15px] font-semibold tracking-tight">{siteTitle}</span>
+        <Link href="/" aria-label="XSam Studio home" onClick={() => setOpen(false)}>
+          <LogoLockup />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">

@@ -1,5 +1,7 @@
 'use client';
 
+import { LogoLockup, LogoMark } from '@/components/Logo';
+
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -10,11 +12,10 @@ interface ShareClient {
 
 type TestimonialLocale = 'en' | 'ar';
 
-const logoUrl = '/WhatsApp Image 2026-07-04 at 12.41.26 AM.jpeg';
 
 const copy = {
   en: {
-    back: 'Xsamer',
+    back: 'XSam Studio',
     toggle: 'AR',
     title: 'How was working with us?',
     description: 'A few honest lines help future clients understand the process, the communication, and the final result.',
@@ -40,7 +41,7 @@ const copy = {
     fallbackError: 'Could not send your testimonial.',
   },
   ar: {
-    back: 'Xsamer',
+    back: 'XSam Studio',
     toggle: 'EN',
     title: 'كيف كانت تجربتك معنا؟',
     description: 'كلمات بسيطة وصادقة تساعد العملاء القادمين على فهم أسلوب العمل، التواصل، وجودة النتيجة النهائية.',
@@ -140,7 +141,7 @@ export default function ShareTestimonialPage() {
   return (
     <main className="min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
       <header className="container-x flex h-16 items-center justify-between">
-        <a href="/" className="text-[15px] font-semibold tracking-tight">{t.back}</a>
+        <a href="/" aria-label="XSam Studio home"><LogoLockup /></a>
         <button type="button" onClick={() => setLocale(isAr ? 'en' : 'ar')} className="text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]">
           {isAr ? 'EN' : 'عربي'}
         </button>
@@ -148,7 +149,7 @@ export default function ShareTestimonialPage() {
 
       <div className="container-x grid gap-16 py-16 lg:grid-cols-[1fr_1.15fr] lg:gap-24 lg:py-24">
         <section>
-          <img src={logoUrl} alt="Xsamer logo" className="h-14 w-14 rounded-full object-cover" />
+          <LogoMark className="h-14 w-14" />
           <p className="eyebrow mt-10">{isAr ? 'آراء العملاء' : 'Testimonial'}</p>
           <h1 className="display mt-5 text-[clamp(2.5rem,6vw,4.75rem)]">{t.title}</h1>
           <p className="mt-6 max-w-md text-base leading-7 text-[var(--muted)]">{t.description}</p>

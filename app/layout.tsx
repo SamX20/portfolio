@@ -15,10 +15,11 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: 'Xsamer — Creative Studio for Web, Video & Brand',
+  title: 'XSam Studio — Web, Video & Brand',
   description:
-    'Xsamer is a creative studio crafting websites, online stores, video editing, motion design, logos and brand identities.',
+    'XSam Studio is a creative studio crafting websites, online stores, video editing, motion design, logos and brand identities.',
   keywords: [
+    'XSam Studio',
     'Xsamer',
     'video editor',
     'motion graphics designer',
@@ -36,13 +37,14 @@ export const metadata: Metadata = {
     'سامر جابر',
   ],
   authors: [{ name: 'Samer Jaber' }],
-  creator: 'Xsamer',
+  creator: 'XSam Studio',
   metadataBase: new URL('https://xsamer.com'),
   alternates: {
     canonical: '/',
   },
   icons: {
     icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.png', type: 'image/png' },
     ],
     shortcut: ['/favicon.png'],
@@ -51,11 +53,11 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Xsamer — Creative Studio for Web, Video & Brand',
+    title: 'XSam Studio — Web, Video & Brand',
     description:
       'Professional video editing and 2D/3D motion graphics design by Xsamer for promos, social media content, and visual stories.',
     url: 'https://xsamer.com',
-    siteName: 'Xsamer',
+    siteName: 'XSam Studio',
     locale: 'en_US',
     alternateLocale: ['ar_JO'],
     type: 'website',
@@ -63,7 +65,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Xsamer — Creative Studio for Web, Video & Brand',
+    title: 'XSam Studio — Web, Video & Brand',
     description: 'Professional video editing and 2D/3D motion graphics portfolio by Xsamer.',
     images: ['/og-image.svg'],
   },

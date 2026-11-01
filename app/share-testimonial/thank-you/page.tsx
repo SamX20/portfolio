@@ -1,9 +1,10 @@
 'use client';
 
+import { LogoMark } from '@/components/Logo';
+
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-const logoUrl = '/WhatsApp Image 2026-07-04 at 12.41.26 AM.jpeg';
 
 const thankYouCopy = {
   en: {
@@ -39,7 +40,7 @@ export default function TestimonialThankYouPage() {
     <main className="grid min-h-screen place-items-center" dir={isAr ? 'rtl' : 'ltr'}>
       <section className="container-x max-w-3xl py-20 text-center">
         <div className="relative mx-auto w-fit">
-          <img src={logoUrl} alt="Xsamer logo" className="h-20 w-20 rounded-full object-cover" />
+          <LogoMark className="h-20 w-20" />
           <span className="absolute -bottom-1 -end-1 grid h-8 w-8 place-items-center rounded-full bg-[var(--foreground)] text-[var(--background)]">
             <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
               <path d="M9.2 16.2 4.9 12l-1.4 1.4 5.7 5.7L21 7.3 19.6 6 9.2 16.2Z" />

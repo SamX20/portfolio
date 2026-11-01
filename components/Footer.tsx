@@ -1,6 +1,7 @@
 'use client';
 
 import { DynamicIcon } from '@/lib/icons';
+import { LogoLockup } from './Logo';
 import { Locale, SectionsData, SocialLink } from '@/types';
 
 interface FooterProps {
@@ -17,7 +18,7 @@ export default function Footer({ sections, socialLinks = [], locale }: FooterPro
     <footer className="border-t border-[var(--line)]" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="container-x flex flex-col gap-6 py-10 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-[15px] font-semibold tracking-tight">{sections.global.site_title}</p>
+          <LogoLockup />
           {tagline ? <p className="mt-1 text-sm text-[var(--muted)]">{tagline}</p> : null}
         </div>
         <div className="flex items-center gap-4">

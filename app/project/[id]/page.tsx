@@ -1,5 +1,7 @@
 'use client';
 
+import { LogoLockup, LogoMark } from '@/components/Logo';
+
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -43,7 +45,7 @@ export default function ProjectPage() {
         <LuArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
         {isAr ? 'كل الأعمال' : 'All work'}
       </Link>
-      <Link href="/" className="text-[15px] font-semibold tracking-tight">Xsamer</Link>
+      <Link href="/" aria-label="XSam Studio home"><LogoLockup /></Link>
       <button type="button" onClick={() => setLocale(isAr ? 'en' : 'ar')} className="text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]">
         {isAr ? 'EN' : 'عربي'}
       </button>
