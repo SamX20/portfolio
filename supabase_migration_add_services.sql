@@ -15,3 +15,7 @@ create table if not exists public.services (
 alter table public.services enable row level security;
 create policy "public_read_services" on public.services for select using (true);
 create policy "service_write_services" on public.services for all to service_role using (true) with check (true);
+
+-- Sub-items shown when a service is expanded, and linked projects
+alter table public.services add column if not exists items jsonb not null default '[]'::jsonb;
+alter table public.services add column if not exists project_ids text[] not null default '{}';

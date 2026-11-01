@@ -16,12 +16,12 @@ const copy = {
   en: {
     back: 'Xsamer',
     toggle: 'AR',
-    title: 'Share your experience working with Sam.',
+    title: 'How was working with us?',
     description: 'A few honest lines help future clients understand the process, the communication, and the final result.',
     traits: ['Fast', 'Clear', 'Polished'],
     sentLabel: 'Sent',
     sentTitle: 'Thank you.',
-    sentText: "Your testimonial is now saved and will appear on Sam's portfolio.",
+    sentText: 'Your testimonial is saved and will appear on our site.',
     addAnother: 'Add another',
     name: 'Name',
     company: 'Company / Brand',
@@ -34,7 +34,7 @@ const copy = {
     optional: 'Optional',
     rating: 'Rating',
     experience: 'Your experience',
-    experiencePlaceholder: 'What was it like to work together? What improved in the final video?',
+    experiencePlaceholder: 'What was it like to work together? What did the result change for you?',
     sending: 'Sending...',
     submit: 'Send testimonial',
     fallbackError: 'Could not send your testimonial.',
@@ -42,12 +42,12 @@ const copy = {
   ar: {
     back: 'Xsamer',
     toggle: 'EN',
-    title: 'شارك تجربتك في العمل مع سام.',
+    title: 'كيف كانت تجربتك معنا؟',
     description: 'كلمات بسيطة وصادقة تساعد العملاء القادمين على فهم أسلوب العمل، التواصل، وجودة النتيجة النهائية.',
     traits: ['سريع', 'واضح', 'احترافي'],
     sentLabel: 'تم الإرسال',
     sentTitle: 'شكرا لك.',
-    sentText: 'تم حفظ رأيك وسيظهر في بورتفوليو سام.',
+    sentText: 'تم حفظ رأيك وسيظهر على موقعنا.',
     addAnother: 'إضافة رأي آخر',
     name: 'الاسم',
     company: 'الشركة / العلامة',
@@ -60,7 +60,7 @@ const copy = {
     optional: 'اختياري',
     rating: 'التقييم',
     experience: 'تجربتك',
-    experiencePlaceholder: 'كيف كانت تجربة العمل؟ وما الذي تحسن في الفيديو النهائي؟',
+    experiencePlaceholder: 'كيف كانت تجربة العمل؟ وما الذي غيّرته النتيجة بالنسبة لك؟',
     sending: 'جار الإرسال...',
     submit: 'إرسال الرأي',
     fallbackError: 'تعذر إرسال الرأي.',
@@ -135,123 +135,89 @@ export default function ShareTestimonialPage() {
     }
   };
 
-  return (
-    <main className="min-h-screen bg-[#080808] px-4 py-10 text-white" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_1.05fr]">
-        <section>
-          <div className="mb-7 flex items-center justify-between gap-4">
-            <a href="/" className="inline-flex text-xs font-black uppercase tracking-[0.18em] text-[#8ed8ff]">
-              {t.back}
-            </a>
-            <button
-              type="button"
-              onClick={() => setLocale(isAr ? 'en' : 'ar')}
-              className="rounded-full border border-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white/80 transition hover:border-[#8ed8ff]/60 hover:text-[#8ed8ff]"
-            >
-              {t.toggle}
-            </button>
-          </div>
+  const label = 'mb-1 block text-xs text-[var(--muted)]';
 
-          <div className={`flex flex-col items-start gap-6 ${isAr ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}>
-            <div className="shrink-0">
-              <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-2 shadow-2xl shadow-black/40 sm:h-40 sm:w-40 lg:h-52 lg:w-52">
-                <img src={logoUrl} alt="Xsamer logo" className="h-full w-full rounded-[1.5rem] object-cover" />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-4xl font-black leading-tight sm:text-5xl">{t.title}</h1>
-              <p className="mt-5 max-w-xl text-sm leading-7 text-white/56">{t.description}</p>
-              <div className="mt-8 grid grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] text-center">
-                {t.traits.map((item) => (
-                  <div key={item} className="border-r border-white/10 px-4 py-4 last:border-r-0 rtl:border-l rtl:border-r-0 rtl:last:border-l-0">
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-white/58">{item}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+  return (
+    <main className="min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
+      <header className="container-x flex h-16 items-center justify-between">
+        <a href="/" className="text-[15px] font-semibold tracking-tight">{t.back}</a>
+        <button type="button" onClick={() => setLocale(isAr ? 'en' : 'ar')} className="text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]">
+          {isAr ? 'EN' : 'عربي'}
+        </button>
+      </header>
+
+      <div className="container-x grid gap-16 py-16 lg:grid-cols-[1fr_1.15fr] lg:gap-24 lg:py-24">
+        <section>
+          <img src={logoUrl} alt="Xsamer logo" className="h-14 w-14 rounded-full object-cover" />
+          <p className="eyebrow mt-10">{isAr ? 'آراء العملاء' : 'Testimonial'}</p>
+          <h1 className="display mt-5 text-[clamp(2.5rem,6vw,4.75rem)]">{t.title}</h1>
+          <p className="mt-6 max-w-md text-base leading-7 text-[var(--muted)]">{t.description}</p>
+          <div className="mt-10 flex flex-wrap gap-2">
+            {t.traits.map((item) => (
+              <span key={item} className="chip">{item}</span>
+            ))}
           </div>
         </section>
 
-        <form onSubmit={submit} className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/35 sm:p-7">
-          <div className="grid gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.name}</span>
-                  <input name="name" required className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition focus:border-[#8ed8ff]/70" />
-                </label>
-                <div className="grid gap-3">
-                  <label className="block">
-                    <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.company}</span>
-                    <select
-                      value={selectedClientId}
-                      onChange={(event) => setSelectedClientId(event.target.value)}
-                      required
-                      className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition focus:border-[#8ed8ff]/70"
-                    >
-                      <option value="">{t.chooseCompany}</option>
-                      {clients.map((client) => (
-                        <option key={client.id} value={client.id}>
-                          {client.name}
-                        </option>
-                      ))}
-                      <option value="other">{t.otherCompany}</option>
-                    </select>
-                  </label>
-                  {selectedClientId === 'other' && (
-                    <input
-                      name="company"
-                      required
-                      placeholder={t.writeCompany}
-                      className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition placeholder:text-white/24 focus:border-[#8ed8ff]/70"
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.role}</span>
-                  <input name="role" placeholder={t.rolePlaceholder} className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition placeholder:text-white/24 focus:border-[#8ed8ff]/70" />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.email}</span>
-                  <input name="email" type="email" placeholder={t.optional} className="h-12 w-full border border-white/10 bg-black/25 px-4 text-sm outline-none transition placeholder:text-white/24 focus:border-[#8ed8ff]/70" />
-                </label>
-              </div>
-              <div>
-                <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.rating}</span>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setRating(value)}
-                      className={`grid h-11 w-11 place-items-center rounded-full border text-sm font-black transition ${
-                        value <= rating ? 'border-[#8ed8ff] bg-[#8ed8ff] text-[#05070b]' : 'border-white/10 bg-black/25 text-white/45'
-                      }`}
-                    >
-                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
-                        <path d="m12 2 2.9 6.2 6.7.8-4.9 4.6 1.3 6.6-6-3.3-6 3.3 1.3-6.6L2.4 9l6.7-.8L12 2Z" />
-                      </svg>
-                      <span className="sr-only">{value}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+        <form onSubmit={submit} className="grid gap-7">
+          <div className="grid gap-7 sm:grid-cols-2">
+            <label className="block">
+              <span className={label}>{t.name}</span>
+              <input name="name" required className="field" />
+            </label>
+            <div className="grid gap-3">
               <label className="block">
-                <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">{t.experience}</span>
-                <textarea
-                  name="content"
-                  required
-                  minLength={12}
-                  rows={7}
-                  placeholder={t.experiencePlaceholder}
-                  className="w-full resize-none border border-white/10 bg-black/25 px-4 py-3 text-sm leading-7 outline-none transition placeholder:text-white/24 focus:border-[#8ed8ff]/70"
-                />
+                <span className={label}>{t.company}</span>
+                <select value={selectedClientId} onChange={(event) => setSelectedClientId(event.target.value)} required className="field">
+                  <option value="">{t.chooseCompany}</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>{client.name}</option>
+                  ))}
+                  <option value="other">{t.otherCompany}</option>
+                </select>
               </label>
-              {error && <p className="rounded-2xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
-              <button disabled={status === 'saving'} className="accent-gradient rounded-full px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#05070b] disabled:opacity-50">
-                {status === 'saving' ? t.sending : t.submit}
-              </button>
+              {selectedClientId === 'other' && <input name="company" required placeholder={t.writeCompany} className="field" />}
+            </div>
+          </div>
+          <div className="grid gap-7 sm:grid-cols-2">
+            <label className="block">
+              <span className={label}>{t.role}</span>
+              <input name="role" placeholder={t.rolePlaceholder} className="field" />
+            </label>
+            <label className="block">
+              <span className={label}>{t.email}</span>
+              <input name="email" type="email" placeholder={t.optional} className="field" />
+            </label>
+          </div>
+          <div>
+            <span className={label}>{t.rating}</span>
+            <div className="mt-3 flex gap-2">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setRating(value)}
+                  className={`grid h-11 w-11 place-items-center rounded-full border transition ${
+                    value <= rating ? 'border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]' : 'border-[var(--line-strong)] text-[var(--muted)]'
+                  }`}
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+                    <path d="m12 2 2.9 6.2 6.7.8-4.9 4.6 1.3 6.6-6-3.3-6 3.3 1.3-6.6L2.4 9l6.7-.8L12 2Z" />
+                  </svg>
+                  <span className="sr-only">{value}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="block">
+            <span className={label}>{t.experience}</span>
+            <textarea name="content" required minLength={12} rows={6} placeholder={t.experiencePlaceholder} className="field" />
+          </label>
+          {error && <p className="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
+          <div>
+            <button disabled={status === 'saving'} className="btn btn-primary h-12 px-6 disabled:opacity-50">
+              {status === 'saving' ? t.sending : t.submit}
+            </button>
           </div>
         </form>
       </div>

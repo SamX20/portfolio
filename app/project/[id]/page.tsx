@@ -1,154 +1,126 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
-import { Project, CATEGORIES } from '@/types';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { LuArrowLeft, LuArrowUpRight } from 'react-icons/lu';
 import VideoPlayer from '@/components/VideoPlayer';
+import { supabase } from '@/lib/supabase';
+import { CATEGORIES, Locale, Project } from '@/types';
 
-const catLabel = (cat: string | string[]) => {
-  const values = Array.isArray(cat) ? cat : [cat];
-  return values
-    .map((value) => CATEGORIES.find((c) => c.value === value)?.label ?? value)
-    .join(' / ');
-};
-
-export default function ProjectPage({ params }: { params: { id: string } }) {
+export default function ProjectPage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [locale, setLocale] = useState<Locale>('en');
+  const isAr = locale === 'ar';
 
   useEffect(() => {
-    if (!supabase) {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+  }, [isAr, locale]);
+
+  useEffect(() => {
+    if (!supabase || !id) {
       setLoading(false);
       return;
     }
-
     supabase
       .from('projects')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
       .then(({ data, error }) => {
         if (!error) setProject(data);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
-  if (!supabase) {
+  const header = (
+    <header className="container-x flex h-16 items-center justify-between">
+      <Link href="/#work" className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]">
+        <LuArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+        {isAr ? 'كل الأعمال' : 'All work'}
+      </Link>
+      <Link href="/" className="text-[15px] font-semibold tracking-tight">Xsamer</Link>
+      <button type="button" onClick={() => setLocale(isAr ? 'en' : 'ar')} className="text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]">
+        {isAr ? 'EN' : 'عربي'}
+      </button>
+    </header>
+  );
+
+  if (loading || !project) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#0a0a0f' }}>
-        <div className="text-white text-lg">Supabase غير مكوّن.</div>
-        <div className="text-gray-400 text-sm">أضف متغيرات البيئة اللازمة حتى تعمل صفحة المشروع.</div>
-      </div>
+      <main className="min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
+        {header}
+        <div className="grid min-h-[60vh] place-items-center text-sm text-[var(--muted)]">
+          {loading ? (isAr ? 'جاري التحميل...' : 'Loading...') : isAr ? 'المشروع غير موجود.' : 'Project not found.'}
+        </div>
+      </main>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0f' }}>
-        <div className="text-gray-600 text-sm">جاري التحميل...</div>
-      </div>
-    );
-  }
-
-  const projectDescription = project ? project.description_ar || project.description : '';
-  const projectDescriptionLong = projectDescription.length > 220;
-  const displayedProjectDescription = projectDescriptionLong && !showFullDescription
-    ? `${projectDescription.slice(0, 220).trim()}...`
-    : projectDescription;
-
-  if (!project) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#0a0a0f' }}>
-        <div className="text-gray-500 text-lg">المشروع غير موجود</div>
-        <Link href="/" className="text-sky-300 hover:text-sky-200 text-sm transition-colors">
-          ← العودة للرئيسية
-        </Link>
-      </div>
-    );
-  }
+  const title = isAr ? project.title_ar || project.title : project.title;
+  const description = isAr ? project.description_ar || project.description : project.description;
+  const categories = CATEGORIES.filter((item) => project.category?.includes(item.value)).map((item) => (isAr ? item.labelAr : item.label));
+  const meta = [
+    { label: isAr ? 'العميل' : 'Client', value: project.client },
+    { label: isAr ? 'الخدمة' : 'Service', value: categories.join(', ') },
+    { label: isAr ? 'السنة' : 'Year', value: String(project.year) },
+    { label: isAr ? 'المدة' : 'Duration', value: project.duration },
+  ].filter((item) => item.value);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4" style={{ background: '#0a0a0f' }}>
-      <div className="max-w-3xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <Link href="/#work" className="inline-flex items-center gap-2 text-gray-500 hover:text-sky-300 text-sm mb-8 transition-colors">
-            <span>→</span> العودة للمشاريع
-          </Link>
+    <main className="min-h-screen pb-24" dir={isAr ? 'rtl' : 'ltr'}>
+      {header}
+      <div className="container-x pt-12 sm:pt-20">
+        <p className="eyebrow">{categories[0] || (isAr ? 'مشروع' : 'Project')}</p>
+        <h1 className="display mt-5 max-w-5xl text-[clamp(2.5rem,7vw,6rem)]">{title}</h1>
 
-          {/* Header */}
-          <div className="mb-8">
-            <span className="inline-block px-3 py-1 text-xs font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-full mb-4">
-              {catLabel(project.category)}
-            </span>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-4">{project.title_ar || project.title}</h1>
-            <p className="text-gray-400 text-lg leading-relaxed">{displayedProjectDescription}</p>
-            {projectDescriptionLong && (
-              <button
-                type="button"
-                onClick={() => setShowFullDescription((current) => !current)}
-                className="mt-3 text-sm font-semibold text-sky-300 hover:text-sky-200"
-              >
-                {showFullDescription ? 'See less' : 'See more..'}
-              </button>
-            )}
-          </div>
+        <div className="mt-14 overflow-hidden rounded-[20px] bg-black">
+          <VideoPlayer
+            embedCode={project.embed_code}
+            videoUrl={project.video_url}
+            thumbnail={project.thumbnail}
+            title={title}
+            objectFit="contain"
+            className="w-full rounded-none"
+          />
+        </div>
 
-          {/* Video Player */}
-          <div className="mb-8">
-            <VideoPlayer
-              embedCode={project.embed_code}
-              videoUrl={project.video_url}
-              thumbnail={project.thumbnail}
-              title={project.title}
-              objectFit="contain"
-            />
-          </div>
-
-          {/* Meta */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[
-              { label: 'السنة', value: String(project.year) },
-              { label: 'المدة', value: project.duration ?? '—' },
-              { label: 'التصنيف', value: catLabel(project.category) },
-              { label: 'مميز', value: project.featured ? 'نعم ⭐' : 'لا' },
-            ].map((item) => (
-              <div key={item.label} className="p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
-                <div className="text-xs text-gray-600 mb-1">{item.label}</div>
-                <div className="text-sm font-semibold text-white">{item.value}</div>
+        <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
+          <dl className="grid grid-cols-2 gap-x-6 border-t border-[var(--line)] lg:grid-cols-1">
+            {meta.map((item) => (
+              <div key={item.label} className="border-b border-[var(--line)] py-4">
+                <dt className="text-xs text-[var(--muted)]">{item.label}</dt>
+                <dd className="mt-1 text-base">{item.value}</dd>
               </div>
             ))}
-          </div>
-
-          {/* Technologies */}
-          {project.technologies?.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-white font-bold mb-3">التقنيات المستخدمة</h3>
-              <div className="flex flex-wrap gap-2">
+          </dl>
+          <div>
+            <p className="whitespace-pre-line text-lg leading-8 text-[var(--muted)]">{description}</p>
+            {project.technologies?.length ? (
+              <div className="mt-10 flex flex-wrap gap-2">
                 {project.technologies.map((tech) => (
-                  <span key={tech} className="px-3 py-1.5 text-sm text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
-                    {tech}
-                  </span>
+                  <span key={tech} className="chip">{tech}</span>
                 ))}
               </div>
+            ) : null}
+            <div className="mt-10 flex flex-wrap gap-3">
+              {project.video_url ? (
+                <a href={project.video_url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">
+                  {isAr ? 'فتح الرابط المباشر' : 'Open original'}
+                  <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                </a>
+              ) : null}
+              <Link href="/#contact" className="btn btn-primary">
+                {isAr ? 'ابدأ مشروعاً مشابهاً' : 'Start a similar project'}
+              </Link>
             </div>
-          )}
-
-          {/* Video link */}
-          {project.video_url && (
-            <a
-              href={project.video_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full font-bold text-white hover:shadow-lg hover:shadow-sky-500/30 transition-all"
-            >
-              ▶ شاهد المشروع
-            </a>
-          )}
-        </motion.div>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

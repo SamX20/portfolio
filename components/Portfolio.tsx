@@ -161,6 +161,20 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
     };
   }, [selected]);
 
+  useEffect(() => {
+    const handleOpen = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: string }>).detail?.id;
+      const project = projects.find((item) => item.id === id);
+      if (project) {
+        window.dispatchEvent(new CustomEvent(HERO_MUTE_EVENT, { detail: { muted: true } }));
+        setShowModalDescriptionExpanded(false);
+        setSelected(project);
+      }
+    };
+    window.addEventListener('sam:open-project', handleOpen);
+    return () => window.removeEventListener('sam:open-project', handleOpen);
+  }, [projects]);
+
   const modalTitle = selected ? (isAr ? selected.title_ar || selected.title : selected.title) : '';
   const modalDescription = selected ? (isAr ? selected.description_ar || selected.description : selected.description) : '';
   const selectedThumbnail = selected?.thumbnail || getGoogleDriveThumbnail(selected?.video_url);
@@ -270,16 +284,16 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               <button
                 type="button"
                 onClick={closeProject}
-                className="absolute right-3 top-3 z-[5] grid h-11 w-11 place-items-center rounded-full border border-white/18 bg-black/70 text-2xl leading-none text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:border-white"
+                className="absolute end-3 top-3 z-[5] grid h-11 w-11 place-items-center rounded-full border border-white/18 bg-black/70 text-2xl leading-none text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:border-white"
                 aria-label="Close project"
                 title="Close"
               >
                 ×
               </button>
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-white/10 py-3 pe-16 ps-5">
                 <div>
                   <p className="text-xs text-[var(--muted)]">
-                    {selected.client || selected.category.join(' / ')}
+                    {selected.client || CATEGORIES.filter((item) => selected.category.includes(item.value)).map((item) => (isAr ? item.labelAr : item.label)).join(' / ')}
                   </p>
                   <h3 className="mt-1 text-xl font-medium tracking-tight">{modalTitle}</h3>
                 </div>

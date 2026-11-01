@@ -239,17 +239,17 @@ export default function VideoOptimizer({
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         className={`grid min-h-36 place-items-center border border-dashed px-5 py-7 text-center transition ${
-          dragging ? 'border-[#8ed8ff] bg-[#8ed8ff]/10' : 'border-white/15 bg-black/20 hover:border-white/30'
+          dragging ? 'border-[#f5f5f4] bg-[#f5f5f4]/10' : 'border-white/15 bg-black/20 hover:border-white/30'
         }`}
       >
         <div>
-          <div className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-[#8ed8ff]/40 bg-[#8ed8ff]/10 text-xl text-[#8ed8ff]">+</div>
+          <div className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-[#f5f5f4]/40 bg-[#f5f5f4]/10 text-xl text-[#f5f5f4]">+</div>
           <p className="mt-3 text-sm font-black text-white">Drop video files here</p>
           <p className="mt-1 text-xs leading-5 text-white/42">Automatic 720p master, hover preview, thumbnail, and bilingual AI draft.</p>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="mt-4 border border-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/72 transition hover:border-[#8ed8ff]/60 hover:text-white"
+            className="mt-4 border border-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/72 transition hover:border-[#f5f5f4]/60 hover:text-white"
           >
             Choose {multiple ? 'videos' : 'video'}
           </button>
@@ -319,7 +319,7 @@ export default function VideoOptimizer({
                     <button
                       type="button"
                       onClick={() => setFramePickerItemId(item.id)}
-                      className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff] hover:text-[#05070b]"
+                      className="border border-[#f5f5f4]/35 bg-[#f5f5f4]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#f5f5f4] transition hover:border-[#f5f5f4] hover:bg-[#f5f5f4] hover:text-[#05070b]"
                     >
                       Choose a Frame
                     </button>
@@ -328,7 +328,7 @@ export default function VideoOptimizer({
               ) : null}
 
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                <div className="h-full bg-gradient-to-r from-[#8ed8ff] to-[#4aa3ff] transition-all duration-200" style={{ width: `${item.progress}%` }} />
+                <div className="h-full bg-gradient-to-r from-[#f5f5f4] to-[#e7e5e4] transition-all duration-200" style={{ width: `${item.progress}%` }} />
               </div>
               <div className="mt-2 flex items-center justify-between gap-3 text-xs">
                 <span className={item.status === 'error' ? 'text-red-200' : item.status === 'review' ? 'text-amber-200' : item.status === 'done' ? 'text-emerald-200' : 'text-white/46'}>
@@ -346,21 +346,21 @@ export default function VideoOptimizer({
                       <button
                         type="button"
                         onClick={async () => navigator.clipboard.writeText(item.result?.fullUrl || '')}
-                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
+                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#f5f5f4]/50 hover:text-white"
                       >
                         Copy master URL
                       </button>
                       <button
                         type="button"
                         onClick={async () => navigator.clipboard.writeText(item.result?.hoverUrl || '')}
-                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
+                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#f5f5f4]/50 hover:text-white"
                       >
                         Copy hover URL
                       </button>
                       <button
                         type="button"
                         onClick={async () => navigator.clipboard.writeText(item.result?.thumbnailUrl || '')}
-                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#8ed8ff]/50 hover:text-white"
+                        className="border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/55 hover:border-[#f5f5f4]/50 hover:text-white"
                       >
                         Copy thumbnail URL
                       </button>
@@ -392,11 +392,11 @@ export default function VideoOptimizer({
                   </div>
                   {existingProjects.length && onReview ? (
                     <label className="block border-t border-white/10 pt-3">
-                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">Target existing project</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#f5f5f4]">Target existing project</span>
                       <select
                         value={item.replacementProjectId ?? item.result.suggestion?.matched_project_id ?? ''}
                         onChange={(event) => patchItem(item.id, { replacementProjectId: event.target.value })}
-                        className="mt-2 w-full border border-white/12 bg-[#0d0f12] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#8ed8ff]/70"
+                        className="mt-2 w-full border border-white/12 bg-[#0d0f12] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#f5f5f4]/70"
                       >
                         <option value="">Create as a new project</option>
                         {existingProjects.map((project) => (
@@ -413,14 +413,14 @@ export default function VideoOptimizer({
                     </label>
                   ) : null}
                   {item.result.suggestion ? (
-                    <div className="grid gap-3 border border-[#8ed8ff]/20 bg-[#8ed8ff]/[0.055] p-4 md:grid-cols-2">
+                    <div className="grid gap-3 border border-[#f5f5f4]/20 bg-[#f5f5f4]/[0.055] p-4 md:grid-cols-2">
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">English draft</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#f5f5f4]">English draft</p>
                         <p className="mt-1 text-sm font-black text-white">{item.result.suggestion.title}</p>
                         <p className="mt-1 text-xs leading-5 text-white/48">{item.result.suggestion.description}</p>
                       </div>
                       <div dir="rtl" className="text-right">
-                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">Arabic draft</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#f5f5f4]">Arabic draft</p>
                         <p className="mt-1 text-sm font-black text-white">{item.result.suggestion.title_ar}</p>
                         <p className="mt-1 text-xs leading-5 text-white/48">{item.result.suggestion.description_ar}</p>
                       </div>

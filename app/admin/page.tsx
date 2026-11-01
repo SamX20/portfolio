@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
+import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, ServiceItem, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
 import { DynamicIcon, ICON_OPTIONS } from '@/lib/icons';
 import { getServicePreset, SERVICE_PRESETS } from '@/lib/services';
 import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
@@ -219,7 +219,7 @@ function Field({
   placeholder?: string;
 }) {
   const className =
-    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#8ed8ff]/70';
+    'w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#f5f5f4]/70';
 
   return (
     <label className="block">
@@ -537,8 +537,8 @@ export default function AdminPage() {
     return (
       <main className="admin-shell grid min-h-screen place-items-center px-4 text-white">
         <form onSubmit={login} className="admin-login-panel w-full max-w-md border border-white/10 p-8 sm:p-10">
-          <p className="mb-3 text-xs font-black uppercase tracking-[0.34em] text-[#8ed8ff]">Sam Admin</p>
-          <h1 className="text-4xl font-black leading-tight">Control room</h1>
+          <p className="eyebrow mb-4">Xsamer Admin</p>
+          <h1 className="display text-4xl">Control room</h1>
           <p className="mt-3 text-sm leading-7 text-white/52">
             Server-protected admin for projects, main page copy, uploads, and contact content.
           </p>
@@ -552,9 +552,9 @@ export default function AdminPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Admin password"
-            className="mt-6 h-12 w-full border border-white/10 bg-black/35 px-4 text-white outline-none focus:border-[#8ed8ff]/70"
+            className="field mt-6"
           />
-          <button disabled={saving || !password} className="accent-gradient mt-4 w-full px-5 py-3 text-sm font-black uppercase tracking-[0.16em] text-[#090909] disabled:opacity-50">
+          <button disabled={saving || !password} className="btn btn-primary mt-6 h-12 w-full disabled:opacity-50">
             {saving ? 'Checking...' : 'Enter'}
           </button>
           {toast && <p className="mt-4 text-sm text-red-200">{toast}</p>}
@@ -566,16 +566,16 @@ export default function AdminPage() {
   return (
     <main className="admin-shell min-h-screen text-white">
       {toast && (
-        <div className="fixed right-4 top-4 z-[120] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-[#8ed8ff]/35 bg-[#0b1014]/95 p-4 text-sm font-bold leading-6 text-[#dff5ff] shadow-2xl shadow-black/35 backdrop-blur-xl">
-          <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.2em] text-[#8ed8ff]">Admin update</span>
+        <div className="fixed right-4 top-4 z-[120] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-[#f5f5f4]/35 bg-[#111111]/95 p-4 text-sm font-bold leading-6 text-[#f5f5f4] shadow-2xl shadow-black/35 backdrop-blur-xl">
+          <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.2em] text-[#f5f5f4]">Admin update</span>
           {toast}
         </div>
       )}
       <header className="admin-header sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#8ed8ff]">Sam Motion Admin</p>
-            <h1 className="mt-1 text-2xl font-black">Portfolio control panel</h1>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#f5f5f4]">Xsamer Admin</p>
+            <h1 className="mt-1 text-2xl font-black">Studio control panel</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             {[
@@ -592,7 +592,7 @@ export default function AdminPage() {
                 key={value}
                 onClick={() => changeTab(value as Tab)}
                 className={`rounded-md border px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] transition ${
-                  tab === value ? 'accent-gradient border-[#4aa3ff] text-[#090909] shadow-[0_8px_24px_rgba(74,163,255,.14)]' : 'border-white/10 bg-white/[0.02] text-white/55 hover:border-white/30 hover:bg-white/[0.04] hover:text-white'
+                  tab === value ? 'accent-gradient border-[#e7e5e4] text-[#090909] ' : 'border-white/10 bg-white/[0.02] text-white/55 hover:border-white/30 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
                 {label}
@@ -603,10 +603,10 @@ export default function AdminPage() {
       </header>
 
       {hasUnsavedChanges && (
-        <div className="fixed bottom-5 left-1/2 z-[130] w-[min(620px,calc(100vw-2rem))] -translate-x-1/2 rounded-3xl border border-[#8ed8ff]/35 bg-[#0b1014]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-xl">
+        <div className="fixed bottom-5 left-1/2 z-[130] w-[min(620px,calc(100vw-2rem))] -translate-x-1/2 rounded-3xl border border-[#f5f5f4]/35 bg-[#111111]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-xl">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8ed8ff]">Unsaved changes</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5f5f4]">Unsaved changes</p>
               <p className="mt-1 text-sm text-white/62">You changed admin content. Save everything or dismiss the local changes.</p>
             </div>
             <div className="flex gap-2">
@@ -655,7 +655,7 @@ export default function AdminPage() {
                 <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
                 <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
                 <div className="grid gap-3">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8ed8ff]">Primary hero reel</p>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5f5f4]">Primary hero reel</p>
                   <div className="flex flex-col gap-2">
                     <Field label="Hero video URL" value={data.sections.hero.video_url} onChange={(value) => setSection('hero', 'video_url', value)} placeholder="YouTube, Vimeo, or direct video link" />
                     {data.sections.hero.video_url ? (
@@ -708,13 +708,13 @@ export default function AdminPage() {
                         setUploadProgress(0);
                       }
                     }}
-                    className="w-full rounded-full bg-[#8ed8ff] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] disabled:opacity-50"
+                    className="w-full rounded-full bg-[#f5f5f4] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#090909] disabled:opacity-50"
                   >
                     {uploadingHeroVideo ? `Uploading ${uploadProgress}%` : 'Upload hero video'}
                   </button>
                   {uploadingHeroVideo ? (
                     <div className="mt-3 h-2 overflow-hidden rounded-full border border-white/10 bg-white/5">
-                      <div className="h-full bg-[#8ed8ff] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                      <div className="h-full bg-[#f5f5f4] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
                     </div>
                   ) : null}
                 </div>
@@ -803,7 +803,7 @@ export default function AdminPage() {
           <section className="pb-24">
             <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Project library</p>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Project library</p>
                 <h2 className="mt-2 text-3xl font-black">Stacked project cards</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
                   Manage project details, thumbnails, links, categories, and featured status from one flexible view.
@@ -825,7 +825,7 @@ export default function AdminPage() {
 
             <button
               onClick={startNewProject}
-              className="fixed bottom-5 right-5 z-50 rounded-full bg-[#8ed8ff] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[#4aa3ff]/20 transition hover:brightness-110"
+              className="fixed bottom-5 right-5 z-50 rounded-full bg-[#f5f5f4] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[#e7e5e4]/20 transition hover:brightness-110"
             >
               Add project
             </button>
@@ -834,7 +834,7 @@ export default function AdminPage() {
               {sortedAdminProjects.map((project, index) => (
                 <article
                   key={project.id}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-3 shadow-2xl shadow-black/10 transition hover:border-[#8ed8ff]/35 hover:bg-white/[0.04] md:grid md:grid-cols-[180px_1fr_auto] md:items-stretch md:gap-5 md:p-4"
+                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-3 shadow-2xl shadow-black/10 transition hover:border-[#f5f5f4]/35 hover:bg-white/[0.04] md:grid md:grid-cols-[180px_1fr_auto] md:items-stretch md:gap-5 md:p-4"
                 >
                   <div className="relative aspect-video overflow-hidden rounded-2xl bg-black md:aspect-auto md:min-h-32">
                     {project.thumbnail ? (
@@ -850,7 +850,7 @@ export default function AdminPage() {
                   <div className="min-w-0 py-4 md:py-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {project.featured && (
-                        <span className="rounded-full border border-[#8ed8ff]/30 bg-[#8ed8ff]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#8ed8ff]">
+                        <span className="rounded-full border border-[#f5f5f4]/30 bg-[#f5f5f4]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#f5f5f4]">
                           Featured
                         </span>
                       )}
@@ -884,7 +884,7 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex gap-2 border-t border-white/10 pt-3 md:flex-col md:justify-center md:border-l md:border-t-0 md:pl-4 md:pt-0">
-                    <button onClick={() => setEditingProject(project)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/72 transition hover:border-[#8ed8ff]/50 hover:text-white">
+                    <button onClick={() => setEditingProject(project)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/72 transition hover:border-[#f5f5f4]/50 hover:text-white">
                       Edit
                     </button>
                     <button
@@ -908,7 +908,7 @@ export default function AdminPage() {
         {tab === 'media' && (
           <section className="pb-24">
             <div className="mb-6 max-w-3xl">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Media pipeline</p>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Media pipeline</p>
               <h2 className="mt-2 text-3xl font-black">Video Optimizer</h2>
               <p className="mt-2 text-sm leading-6 text-white/46">
                 Drop one or more sources. Each creates a fast-start 720p/30fps master, silent hover preview, thumbnail, and bilingual project draft for review.
@@ -955,6 +955,7 @@ export default function AdminPage() {
         {tab === 'services' && (
           <ServicesManager
             services={data.services}
+            projects={sortedAdminProjects}
             onChange={(services) => updateData((current) => ({ ...current, services }))}
             onDelete={stageDelete}
             notify={notify}
@@ -1023,10 +1024,10 @@ export default function AdminPage() {
           <section>
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">Client sharing link</p>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Client sharing link</p>
                 <h2 className="text-3xl font-black">Testimonials</h2>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-white/46">
-                  Send clients this link: <span className="text-[#8ed8ff]">/share-testimonial</span>. Submitted feedback appears on the main page.
+                  Send clients this link: <span className="text-[#f5f5f4]">/share-testimonial</span>. Submitted feedback appears on the main page.
                 </p>
               </div>
               <button
@@ -1036,7 +1037,7 @@ export default function AdminPage() {
                   await navigator.clipboard.writeText(link);
                   notify('Testimonial sharing link copied');
                 }}
-                className="rounded-full border border-[#8ed8ff]/45 bg-[#8ed8ff]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff]/16 hover:text-white"
+                className="rounded-full border border-[#f5f5f4]/45 bg-[#f5f5f4]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f5f5f4] transition hover:border-[#f5f5f4] hover:bg-[#f5f5f4]/16 hover:text-white"
               >
                 Copy link
               </button>
@@ -1125,7 +1126,7 @@ function ClientsManager({
                 {client.logo_url ? (
                   <img src={client.logo_url} alt={client.name} className="h-full w-full object-contain p-2" />
                 ) : (
-                  <span className="text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]">Logo</span>
+                  <span className="text-xs font-black uppercase tracking-[0.14em] text-[#f5f5f4]">Logo</span>
                 )}
               </div>
               <div className="min-w-0">
@@ -1145,7 +1146,7 @@ function ClientsManager({
                   type="checkbox"
                   checked={client.featured !== false}
                   onChange={(event) => updateClient(client.id, { featured: event.target.checked })}
-                  className="h-4 w-4 accent-[#8ed8ff]"
+                  className="h-4 w-4 accent-[#f5f5f4]"
                 />
                 Show in selected clients
               </label>
@@ -1165,7 +1166,7 @@ function ClientsManager({
                       notify(uploadError instanceof Error ? uploadError.message : 'Logo upload failed');
                     }
                   }}
-                  className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+                  className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#e7e5e4] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
                 />
               </label>
             </div>
@@ -1292,19 +1293,19 @@ function SkillsManager({
           <button onClick={() => { setProgramName(''); setAddMode('program'); }} className="border border-white/20 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:border-white/50">
             Add program
           </button>
-          <button onClick={openSkillForm} disabled={!programs.length} className="border border-[#8ed8ff]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff] transition hover:border-[#8ed8ff] disabled:cursor-not-allowed disabled:opacity-35">
+          <button onClick={openSkillForm} disabled={!programs.length} className="border border-[#f5f5f4]/60 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f5f5f4] transition hover:border-[#f5f5f4] disabled:cursor-not-allowed disabled:opacity-35">
             Add skill
           </button>
         </div>
       </div>
 
       {addMode === 'program' && (
-        <div className="mb-4 border border-[#8ed8ff]/35 bg-[#8ed8ff]/[0.06] p-4">
+        <div className="mb-4 border border-[#f5f5f4]/35 bg-[#f5f5f4]/[0.06] p-4">
           <p className="mb-3 text-sm font-black text-white">Add a new program</p>
           <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
             <Field label="Program name" value={programName} placeholder="e.g. Cinema 4D" onChange={setProgramName} />
             <div className="flex gap-2">
-              <button onClick={createProgram} className="bg-[#8ed8ff] px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black">Add program</button>
+              <button onClick={createProgram} className="bg-[#f5f5f4] px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black">Add program</button>
               <button onClick={() => setAddMode(null)} className="border border-white/15 px-4 py-2.5 text-xs font-bold text-white/65">Cancel</button>
             </div>
           </div>
@@ -1312,12 +1313,12 @@ function SkillsManager({
       )}
 
       {addMode === 'skill' && (
-        <div className="mb-4 border border-[#8ed8ff]/35 bg-[#8ed8ff]/[0.06] p-4">
+        <div className="mb-4 border border-[#f5f5f4]/35 bg-[#f5f5f4]/[0.06] p-4">
           <p className="mb-3 text-sm font-black text-white">Add a new skill</p>
           <div className="grid gap-3 md:grid-cols-3">
             <label className="block">
               <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Program</span>
-              <select value={skillDraft.program} onChange={(event) => setSkillDraft((current) => ({ ...current, program: event.target.value }))} className="w-full border border-white/10 bg-black/60 px-3 py-2.5 text-sm text-white outline-none focus:border-[#8ed8ff]/70">
+              <select value={skillDraft.program} onChange={(event) => setSkillDraft((current) => ({ ...current, program: event.target.value }))} className="w-full border border-white/10 bg-black/60 px-3 py-2.5 text-sm text-white outline-none focus:border-[#f5f5f4]/70">
                 {sortedPrograms.map((program) => <option key={program.id} value={program.name}>{program.name}</option>)}
               </select>
             </label>
@@ -1325,7 +1326,7 @@ function SkillsManager({
             <Field label="Level %" value={skillDraft.level} type="number" onChange={(level) => setSkillDraft((current) => ({ ...current, level: Number(level) }))} />
           </div>
           <div className="mt-3 flex gap-2">
-            <button onClick={createSkill} className="bg-[#8ed8ff] px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black">Add skill</button>
+            <button onClick={createSkill} className="bg-[#f5f5f4] px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black">Add skill</button>
             <button onClick={() => setAddMode(null)} className="border border-white/15 px-4 py-2.5 text-xs font-bold text-white/65">Cancel</button>
           </div>
         </div>
@@ -1351,14 +1352,14 @@ function SkillsManager({
                   value={program.name}
                   onChange={(event) => renameProgram(program.id, program.name, event.target.value)}
                   aria-label="Program name"
-                  className="w-full border-0 bg-transparent p-0 text-lg font-black text-white outline-none focus:text-[#8ed8ff]"
+                  className="w-full border-0 bg-transparent p-0 text-lg font-black text-white outline-none focus:text-[#f5f5f4]"
                 />
                 <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/38">
                   {programSkills.length} skills inside this software
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => { addSkill(program.name); notify('Skill added. Complete its details, then save changes.'); }} className="border border-[#8ed8ff]/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:text-white">
+                <button onClick={() => { addSkill(program.name); notify('Skill added. Complete its details, then save changes.'); }} className="border border-[#f5f5f4]/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#f5f5f4] transition hover:border-[#f5f5f4] hover:text-white">
                   Add skill here
                 </button>
                 <button onClick={() => deleteProgram(program)} className="border border-red-400/25 px-3 py-2 text-xs font-bold text-red-200/75 transition hover:border-red-400/60 hover:text-red-100">
@@ -1373,7 +1374,7 @@ function SkillsManager({
                   <div className="grid gap-3 md:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Program</span>
-                      <select value={skill.program || ''} onChange={(event) => updateSkill(skill.id, { program: event.target.value })} className="w-full border border-white/10 bg-black/60 px-3 py-2.5 text-sm text-white outline-none focus:border-[#8ed8ff]/70">
+                      <select value={skill.program || ''} onChange={(event) => updateSkill(skill.id, { program: event.target.value })} className="w-full border border-white/10 bg-black/60 px-3 py-2.5 text-sm text-white outline-none focus:border-[#f5f5f4]/70">
                         {sortedPrograms.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
                       </select>
                     </label>
@@ -1437,7 +1438,7 @@ function TestimonialsManager({
                 type="checkbox"
                 checked={testimonial.approved !== false}
                 onChange={(event) => updateTestimonial(testimonial.id, { approved: event.target.checked })}
-                className="h-4 w-4 accent-[#8ed8ff]"
+                className="h-4 w-4 accent-[#f5f5f4]"
               />
               Show on homepage
             </label>
@@ -1494,7 +1495,7 @@ function EditableList({
         <h2 className="text-xl font-black">{title}</h2>
         <button
           onClick={() => onChange([...items, { ...newItem, id: crypto.randomUUID() }])}
-          className="border border-[#8ed8ff]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]"
+          className="border border-[#f5f5f4]/60 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f5f5f4]"
         >
           Add
         </button>
@@ -1632,7 +1633,7 @@ function ProjectEditor({
       <div className="mx-auto my-5 max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-[#0d0f12] shadow-2xl shadow-black/55">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0d0f12]/92 p-5 backdrop-blur-xl">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8ed8ff]">{project.title ? 'Editing project' : 'Create project'}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5f5f4]">{project.title ? 'Editing project' : 'Create project'}</p>
             <h2 className="mt-1 text-2xl font-black">{project.title || 'New project'}</h2>
           </div>
           <button onClick={closeEditor} className="grid h-11 w-11 place-items-center rounded-full border border-white/10 text-lg font-black text-white/70 transition hover:border-white/25 hover:text-white">X</button>
@@ -1657,7 +1658,7 @@ function ProjectEditor({
                         set('category', form.category.filter((value) => value !== category.value));
                       }
                     }}
-                    className="h-4 w-4 accent-[#8ed8ff] cursor-pointer"
+                    className="h-4 w-4 accent-[#f5f5f4] cursor-pointer"
                   />
                   {category.label}
                 </label>
@@ -1676,7 +1677,7 @@ function ProjectEditor({
                   client: client?.name || current.client,
                 }));
               }}
-              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#8ed8ff]/70"
+              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#f5f5f4]/70"
             >
               <option value="">Manual client text</option>
               {clients.map((client) => (
@@ -1709,7 +1710,7 @@ function ProjectEditor({
                         setSelectedTechnologies(selectedTechnologies.filter((t) => t !== tech));
                       }
                     }}
-                    className="h-4 w-4 accent-[#8ed8ff] cursor-pointer"
+                    className="h-4 w-4 accent-[#f5f5f4] cursor-pointer"
                   />
                   {tech}
                 </label>
@@ -1734,7 +1735,7 @@ function ProjectEditor({
                   onError(message);
                 }
               }}
-              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#4aa3ff] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
+              className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white file:mr-4 file:border-0 file:bg-[#e7e5e4] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-black"
             />
           </label>
           <div className="border border-white/10 bg-black/20 p-4">
@@ -1750,7 +1751,7 @@ function ProjectEditor({
                   type="button"
                   disabled={uploadingFrame || fetchingFrameSource}
                   onClick={openExistingVideoFramePicker}
-                  className="border border-[#8ed8ff]/35 bg-[#8ed8ff]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#8ed8ff] transition hover:border-[#8ed8ff] hover:bg-[#8ed8ff] hover:text-[#05070b] disabled:opacity-45"
+                  className="border border-[#f5f5f4]/35 bg-[#f5f5f4]/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.1em] text-[#f5f5f4] transition hover:border-[#f5f5f4] hover:bg-[#f5f5f4] hover:text-[#05070b] disabled:opacity-45"
                 >
                   {uploadingFrame ? 'Uploading Frame...' : fetchingFrameSource ? 'Loading Video...' : 'Choose a Frame'}
                 </button>
@@ -1809,8 +1810,8 @@ function ProjectEditor({
               }}
             />
           </div>
-          <label className="flex items-center gap-3 rounded-2xl border border-[#8ed8ff]/20 bg-[#8ed8ff]/10 p-3 text-sm font-bold text-white/78">
-            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#8ed8ff]" />
+          <label className="flex items-center gap-3 rounded-2xl border border-[#f5f5f4]/20 bg-[#f5f5f4]/10 p-3 text-sm font-bold text-white/78">
+            <input type="checkbox" checked={form.featured} onChange={(event) => set('featured', event.target.checked)} className="h-4 w-4 accent-[#f5f5f4]" />
             Featured project
           </label>
         </div>
@@ -1903,11 +1904,13 @@ function IconPicker({
 
 function ServicesManager({
   services,
+  projects,
   onChange,
   onDelete,
   notify,
 }: {
   services: Service[];
+  projects: Project[];
   onChange: (services: Service[]) => void;
   onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
@@ -1928,6 +1931,8 @@ function ServicesManager({
         title_ar: preset.title_ar,
         description: preset.description,
         description_ar: preset.description_ar,
+        items: [],
+        project_ids: [],
         featured: true,
         sort_order: services.length + 1,
       },
@@ -1951,7 +1956,7 @@ function ServicesManager({
     <section>
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">What you offer</p>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">What you offer</p>
           <h2 className="text-3xl font-black">Services</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
             Pick a service from the list, then edit its text. Services appear on the homepage and in the contact form dropdown.
@@ -1970,7 +1975,7 @@ function ServicesManager({
           <button
             type="button"
             onClick={addService}
-            className="rounded-full border border-[#8ed8ff]/45 bg-[#8ed8ff]/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]"
+            className="rounded-full border border-[#f5f5f4]/45 bg-[#f5f5f4]/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-[#f5f5f4]"
           >
             Add service
           </button>
@@ -1996,7 +2001,7 @@ function ServicesManager({
                   type="checkbox"
                   checked={service.featured !== false}
                   onChange={(event) => update(service.id, { featured: event.target.checked })}
-                  className="h-4 w-4 accent-[#8ed8ff]"
+                  className="h-4 w-4 accent-[#f5f5f4]"
                 />
                 Visible
               </label>
@@ -2023,6 +2028,15 @@ function ServicesManager({
               <Field label="Description (EN)" value={service.description} textarea onChange={(value) => update(service.id, { description: value })} />
               <Field label="Description (AR)" value={service.description_ar} textarea onChange={(value) => update(service.id, { description_ar: value })} />
             </div>
+            <ServiceItemsEditor
+              items={service.items || []}
+              onChange={(items) => update(service.id, { items })}
+            />
+            <ServiceProjectsPicker
+              projects={projects}
+              selected={service.project_ids || []}
+              onChange={(project_ids) => update(service.id, { project_ids })}
+            />
             <div className="mt-4 flex flex-wrap gap-2">
               <button type="button" disabled={index === 0} onClick={() => move(service.id, -1)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 disabled:opacity-30">↑ Up</button>
               <button type="button" disabled={index === sorted.length - 1} onClick={() => move(service.id, 1)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 disabled:opacity-30">↓ Down</button>
@@ -2042,5 +2056,115 @@ function ServicesManager({
         ))}
       </div>
     </section>
+  );
+}
+
+function ServiceItemsEditor({ items, onChange }: { items: ServiceItem[]; onChange: (items: ServiceItem[]) => void }) {
+  const updateItem = (index: number, patch: Partial<ServiceItem>) =>
+    onChange(items.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
+
+  return (
+    <div className="mt-5 border-t border-white/10 pt-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-white/42">What&apos;s included ({items.length})</p>
+        <button
+          type="button"
+          onClick={() => onChange([...items, { title: '', title_ar: '' }])}
+          className="rounded-full border border-[#f5f5f4]/45 px-3 py-1.5 text-xs font-bold text-[#f5f5f4]"
+        >
+          + Add item
+        </button>
+      </div>
+      {items.length === 0 ? <p className="text-sm text-white/40">e.g. Landing pages, Company websites, Booking systems…</p> : null}
+      <div className="grid gap-2">
+        {items.map((item, index) => (
+          <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <input
+              value={item.title}
+              onChange={(event) => updateItem(index, { title: event.target.value })}
+              placeholder="Item (EN)"
+              className="w-full border border-white/10 bg-black/25 px-3 py-2 text-sm text-white outline-none"
+            />
+            <input
+              value={item.title_ar || ''}
+              onChange={(event) => updateItem(index, { title_ar: event.target.value })}
+              placeholder="العنصر (AR)"
+              dir="rtl"
+              className="w-full border border-white/10 bg-black/25 px-3 py-2 text-sm text-white outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}
+              className="rounded-full border border-red-400/30 px-3 text-xs text-red-200"
+              aria-label="Remove item"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ServiceProjectsPicker({
+  projects,
+  selected,
+  onChange,
+}: {
+  projects: Project[];
+  selected: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const filtered = projects.filter((project) =>
+    `${project.title} ${project.title_ar || ''} ${project.client || ''}`.toLowerCase().includes(query.toLowerCase()),
+  );
+  const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id]);
+
+  return (
+    <div className="mt-5 border-t border-white/10 pt-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-white/42">Linked projects ({selected.length})</p>
+        <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-full border border-[#f5f5f4]/45 px-3 py-1.5 text-xs font-bold text-[#f5f5f4]">
+          {open ? 'Done' : 'Choose projects'}
+        </button>
+      </div>
+      {selected.length > 0 ? (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {selected.map((id) => {
+            const project = projects.find((item) => item.id === id);
+            if (!project) return null;
+            return (
+              <button key={id} type="button" onClick={() => toggle(id)} className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-white/80 hover:border-red-400/50">
+                {project.title} ✕
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      {open ? (
+        <div>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search projects…"
+            className="mb-2 w-full border border-white/10 bg-black/25 px-3 py-2 text-sm text-white outline-none"
+          />
+          <div className="max-h-64 overflow-y-auto border border-white/10">
+            {filtered.map((project) => (
+              <label key={project.id} className="flex cursor-pointer items-center gap-3 border-b border-white/5 px-3 py-2 text-sm hover:bg-white/[0.04]">
+                <input type="checkbox" checked={selected.includes(project.id)} onChange={() => toggle(project.id)} className="h-4 w-4 accent-[#f5f5f4]" />
+                {project.thumbnail ? <img src={project.thumbnail} alt="" className="h-8 w-12 rounded object-cover" /> : <span className="h-8 w-12 rounded bg-white/5" />}
+                <span className="min-w-0 truncate">{project.title}</span>
+                <span className="ms-auto shrink-0 text-xs text-white/35">{project.year}</span>
+              </label>
+            ))}
+            {filtered.length === 0 ? <p className="p-3 text-sm text-white/40">No projects found.</p> : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -100,7 +100,7 @@ export default function VideoFramePicker({ source, onCancel, onConfirm }: VideoF
       <div role="dialog" aria-modal="true" aria-labelledby="frame-picker-title" className="w-full max-w-4xl overflow-hidden border border-white/12 bg-[#0d0f12] shadow-2xl shadow-black/60" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8ed8ff]">Thumbnail frame</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5f5f4]">Thumbnail frame</p>
             <h3 id="frame-picker-title" className="mt-1 text-lg font-black text-white">Choose a Frame</h3>
           </div>
           <button type="button" onClick={onCancel} className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white/65 transition hover:border-white/30 hover:text-white" aria-label="Close frame picker">X</button>
@@ -141,7 +141,7 @@ export default function VideoFramePicker({ source, onCancel, onConfirm }: VideoF
                 if (video.paused) void video.play();
                 else video.pause();
               }}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#8ed8ff] text-sm font-black text-[#05070b]"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#f5f5f4] text-sm font-black text-[#05070b]"
               aria-label={playing ? 'Pause preview' : 'Play preview'}
             >
               {playing ? (
@@ -162,7 +162,7 @@ export default function VideoFramePicker({ source, onCancel, onConfirm }: VideoF
               step="0.04"
               value={Math.min(time, duration || time)}
               onChange={(event) => seekTo(Number(event.target.value))}
-              className="h-1.5 min-w-0 flex-1 accent-[#8ed8ff]"
+              className="h-1.5 min-w-0 flex-1 accent-[#f5f5f4]"
               aria-label="Choose thumbnail frame"
             />
             <button type="button" onClick={() => seekTo(time + 1)} className="h-10 border border-white/12 px-3 text-xs font-black text-white/65 hover:border-white/30 hover:text-white">+1s</button>

@@ -171,8 +171,15 @@ export interface Service {
   description?: string;
   description_ar?: string;
   icon?: string;
+  items?: ServiceItem[];
+  project_ids?: string[];
   featured: boolean;
   sort_order: number;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ServiceItem {
+  title: string;
+  title_ar?: string;
 }

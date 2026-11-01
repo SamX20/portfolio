@@ -64,7 +64,7 @@ export default function HomeClient({ data }: { data: HomeData }) {
         selectedClientId={selectedClientId}
         onClearClient={() => setSelectedClientId(null)}
       />
-      <Services locale={locale} services={data.services} onSelect={setSelectedService} />
+      <Services locale={locale} services={data.services} projects={data.projects} onSelect={setSelectedService} />
       <About locale={locale} sections={data.sections} stats={data.stats} skills={data.skills} />
       <Testimonials locale={locale} testimonials={data.testimonials} />
       <Contact
