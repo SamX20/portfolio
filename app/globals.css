@@ -432,3 +432,20 @@ select.field option {
 .admin-shell .font-black { font-weight: 600; }
 .admin-shell .uppercase { text-transform: none; letter-spacing: 0; }
 .admin-shell .rounded-md { border-radius: 999px; }
+
+/* Logo motion */
+.logo-intro .logo-l { animation: logo-in-l .9s cubic-bezier(.22,1,.36,1) both; }
+.logo-intro .logo-r { animation: logo-in-r .9s cubic-bezier(.22,1,.36,1) both; }
+.logo-intro .logo-s { transform-box: fill-box; transform-origin: center; animation: logo-spark .7s .75s cubic-bezier(.34,1.56,.64,1) both; }
+.logo-loop .logo-l { animation: logo-loop-l 2.4s cubic-bezier(.65,0,.35,1) infinite; }
+.logo-loop .logo-r { animation: logo-loop-r 2.4s cubic-bezier(.65,0,.35,1) infinite; }
+.logo-loop .logo-s { transform-box: fill-box; transform-origin: center; animation: logo-loop-s 2.4s cubic-bezier(.65,0,.35,1) infinite; }
+@keyframes logo-in-l { from { transform: translate(-14px, -10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes logo-in-r { from { transform: translate(14px, 10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes logo-spark { from { transform: scale(0) rotate(-90deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes logo-loop-l { 0%, 100% { transform: translate(-4px, -3px); } 50% { transform: none; } }
+@keyframes logo-loop-r { 0%, 100% { transform: translate(4px, 3px); } 50% { transform: none; } }
+@keyframes logo-loop-s { 0%, 100% { transform: scale(.4) rotate(-45deg); opacity: .4; } 50% { transform: scale(1.15) rotate(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .logo-intro *, .logo-loop * { animation: none !important; }
+}

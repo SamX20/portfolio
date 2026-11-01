@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .l{animation:l 2.4s cubic-bezier(.65,0,.35,1) infinite}
+    .r{animation:r 2.4s cubic-bezier(.65,0,.35,1) infinite}
+    .s{transform-box:fill-box;transform-origin:center;animation:s 2.4s cubic-bezier(.65,0,.35,1) infinite}
+    @keyframes l{0%,100%{transform:translate(-4px,-3px)}50%{transform:none}}
+    @keyframes r{0%,100%{transform:translate(4px,3px)}50%{transform:none}}
+    @keyframes s{0%,100%{transform:scale(.4) rotate(-45deg);opacity:.4}50%{transform:scale(1.15) rotate(0);opacity:1}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+  </style>
+  <polygon class="l" points="6,8 25,25 6,42" fill="#F5F5F4" stroke="#F5F5F4" stroke-width="5" stroke-linejoin="round"/>
+  <polygon class="r" points="58,22 39,39 58,56" fill="#F5F5F4" stroke="#F5F5F4" stroke-width="5" stroke-linejoin="round"/>
+  <path class="s" d="M32 23C32.7 29.12 34.25 31.1 39.02 32 34.25 32.9 32.7 34.88 32 41 31.3 34.88 29.75 32.9 24.98 32 29.75 31.1 31.3 29.12 32 23Z" fill="#8EA2FF"/>
+</svg>

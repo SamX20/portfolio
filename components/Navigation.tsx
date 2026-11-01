@@ -46,7 +46,7 @@ export default function Navigation({ locale, onLocaleChange, hasServices = true 
     >
       <div className="container-x flex h-16 items-center justify-between gap-6">
         <Link href="/" aria-label="XSam Studio home" onClick={() => setOpen(false)}>
-          <LogoLockup />
+          <LogoLockup animate="intro" />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
