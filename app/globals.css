@@ -449,3 +449,73 @@ select.field option {
 @media (prefers-reduced-motion: reduce) {
   .logo-intro *, .logo-loop * { animation: none !important; }
 }
+
+/* Looping brand loader: wipe in, hold, wipe out, settle — seamless */
+.brand-loader {
+  --d: 220px;
+  --t: 3.6s;
+  display: flex;
+  justify-content: center;
+}
+.brand-loader-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--mark) * 0.4);
+  animation: bl-track var(--t) infinite;
+}
+.brand-loader-mark {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: var(--mark);
+  height: var(--mark);
+  background: var(--background);
+  box-shadow: 0 0 0 calc(var(--mark) * 0.2) var(--background);
+  animation: bl-mark var(--t) infinite;
+}
+.brand-loader-svg { display: block; width: 100%; height: 100%; color: var(--foreground); overflow: visible; }
+.brand-loader-svg .logo-s { transform-box: fill-box; transform-origin: center; animation: bl-spark var(--t) infinite; }
+.brand-loader-svg .logo-l { animation: bl-l var(--t) infinite; }
+.brand-loader-svg .logo-r { animation: bl-r var(--t) infinite; }
+.brand-loader-name {
+  white-space: nowrap;
+  font-size: calc(var(--mark) * 0.72);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  animation: bl-name var(--t) infinite;
+}
+
+/* Track keeps the mark centered while the name is hidden */
+@keyframes bl-track {
+  0%, 10% { transform: translateX(calc(var(--d) / -2)); animation-timing-function: cubic-bezier(.34, 1.4, .64, 1); }
+  35%, 60% { transform: none; animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+  85%, 100% { transform: translateX(calc(var(--d) / -2)); }
+}
+/* Mark sits over the name, slides left to reveal it, then back to cover it */
+@keyframes bl-mark {
+  0%, 10% { transform: translateX(var(--d)); animation-timing-function: cubic-bezier(.34, 1.4, .64, 1); }
+  35%, 60% { transform: none; animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+  85%, 100% { transform: translateX(var(--d)); }
+}
+@keyframes bl-name {
+  0%, 10% { clip-path: inset(-20% 0 -20% 100%); animation-timing-function: cubic-bezier(.34, 1.4, .64, 1); }
+  35%, 60% { clip-path: inset(-20% 0 -20% 0); animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+  85%, 100% { clip-path: inset(-20% 0 -20% 100%); }
+}
+/* Spark spins on arrival, twinkles while holding */
+@keyframes bl-spark {
+  0%, 12% { transform: scale(.85) rotate(0); }
+  30% { transform: scale(1.2) rotate(90deg); }
+  45% { transform: scale(1) rotate(90deg); }
+  50% { transform: scale(1.3) rotate(135deg); }
+  58%, 100% { transform: scale(1) rotate(180deg); }
+}
+/* Halves breathe together on the settle bounce */
+@keyframes bl-l { 0%, 86% { transform: none; } 92% { transform: translate(-2.5px, -2px); } 100% { transform: none; } }
+@keyframes bl-r { 0%, 86% { transform: none; } 92% { transform: translate(2.5px, 2px); } 100% { transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-loader *, .brand-loader-track { animation: none !important; transform: none !important; clip-path: none !important; }
+}
