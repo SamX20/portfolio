@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { Client, Locale, Project } from '@/types';
-import ScrollReveal from './ScrollReveal';
 
 interface ClientsShowcaseProps {
   clients: Client[];
@@ -12,106 +11,56 @@ interface ClientsShowcaseProps {
   onSelectClient: (clientId: string | null) => void;
 }
 
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join('');
-}
-
-export default function ClientsShowcase({
-  clients,
-  projects,
-  locale,
-  selectedClientId,
-  onSelectClient,
-}: ClientsShowcaseProps) {
+export default function ClientsShowcase({ clients, projects, locale, selectedClientId, onSelectClient }: ClientsShowcaseProps) {
   const isAr = locale === 'ar';
 
   const visibleClients = useMemo(() => {
-    const linkedClients = clients
+    const linked = clients
       .filter((client) => client.featured !== false)
       .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
-
-    const linkedIds = new Set(linkedClients.map((client) => client.id));
-    const legacyClients = Array.from(
+    const legacy = Array.from(
       projects.reduce<Map<string, Client>>((acc, project) => {
-        if (!project.client || project.client_id || linkedIds.has(project.client_id || '')) return acc;
+        if (!project.client || project.client_id) return acc;
         const id = `legacy:${project.client}`;
-        if (!acc.has(id)) {
-          acc.set(id, {
-            id,
-            name: project.client,
-            slug: project.client.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-            logo_url: '',
-            website_url: '',
-            featured: true,
-            sort_order: 999,
-          });
-        }
+        if (!acc.has(id)) acc.set(id, { id, name: project.client, featured: true, sort_order: 999 });
         return acc;
       }, new Map()).values(),
     );
-
-    return [...linkedClients, ...legacyClients].slice(0, 12);
+    return [...linked, ...legacy].slice(0, 16);
   }, [clients, projects]);
 
   if (!visibleClients.length) return null;
 
-  return (
-    <section className="site-section deferred-section px-4 py-24 sm:px-6 lg:px-10 lg:py-28" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="mx-auto max-w-[1440px]">
-        <ScrollReveal className="mb-9 flex flex-col gap-3 border-b border-white/10 pb-7 md:flex-row md:items-end md:justify-between">
-          <div className={isAr ? 'text-right' : 'text-left'}>
-            <p className="section-kicker mb-3 text-xs font-black uppercase tracking-[0.32em]">
-              {isAr ? '02 / عملاء مختارون' : '02 / Selected Clients'}
-            </p>
-            <h2 className="max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
-              {isAr ? 'أسماء وثقت بالحركة، والنتيجة تقودك للأعمال.' : 'Trusted names, directly tied to the work.'}
-            </h2>
-          </div>
-          {selectedClientId && (
-            <button
-              type="button"
-              onClick={() => onSelectClient(null)}
-              className="self-start rounded-full border border-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white/58 transition hover:border-[var(--accent)]/60 hover:text-white md:self-end"
-            >
-              {isAr ? 'عرض كل المشاريع' : 'Show all work'}
-            </button>
-          )}
-        </ScrollReveal>
+  // Duplicate the row so the marquee loops seamlessly.
+  const row = [...visibleClients, ...visibleClients];
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {visibleClients.map((client, index) => {
+  return (
+    <section className="border-t border-[var(--line)] py-12" dir={isAr ? 'rtl' : 'ltr'} aria-label={isAr ? 'العملاء' : 'Clients'}>
+      <div className="container-x mb-8 flex items-center justify-between gap-4">
+        <p className="text-sm text-[var(--muted)]">{isAr ? 'وثق بنا' : 'Trusted by'}</p>
+        {selectedClientId ? (
+          <button type="button" onClick={() => onSelectClient(null)} className="text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline">
+            {isAr ? 'عرض كل الأعمال' : 'Show all work'}
+          </button>
+        ) : null}
+      </div>
+      <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)]" dir="ltr">
+        <div className="marquee items-center gap-14 hover:[animation-play-state:paused]">
+          {row.map((client, index) => {
             const active = selectedClientId === client.id;
             return (
-              <ScrollReveal key={client.id} delay={index * 60} variant="scale">
-                <button
-                  type="button"
-                  onClick={() => onSelectClient(active ? null : client.id)}
-                  className={`client-tile group flex min-h-[104px] w-full items-center gap-4 border p-4 text-left transition ${
-                    active
-                      ? 'border-[var(--accent-mid)] bg-[var(--accent)]/12'
-                      : 'border-white/10 bg-white/[0.025] hover:border-[var(--accent)]/45 hover:bg-white/[0.045]'
-                  } ${isAr ? 'text-right' : 'text-left'}`}
-                >
-                  <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md border border-white/10 bg-black/35">
-                    {client.logo_url ? (
-                      <img src={client.logo_url} alt={client.name} loading="lazy" decoding="async" className="h-full w-full object-contain p-2" />
-                    ) : (
-                      <span className="text-sm font-black uppercase tracking-[0.1em] text-[var(--accent)]">{getInitials(client.name)}</span>
-                    )}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-base font-black text-white">{client.name}</span>
-                    <span className="mt-1 block text-xs font-bold uppercase tracking-[0.14em] text-white/35 group-hover:text-[var(--accent)]/80">
-                      {isAr ? 'عرض الأعمال' : 'View projects'}
-                    </span>
-                  </span>
-                </button>
-              </ScrollReveal>
+              <button
+                key={`${client.id}-${index}`}
+                type="button"
+                onClick={() => onSelectClient(active ? null : client.id)}
+                title={isAr ? `أعمال ${client.name}` : `${client.name} projects`}
+                className={`flex h-12 shrink-0 items-center gap-3 transition ${active ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
+              >
+                {client.logo_url ? (
+                  <img src={client.logo_url} alt={client.name} loading="lazy" className="h-10 w-auto max-w-[140px] object-contain grayscale" />
+                ) : null}
+                <span className="whitespace-nowrap text-lg font-medium tracking-tight">{client.name}</span>
+              </button>
             );
           })}
         </div>

@@ -26,6 +26,7 @@ function fallbackData(): HomeData {
     profile: defaultProfile,
     skills: defaultSkills,
     testimonials: defaultTestimonials,
+    services: [],
   };
 }
 
@@ -114,6 +115,9 @@ async function loadHomeData(): Promise<HomeData> {
     database.from('testimonials').select('*'),
   ]);
 
+  // Services are optional: older databases may not have the table yet.
+  const servicesRes = await database.from('services').select('*').order('sort_order');
+
   const failedQuery = result.find((response) => response.error);
   if (failedQuery?.error) {
     throw new Error(`Could not load portfolio data: ${failedQuery.error.message}`);
@@ -131,6 +135,7 @@ async function loadHomeData(): Promise<HomeData> {
     profile: profileRes.data || defaultProfile,
     skills: skillsRes.data ?? defaultSkills,
     testimonials: testimonialsRes.data ?? defaultTestimonials,
+    services: servicesRes.error ? [] : servicesRes.data ?? [],
   };
 }
 

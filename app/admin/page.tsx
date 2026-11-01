@@ -2,13 +2,15 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
+import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
+import { DynamicIcon, ICON_OPTIONS } from '@/lib/icons';
+import { getServicePreset, SERVICE_PRESETS } from '@/lib/services';
 import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
 import VideoOptimizer, { UploadedVideoResult } from '@/components/admin/VideoOptimizer';
 import VideoFramePicker from '@/components/admin/VideoFramePicker';
 import { PORTFOLIO_TECHNOLOGIES, ProjectMetadataCandidate, ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
 
-type Tab = 'content' | 'projects' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
+type Tab = 'content' | 'projects' | 'services' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
 
 interface UploadTicket {
   bucket: string;
@@ -26,6 +28,7 @@ interface AdminData {
   skillPrograms: SkillProgram[];
   skills: Skill[];
   testimonials: Testimonial[];
+  services: Service[];
   profile: Profile;
   sections: SectionsData;
 }
@@ -257,6 +260,7 @@ export default function AdminPage() {
     skillPrograms: defaultSkillPrograms,
     skills: defaultSkills,
     testimonials: defaultTestimonials,
+    services: [],
     profile: defaultProfile,
     sections: defaultSections,
   });
@@ -296,6 +300,7 @@ export default function AdminPage() {
         skillPrograms?: SkillProgram[];
         skills: Skill[];
         testimonials: Testimonial[];
+        services?: Service[];
         profile: Profile | null;
         sections: { section: string; key: string; value: string }[];
       }>('/api/admin/data');
@@ -313,6 +318,7 @@ export default function AdminPage() {
         skillPrograms: response.skillPrograms?.length ? response.skillPrograms : derivedPrograms,
         skills: response.skills,
         testimonials: response.testimonials || [],
+        services: response.services || [],
         profile: response.profile || defaultProfile,
         sections: mapSections(response.sections),
       };
@@ -417,6 +423,7 @@ export default function AdminPage() {
         ['skill_programs', changedRecords(data.skillPrograms, savedData?.skillPrograms)],
         ['skills', changedRecords(data.skills, savedData?.skills)],
         ['testimonials', changedRecords(data.testimonials, savedData?.testimonials)],
+        ['services', changedRecords(data.services, savedData?.services)],
       ] as const;
 
       const requests: Promise<unknown>[] = recordGroups.map(([table, records]) => saveRecords(table, records));
@@ -574,6 +581,7 @@ export default function AdminPage() {
             {[
               ['content', 'Main page'],
               ['projects', 'Projects'],
+              ['services', 'Services'],
               ['media', 'Video Optimizer'],
               ['clients', 'Clients'],
               ['contacts', 'Contact / Social'],
@@ -944,6 +952,15 @@ export default function AdminPage() {
           </section>
         )}
 
+        {tab === 'services' && (
+          <ServicesManager
+            services={data.services}
+            onChange={(services) => updateData((current) => ({ ...current, services }))}
+            onDelete={stageDelete}
+            notify={notify}
+          />
+        )}
+
         {tab === 'clients' && (
           <ClientsManager
             clients={data.clients}
@@ -961,7 +978,7 @@ export default function AdminPage() {
               items={data.contacts}
               table="contact_info"
               fields={['icon', 'title', 'content', 'href']}
-              newItem={{ id: '', icon: '@', title: 'Email', content: '', href: '' }}
+              newItem={{ id: '', icon: 'email', title: 'Email', content: '', href: '' }}
               onChange={(contacts) => updateData((current) => ({ ...current, contacts: contacts as ContactInfo[] }))}
               onDelete={stageDelete}
               notify={notify}
@@ -971,7 +988,7 @@ export default function AdminPage() {
               items={data.socials}
               table="social_links"
               fields={['name', 'url', 'icon', 'sort_order']}
-              newItem={{ id: '', name: 'Instagram', url: '', icon: '', sort_order: data.socials.length + 1 }}
+              newItem={{ id: '', name: 'Instagram', url: '', icon: 'instagram', sort_order: data.socials.length + 1 }}
               onChange={(socials) => updateData((current) => ({ ...current, socials: socials as SocialLink[] }))}
               onDelete={stageDelete}
               notify={notify}
@@ -1486,7 +1503,15 @@ function EditableList({
         {items.map((item) => (
           <div key={String(item.id)} className="border border-white/10 p-4">
             <div className="grid gap-3">
-              {fields.map((field) => (
+              {fields.map((field) => field === 'icon' ? (
+                <IconPicker
+                  key={field}
+                  value={String(item.icon ?? '')}
+                  hints={[String(item.id ?? ''), String(item.name ?? item.title ?? ''), String(item.url ?? item.href ?? '')]}
+                  group={table === 'social_links' ? 'social' : 'contact'}
+                  onChange={(value) => onChange(items.map((row) => (row.id === item.id ? { ...row, icon: value } : row)))}
+                />
+              ) : (
                 <Field
                   key={field}
                   label={field.replace(/_/g, ' ')}
@@ -1837,5 +1862,185 @@ function ProjectEditor({
         />
       ) : null}
     </div>
+  );
+}
+
+function IconPicker({
+  value,
+  onChange,
+  hints = [],
+  group,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  hints?: string[];
+  group?: 'social' | 'contact' | 'service';
+}) {
+  const ordered = [...ICON_OPTIONS].sort((a, b) => Number(b.group === group) - Number(a.group === group));
+  const known = ICON_OPTIONS.some((option) => option.value === value);
+
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Icon</span>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 text-white">
+          <DynamicIcon value={value} hints={hints} className="h-4 w-4" />
+        </span>
+        <select
+          value={known ? value : ''}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
+        >
+          <option value="">Auto-detect{value && !known ? ` (current: ${value})` : ''}</option>
+          {ordered.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </div>
+    </label>
+  );
+}
+
+function ServicesManager({
+  services,
+  onChange,
+  onDelete,
+  notify,
+}: {
+  services: Service[];
+  onChange: (services: Service[]) => void;
+  onDelete: (table: string, id: string) => void;
+  notify: (message: string) => void;
+}) {
+  const [presetType, setPresetType] = useState(SERVICE_PRESETS[0].type);
+  const sorted = [...services].sort((a, b) => a.sort_order - b.sort_order);
+  const update = (id: string, patch: Partial<Service>) => onChange(services.map((service) => (service.id === id ? { ...service, ...patch } : service)));
+
+  const addService = () => {
+    const preset = getServicePreset(presetType)!;
+    onChange([
+      ...services,
+      {
+        id: crypto.randomUUID(),
+        type: preset.type,
+        icon: preset.icon,
+        title: preset.title,
+        title_ar: preset.title_ar,
+        description: preset.description,
+        description_ar: preset.description_ar,
+        featured: true,
+        sort_order: services.length + 1,
+      },
+    ]);
+    notify(`${preset.title} added. Save changes to publish.`);
+  };
+
+  const move = (id: string, direction: -1 | 1) => {
+    const index = sorted.findIndex((service) => service.id === id);
+    const target = sorted[index + direction];
+    if (!target) return;
+    const current = sorted[index];
+    onChange(services.map((service) => {
+      if (service.id === current.id) return { ...service, sort_order: target.sort_order };
+      if (service.id === target.id) return { ...service, sort_order: current.sort_order };
+      return service;
+    }));
+  };
+
+  return (
+    <section>
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8ed8ff]">What you offer</p>
+          <h2 className="text-3xl font-black">Services</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
+            Pick a service from the list, then edit its text. Services appear on the homepage and in the contact form dropdown.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={presetType}
+            onChange={(event) => setPresetType(event.target.value)}
+            className="border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
+          >
+            {SERVICE_PRESETS.map((preset) => (
+              <option key={preset.type} value={preset.type}>{preset.title}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={addService}
+            className="rounded-full border border-[#8ed8ff]/45 bg-[#8ed8ff]/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-[#8ed8ff]"
+          >
+            Add service
+          </button>
+        </div>
+      </div>
+
+      {sorted.length === 0 && (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 text-sm text-white/48">No services yet. Choose one above and click “Add service”.</div>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {sorted.map((service, index) => (
+          <article key={service.id} className="rounded-3xl border border-white/10 bg-white/[0.025] p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-white/15">
+                  <DynamicIcon value={service.icon} className="h-4 w-4" />
+                </span>
+                <h3 className="text-lg font-black">{service.title || 'Untitled service'}</h3>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-white/70">
+                <input
+                  type="checkbox"
+                  checked={service.featured !== false}
+                  onChange={(event) => update(service.id, { featured: event.target.checked })}
+                  className="h-4 w-4 accent-[#8ed8ff]"
+                />
+                Visible
+              </label>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/42">Service type</span>
+                <select
+                  value={service.type}
+                  onChange={(event) => {
+                    const preset = getServicePreset(event.target.value);
+                    update(service.id, { type: event.target.value, ...(preset ? { icon: preset.icon } : {}) });
+                  }}
+                  className="w-full border border-white/10 bg-black/25 px-3 py-2.5 text-sm text-white outline-none"
+                >
+                  {SERVICE_PRESETS.map((preset) => (
+                    <option key={preset.type} value={preset.type}>{preset.title}</option>
+                  ))}
+                </select>
+              </label>
+              <IconPicker value={service.icon || ''} group="service" onChange={(value) => update(service.id, { icon: value })} />
+              <Field label="Title (EN)" value={service.title} onChange={(value) => update(service.id, { title: value })} />
+              <Field label="Title (AR)" value={service.title_ar} onChange={(value) => update(service.id, { title_ar: value })} />
+              <Field label="Description (EN)" value={service.description} textarea onChange={(value) => update(service.id, { description: value })} />
+              <Field label="Description (AR)" value={service.description_ar} textarea onChange={(value) => update(service.id, { description_ar: value })} />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" disabled={index === 0} onClick={() => move(service.id, -1)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 disabled:opacity-30">↑ Up</button>
+              <button type="button" disabled={index === sorted.length - 1} onClick={() => move(service.id, 1)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 disabled:opacity-30">↓ Down</button>
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete('services', service.id);
+                  onChange(services.filter((item) => item.id !== service.id));
+                  notify('Service deleted. Save changes to publish.');
+                }}
+                className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

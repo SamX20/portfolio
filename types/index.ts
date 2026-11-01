@@ -162,3 +162,17 @@ export const CATEGORIES = [
   { value: '3d-modelling', label: '3D Modelling', labelAr: 'نمذجة ثلاثية الأبعاد' },
   { value: 'anime-edit', label: 'Anime Edit', labelAr: 'تحرير أنمي' },
 ] as const;
+
+export interface Service {
+  id: string;
+  type: string;
+  title: string;
+  title_ar?: string;
+  description?: string;
+  description_ar?: string;
+  icon?: string;
+  featured: boolean;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
+}

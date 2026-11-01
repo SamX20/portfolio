@@ -2,25 +2,19 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { LuArrowUpRight, LuMenu, LuX } from 'react-icons/lu';
 import { Locale, SectionsData } from '@/types';
 
 interface NavigationProps {
   sections?: SectionsData;
   locale: Locale;
   onLocaleChange: (locale: Locale) => void;
+  hasServices?: boolean;
 }
 
 const labels = {
-  en: {
-    work: 'Work',
-    contact: 'Contact',
-    book: 'Start a project',
-  },
-  ar: {
-    work: 'الأعمال',
-    contact: 'التواصل',
-    book: 'ابدأ مشروعك',
-  },
+  en: { work: 'Work', services: 'Services', about: 'Studio', contact: 'Contact', cta: "Let's talk" },
+  ar: { work: 'الأعمال', services: 'الخدمات', about: 'الاستوديو', contact: 'التواصل', cta: 'لنتحدث' },
 };
 
 function isImageLogo(value?: string) {
@@ -28,11 +22,19 @@ function isImageLogo(value?: string) {
   return /^(\/|https?:\/\/).+\.(svg|png|jpe?g|webp|gif)(\?.*)?$/i.test(value.trim());
 }
 
-export default function Navigation({ sections, locale, onLocaleChange }: NavigationProps) {
+export default function Navigation({ sections, locale, onLocaleChange, hasServices = true }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
   const t = labels[locale];
-  const logo = sections?.global.logo || 'S';
-  const siteTitle = sections?.global.site_title || 'Sam Motion';
+  const logo = sections?.global.logo || '';
+  const siteTitle = sections?.global.site_title || 'Xsamer';
+
+  const links = [
+    { href: '#work', label: t.work },
+    ...(hasServices ? [{ href: '#services', label: t.services }] : []),
+    { href: '#about', label: t.about },
+    { href: '#contact', label: t.contact },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -43,47 +45,65 @@ export default function Navigation({ sections, locale, onLocaleChange }: Navigat
 
   return (
     <nav
-      className={`site-nav fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? 'border-b border-white/10 bg-[#070809]/92 backdrop-blur-xl' : 'bg-gradient-to-b from-black/55 to-transparent'
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+        scrolled || open ? 'border-b border-[var(--line)] bg-[#0a0a0a]/85 backdrop-blur-xl' : 'border-b border-transparent'
       }`}
     >
-      <div className="mx-auto flex h-[4.5rem] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
-        <Link href="/" className="group flex items-center gap-3">
-          <span className="accent-gradient grid h-10 w-10 place-items-center overflow-hidden rounded-md border border-[var(--accent-mid)]/50 text-sm font-black text-[#090909] shadow-[0_0_28px_color-mix(in_srgb,var(--accent)_18%,transparent)]">
-            {isImageLogo(logo) ? (
-              <img src={logo} alt={`${siteTitle} logo`} className="h-full w-full object-cover" />
-            ) : (
-              logo
-            )}
-          </span>
-          <span className="hidden text-[13px] font-black uppercase tracking-[0.24em] text-white sm:block">
-            {siteTitle}
-          </span>
+      <div className="container-x flex h-16 items-center justify-between gap-6">
+        <Link href="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+          {isImageLogo(logo) ? (
+            <img src={logo} alt={`${siteTitle} logo`} className="h-8 w-8 rounded-full object-cover" />
+          ) : null}
+          <span className="whitespace-nowrap text-[15px] font-semibold tracking-tight">{siteTitle}</span>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-6">
-          <a href="#projects" className="hidden text-sm font-semibold text-white/62 transition hover:text-white sm:block">
-            {t.work}
-          </a>
-          <a href="#contact" className="hidden text-sm font-semibold text-white/62 transition hover:text-white sm:block">
-            {t.contact}
-          </a>
+        <div className="hidden items-center gap-8 md:flex">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]">
+              {link.label}
+            </a>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => onLocaleChange(locale === 'en' ? 'ar' : 'en')}
-            className="h-9 rounded-full border border-white/12 px-3 text-xs font-black uppercase tracking-[0.16em] text-white/85 transition hover:border-[var(--accent)]/60 hover:text-[var(--accent)]"
+            className="h-9 rounded-full px-3 text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]"
             aria-label="Toggle language"
           >
-            {locale === 'en' ? 'AR' : 'EN'}
+            {locale === 'en' ? 'عربي' : 'EN'}
           </button>
-          <a
-            href="#contact"
-            className="whitespace-nowrap rounded-md bg-white px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.12em] text-black transition hover:bg-[var(--accent)] sm:px-4 sm:text-xs sm:tracking-[0.14em]"
-          >
-            {t.book}
+          <a href="#contact" className="btn btn-primary hidden h-9 px-4 sm:inline-flex">
+            {t.cta}
+            <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
           </a>
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-[var(--line-strong)] md:hidden"
+            aria-label="Menu"
+            aria-expanded={open}
+          >
+            {open ? <LuX className="h-4 w-4" /> : <LuMenu className="h-4 w-4" />}
+          </button>
         </div>
       </div>
+
+      {open ? (
+        <div className="container-x pb-6 md:hidden">
+          <div className="flex flex-col border-t border-[var(--line)] pt-4">
+            {links.map((link) => (
+              <a key={link.href} href={link.href} onClick={() => setOpen(false)} className="py-3 text-2xl font-medium tracking-tight">
+                {link.label}
+              </a>
+            ))}
+            <a href="#contact" onClick={() => setOpen(false)} className="btn btn-primary mt-4 w-full">
+              {t.cta}
+            </a>
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 }

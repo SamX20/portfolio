@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import About from '@/components/About';
+import ClientsShowcase from '@/components/ClientsShowcase';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
-import ClientsShowcase from '@/components/ClientsShowcase';
 import Navigation from '@/components/Navigation';
 import Portfolio from '@/components/Portfolio';
-import Skills from '@/components/Skills';
+import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
-import { Client, ContactInfo, Locale, Profile, Project, SectionsData, Skill, SocialLink, Stat, Testimonial } from '@/types';
+import { Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, Skill, SocialLink, Stat, Testimonial } from '@/types';
 
 export interface HomeData {
   projects: Project[];
@@ -21,42 +22,29 @@ export interface HomeData {
   profile: Profile;
   skills: Skill[];
   testimonials: Testimonial[];
+  services: Service[];
 }
 
 export default function HomeClient({ data }: { data: HomeData }) {
-  const [locale, setLocale] = useState<Locale>('en'); // Default to English
+  const [locale, setLocale] = useState<Locale>('en');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState('');
+  const hasServices = data.services.some((service) => service.featured !== false);
 
   useEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
-
-    if (!window.location.hash) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
-      window.setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 80);
-    }
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    if (!window.location.hash) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
   useEffect(() => {
-    const htmlElement = document.documentElement;
-    htmlElement.lang = locale;
-    htmlElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
-    document.body.dir = locale === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
   }, [locale]);
 
   return (
-    <main className="site-shell relative isolate overflow-hidden text-white">
-      <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} />
-      <Hero locale={locale} profile={data.profile} sections={data.sections} stats={data.stats} />
-      <Portfolio
-        locale={locale}
-        projects={data.projects}
-        clients={data.clients}
-        selectedClientId={selectedClientId}
-        onClearClient={() => setSelectedClientId(null)}
-      />
+    <main className="relative">
+      <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} hasServices={hasServices} />
+      <Hero locale={locale} profile={data.profile} sections={data.sections} />
       <ClientsShowcase
         clients={data.clients}
         projects={data.projects}
@@ -65,13 +53,27 @@ export default function HomeClient({ data }: { data: HomeData }) {
         onSelectClient={(clientId) => {
           setSelectedClientId(clientId);
           if (clientId) {
-            window.requestAnimationFrame(() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+            window.requestAnimationFrame(() => document.getElementById('work')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
           }
         }}
       />
-      <Skills locale={locale} skills={data.skills} />
+      <Portfolio
+        locale={locale}
+        projects={data.projects}
+        clients={data.clients}
+        selectedClientId={selectedClientId}
+        onClearClient={() => setSelectedClientId(null)}
+      />
+      <Services locale={locale} services={data.services} onSelect={setSelectedService} />
+      <About locale={locale} sections={data.sections} stats={data.stats} skills={data.skills} />
       <Testimonials locale={locale} testimonials={data.testimonials} />
-      <Contact locale={locale} contacts={data.contacts} socialLinks={data.socials} />
+      <Contact
+        locale={locale}
+        contacts={data.contacts}
+        socialLinks={data.socials}
+        services={data.services}
+        selectedService={selectedService}
+      />
       <Footer locale={locale} sections={data.sections} socialLinks={data.socials} />
     </main>
   );

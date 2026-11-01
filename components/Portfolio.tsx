@@ -180,108 +180,69 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
   };
 
   return (
-    <section ref={sectionRef} id="projects" className="site-section deferred-section px-4 py-24 sm:px-6 lg:px-10 lg:py-32" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="relative z-10 mx-auto max-w-[1440px]">
-        <div className="mb-14 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
-          <ScrollReveal variant={isAr ? 'right' : 'left'} className={isAr ? 'text-right' : 'text-left'}>
-            <p className="section-kicker mb-4 text-xs font-black uppercase tracking-[0.34em]">
-              {isAr ? '01 / أعمال مختارة' : '01 / Selected Work'}
-            </p>
-            <h2 className="max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
-              {isAr ? 'معرض حد الإيقاع، مصمم للحركة.' : 'A sharp gallery built for motion.'}
+    <section ref={sectionRef} id="work" className="site-section" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="container-x">
+        <div className="mb-14 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <ScrollReveal>
+            <p className="eyebrow">{isAr ? 'أعمال مختارة' : 'Selected work'}</p>
+            <h2 className="display mt-5 text-[clamp(2.25rem,5vw,4.5rem)]">
+              {isAr ? 'أعمالنا' : 'Our work'}
+              <sup className="ms-2 align-super font-mono text-base text-[var(--muted)]">{filtered.length}</sup>
             </h2>
+          </ScrollReveal>
+          <ScrollReveal className="flex flex-wrap gap-2" delay={80}>
+            {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...availableCategories].map((category) => (
+              <button
+                key={category.value}
+                type="button"
+                onClick={() => setActiveCategory(category.value as ProjectCategory)}
+                data-active={activeCategory === category.value}
+                className="chip"
+              >
+                {isAr ? category.labelAr : category.label}
+              </button>
+            ))}
           </ScrollReveal>
         </div>
 
-        {featuredProjects.length > 0 && (
-          <ScrollReveal className="mb-14" delay={120}>
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.26em] text-[var(--accent)]">
-                  {isAr ? 'في الواجهة' : 'Featured Projects'}
-                </p>
-                <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                  {isAr ? 'الأعمال التي تستحق أن تبدأ بها.' : 'Start with the work that should lead.'}
-                </h3>
-              </div>
-              <p className="hidden max-w-xs text-sm leading-6 text-white/42 md:block">
-                {isAr ? 'المشاريع المختارة تظهر هنا أولاً حسب التصنيف الحالي.' : 'Pinned work appears first for the current category.'}
-              </p>
-            </div>
-
-            <div className="grid gap-5 lg:grid-cols-[1.35fr_.9fr]">
-              <ScrollReveal delay={0} variant="scale">
-                <ProjectCard project={featuredProjects[0]} locale={locale} onOpen={openProject} featuredLayout autoPreview={activePreviewId === featuredProjects[0].id} />
-              </ScrollReveal>
-              {featuredProjects.length > 1 ? (
-                <div className="grid gap-5 sm:grid-cols-2">
-                  {featuredProjects.slice(1).map((project, index) => (
-                    <ScrollReveal key={project.id} delay={(index + 1) * 70} variant="scale">
-                      <ProjectCard project={project} locale={locale} onOpen={openProject} compactLayout autoPreview={activePreviewId === project.id} />
-                    </ScrollReveal>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </ScrollReveal>
-        )}
-
         {selectedClientId && selectedClientName && (
-          <ScrollReveal className="mb-5 flex flex-wrap items-center gap-3" delay={160}>
-            <span className="border border-[var(--accent)]/35 bg-[var(--accent)]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[var(--accent)]">
-              {isAr ? `مشاريع ${selectedClientName}` : `${selectedClientName} projects`}
-            </span>
-            <button
-              type="button"
-              onClick={onClearClient}
-              className="rounded-full border border-white/12 px-4 py-2 text-xs font-bold text-white/52 transition hover:border-white/35 hover:text-white"
-            >
-              {isAr ? 'إزالة الفلتر' : 'Clear filter'}
+          <div className="mb-10 flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-[var(--muted)]">{isAr ? 'أعمال' : 'Showing work for'}</span>
+            <span className="chip" data-active="true">{selectedClientName}</span>
+            <button type="button" onClick={onClearClient} className="text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline">
+              {isAr ? 'إزالة' : 'Clear'}
             </button>
-          </ScrollReveal>
+          </div>
         )}
 
-        <ScrollReveal className="mb-10 flex flex-wrap gap-2" delay={180}>
-          {[{ value: 'all', label: 'All', labelAr: 'الكل' }, ...availableCategories].map((category) => (
-            <button
-              key={category.value}
-              type="button"
-              onClick={() => setActiveCategory(category.value as ProjectCategory)}
-              className={`border px-4 py-2 text-xs font-black uppercase tracking-[0.16em] transition ${
-                activeCategory === category.value
-                  ? 'accent-gradient border-[var(--accent-mid)] text-[#090909]'
-                  : 'border-white/10 text-white/55 hover:border-white/35 hover:text-white'
-              }`}
-            >
-              {isAr ? category.labelAr : category.label}
-            </button>
-          ))}
-        </ScrollReveal>
-
-        <div key={activeCategory} className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {visibleRegularProjects.map((project, index) => (
-              <div key={project.id}>
-                <ScrollReveal delay={index * 90} variant="scale">
-                  <ProjectCard project={project} locale={locale} onOpen={openProject} autoPreview={activePreviewId === project.id} />
-                </ScrollReveal>
-              </div>
+        {featuredProjects.length > 0 && (
+          <div className="mb-16 grid gap-x-6 gap-y-14 md:grid-cols-2">
+            {featuredProjects.map((project, index) => (
+              <ScrollReveal key={project.id} delay={index * 70} className={index === 0 ? 'md:col-span-2' : ''}>
+                <ProjectCard project={project} locale={locale} onOpen={openProject} featuredLayout={index === 0} autoPreview={activePreviewId === project.id} />
+              </ScrollReveal>
             ))}
+          </div>
+        )}
+
+        <div key={activeCategory} className="grid gap-x-6 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+          {visibleRegularProjects.map((project, index) => (
+            <ScrollReveal key={project.id} delay={(index % 3) * 70}>
+              <ProjectCard project={project} locale={locale} onOpen={openProject} autoPreview={activePreviewId === project.id} />
+            </ScrollReveal>
+          ))}
         </div>
 
         {canShowMoreProjects && (
-          <div className="mt-10 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setVisibleProjectCount((current) => current + INITIAL_PROJECT_COUNT)}
-              className="rounded-full border border-white/14 bg-white/[0.035] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/72 transition hover:border-[var(--accent)]/55 hover:text-white"
-            >
-              {isAr ? 'عرض المزيد' : 'View more'}
+          <div className="mt-16 flex justify-center">
+            <button type="button" onClick={() => setVisibleProjectCount((current) => current + INITIAL_PROJECT_COUNT)} className="btn btn-ghost">
+              {isAr ? 'عرض المزيد' : 'Load more'}
             </button>
           </div>
         )}
 
         {filtered.length === 0 && (
-          <div className="border border-white/10 py-16 text-center text-white/45">
+          <div className="border-y border-[var(--line)] py-16 text-center text-[var(--muted)]">
             {isAr ? 'لا توجد أعمال ضمن هذا التصنيف حالياً.' : 'No projects in this category yet.'}
           </div>
         )}
@@ -300,7 +261,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
           >
             <motion.div
               ref={modalRef}
-              className="brand-panel relative max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl overflow-y-auto overscroll-contain bg-[#0d0f12] sm:max-h-[calc(100dvh-2.5rem)]"
+              className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl overflow-y-auto overscroll-contain rounded-[20px] border border-[var(--line)] bg-[#111] sm:max-h-[calc(100dvh-2.5rem)]"
               initial={{ scale: 0.96, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.96, opacity: 0, y: 20 }}
@@ -309,7 +270,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               <button
                 type="button"
                 onClick={closeProject}
-                className="absolute right-3 top-3 z-[5] grid h-11 w-11 place-items-center rounded-full border border-white/18 bg-black/70 text-2xl leading-none text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:border-[var(--accent)]/70 hover:text-[var(--accent)]"
+                className="absolute right-3 top-3 z-[5] grid h-11 w-11 place-items-center rounded-full border border-white/18 bg-black/70 text-2xl leading-none text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:border-white"
                 aria-label="Close project"
                 title="Close"
               >
@@ -317,10 +278,10 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
               </button>
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--accent)]">
+                  <p className="text-xs text-[var(--muted)]">
                     {selected.client || selected.category.join(' / ')}
                   </p>
-                  <h3 className="mt-1 text-xl font-black text-white">{modalTitle}</h3>
+                  <h3 className="mt-1 text-xl font-medium tracking-tight">{modalTitle}</h3>
                 </div>
               </div>
 
@@ -342,7 +303,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                       href={selected.video_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex rounded-full border border-[var(--accent)]/55 bg-[var(--accent)] px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[var(--accent-mid)]/20 transition hover:border-white hover:bg-white"
+                      className="btn btn-primary"
                     >
                       {isAr ? 'فتح الرابط المباشر' : 'Open direct link'}
                     </a>
@@ -354,7 +315,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                     <button
                       type="button"
                       onClick={() => setShowModalDescriptionExpanded((current) => !current)}
-                      className="mt-3 text-sm font-semibold text-sky-300 hover:text-sky-200"
+                      className="mt-3 text-sm font-medium underline underline-offset-4"
                     >
                       {descriptionToggleText}
                     </button>
@@ -362,7 +323,7 @@ export default function Portfolio({ projects = [], clients = [], locale, selecte
                 </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
                   {selected.technologies?.map((tech) => (
-                    <span key={tech} className="border border-white/10 px-3 py-1.5 text-xs text-white/56">
+                    <span key={tech} className="chip h-8 text-xs">
                       {tech}
                     </span>
                   ))}

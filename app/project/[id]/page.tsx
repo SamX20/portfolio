@@ -74,7 +74,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     <div className="min-h-screen pt-24 pb-16 px-4" style={{ background: '#0a0a0f' }}>
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <Link href="/#projects" className="inline-flex items-center gap-2 text-gray-500 hover:text-sky-300 text-sm mb-8 transition-colors">
+          <Link href="/#work" className="inline-flex items-center gap-2 text-gray-500 hover:text-sky-300 text-sm mb-8 transition-colors">
             <span>→</span> العودة للمشاريع
           </Link>
 

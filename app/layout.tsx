@@ -1,18 +1,23 @@
 import type { Metadata, Viewport } from 'next';
-import { Cairo } from 'next/font/google';
+import { Cairo, Inter } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
+
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+});
 
 const cairo = Cairo({
   variable: '--font-cairo',
   subsets: ['arabic', 'latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  weight: ['400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
-  title: 'Xsamer | Freelance Video Editor & Motion Graphics Designer',
+  title: 'Xsamer — Creative Studio for Web, Video & Brand',
   description:
-    'Professional video editing and 2D/3D motion graphics design by Xsamer. Transforming raw footage into engaging visual stories, promos, and social media content.',
+    'Xsamer is a creative studio crafting websites, online stores, video editing, motion design, logos and brand identities.',
   keywords: [
     'Xsamer',
     'video editor',
@@ -46,7 +51,7 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Xsamer | Freelance Video Editor & Motion Graphics Designer',
+    title: 'Xsamer — Creative Studio for Web, Video & Brand',
     description:
       'Professional video editing and 2D/3D motion graphics design by Xsamer for promos, social media content, and visual stories.',
     url: 'https://xsamer.com',
@@ -58,7 +63,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Xsamer | Freelance Video Editor & Motion Graphics Designer',
+    title: 'Xsamer — Creative Studio for Web, Video & Brand',
     description: 'Professional video editing and 2D/3D motion graphics portfolio by Xsamer.',
     images: ['/og-image.svg'],
   },
@@ -82,7 +87,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${cairo.variable} h-full antialiased scroll-smooth`}>
+    <html lang="en" className={`${inter.variable} ${cairo.variable} h-full antialiased scroll-smooth`}>
       <head>
         <meta charSet="utf-8" />
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-6KLPJVFHEB" strategy="afterInteractive" />
@@ -95,7 +100,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           `}
         </Script>
       </head>
-      <body className="min-h-full bg-[#080808] text-white">{children}</body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

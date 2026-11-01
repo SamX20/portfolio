@@ -1,33 +1,38 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { motion } from 'framer-motion';
-import { ContactInfo, Locale, SocialLink } from '@/types';
+import { LuArrowUpRight } from 'react-icons/lu';
+import { DynamicIcon } from '@/lib/icons';
+import { ContactInfo, Locale, Service, SocialLink } from '@/types';
 import ScrollReveal from './ScrollReveal';
+import { serviceTitle } from './Services';
 
 interface ContactProps {
   contacts?: ContactInfo[];
   socialLinks?: SocialLink[];
+  services?: Service[];
+  selectedService?: string;
   locale: Locale;
 }
 
-export default function Contact({ contacts = [], socialLinks = [], locale }: ContactProps) {
+export default function Contact({ contacts = [], socialLinks = [], services = [], selectedService = '', locale }: ContactProps) {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const isAr = locale === 'ar';
+  const serviceOptions = services
+    .filter((service) => service.featured !== false)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((service) => serviceTitle(service, isAr));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus('sending');
     const form = event.currentTarget;
-    const formData = new FormData(form);
-
     try {
       const response = await fetch('https://formspree.io/f/xqewrlbl', {
         method: 'POST',
         headers: { Accept: 'application/json' },
-        body: formData,
+        body: new FormData(form),
       });
-
       if (!response.ok) throw new Error('Failed');
       form.reset();
       setStatus('sent');
@@ -37,73 +42,83 @@ export default function Contact({ contacts = [], socialLinks = [], locale }: Con
   };
 
   return (
-    <section id="contact" className="site-section bg-[#090b0d] px-4 py-24 sm:px-6 lg:px-10 lg:py-32" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-20">
-        <ScrollReveal variant={isAr ? 'right' : 'left'}>
-          <p className="section-kicker mb-4 text-xs font-black uppercase tracking-[0.34em]">
-            {isAr ? '05 / ابدأ مشروعك' : '05 / Contact'}
-          </p>
-          <h2 className="text-4xl font-black leading-none text-white sm:text-6xl">
-            {isAr ? 'لديك فكرة تحتاج إلى حركة؟' : 'Have a frame that needs a pulse?'}
+    <section id="contact" className="site-section" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="container-x">
+        <ScrollReveal>
+          <p className="eyebrow">{isAr ? 'تواصل' : 'Contact'}</p>
+          <h2 className="display mt-6 max-w-5xl text-[clamp(2.75rem,8vw,7rem)]">
+            {isAr ? 'لنصنع شيئاً مميزاً.' : "Let's build something great."}
           </h2>
-          <p className="mt-6 max-w-xl text-base leading-8 text-white/60">
-            {isAr
-              ? 'أرسل تفاصيل المشروع، نوع الفيديو، المدة المتوقعة، وأي مراجع بصرية تحبها. سأعود إليك برد واضح وخطوة عملية.'
-              : 'Send the project idea, references, or video type. I will get back to you with a clear direction and next steps.'}
-          </p>
-
-          <div className="mt-10 space-y-3">
-            {contacts.map((item) => (
-              <a
-                key={item.id}
-                href={item.href || '#'}
-                className="flex flex-col gap-1 rounded-md border border-white/10 bg-white/[0.018] px-4 py-4 text-white/68 transition hover:border-[var(--accent)]/55 hover:bg-white/[0.035] hover:text-white sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-              >
-                <span className="text-sm font-bold">{item.title}</span>
-                <span className="text-sm" dir={item.id === 'phone' ? 'ltr' : undefined}>{item.content}</span>
-              </a>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-2">
-            {socialLinks.map((social) => (
-              <a
-                key={social.id}
-                href={social.url || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white/54 transition hover:border-white/35 hover:text-white"
-              >
-                {social.name}
-              </a>
-            ))}
-          </div>
         </ScrollReveal>
 
-        <motion.form
-          onSubmit={handleSubmit}
-          className="brand-panel scroll-reveal scroll-reveal-scale grid gap-4 p-5 sm:p-8"
-          whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          viewport={{ once: true, amount: 0.25 }}
-          initial={{ opacity: 0, scale: 0.97, filter: 'blur(8px)' }}
-          transition={{ duration: 0.65, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <input name="name" required placeholder={isAr ? 'الاسم الكامل' : 'Name'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[var(--accent)]/70" />
-            <input name="email" type="email" required placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[var(--accent)]/70" />
-          </div>
-          <input name="subject" required placeholder={isAr ? 'نوع العمل المطلوب' : 'Project type'} className="h-12 border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[var(--accent)]/70" />
-          <textarea name="message" required rows={7} placeholder={isAr ? 'اكتب نبذة عن الفكرة، المنصة، المدة، الموعد النهائي، والاتجاه البصري المطلوب...' : 'Tell me about the video, length, deadline, and style...'} className="resize-none border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[var(--accent)]/70" />
-          <button
-            type="submit"
-            disabled={status === 'sending'}
-            className="accent-gradient h-13 rounded-md px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-[#090909] transition hover:brightness-110 disabled:opacity-50"
-          >
-            {status === 'sending' ? (isAr ? 'جاري الإرسال...' : 'Sending...') : isAr ? 'إرسال الطلب' : 'Send brief'}
-          </button>
-          {status === 'sent' && <p className="text-sm text-[var(--accent)]">{isAr ? 'وصلت الرسالة. سأعود إليك قريباً.' : 'Message sent. Sam will get back to you soon.'}</p>}
-          {status === 'error' && <p className="text-sm text-red-300">{isAr ? 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'Something went wrong. Please try again.'}</p>}
-        </motion.form>
+        <div className="mt-20 grid gap-16 lg:grid-cols-[1fr_1.3fr] lg:gap-24">
+          <ScrollReveal delay={60}>
+            <div className="space-y-1">
+              {contacts.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.href && item.href !== '#' ? item.href : undefined}
+                  className="group flex items-center gap-4 border-b border-[var(--line)] py-5"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--line-strong)] transition group-hover:border-[var(--foreground)]">
+                    <DynamicIcon value={item.icon} hints={[item.id, item.title, item.href]} className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-xs text-[var(--muted)]">{item.title}</span>
+                    <span className="block truncate text-base" dir={/tel:/.test(item.href) ? 'ltr' : undefined}>{item.content}</span>
+                  </span>
+                </a>
+              ))}
+            </div>
+
+            {socialLinks.length > 0 ? (
+              <div className="mt-10 flex flex-wrap gap-2">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.id}
+                    href={social.url || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.name}
+                    title={social.name}
+                    className="grid h-11 w-11 place-items-center rounded-full border border-[var(--line-strong)] text-[var(--muted)] transition hover:border-[var(--foreground)] hover:bg-[var(--foreground)] hover:text-[var(--background)]"
+                  >
+                    <DynamicIcon value={social.icon} hints={[social.id, social.name, social.url]} className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </ScrollReveal>
+
+          <ScrollReveal delay={120}>
+            <form onSubmit={handleSubmit} className="grid gap-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <input name="name" required placeholder={isAr ? 'الاسم' : 'Your name'} className="field" />
+                <input name="email" type="email" required placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} className="field" />
+              </div>
+              {serviceOptions.length > 0 ? (
+                <select key={selectedService} name="subject" required defaultValue={selectedService} className="field">
+                  <option value="" disabled>{isAr ? 'اختر الخدمة' : 'What do you need?'}</option>
+                  {serviceOptions.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                  <option value={isAr ? 'أخرى' : 'Other'}>{isAr ? 'أخرى' : 'Other'}</option>
+                </select>
+              ) : (
+                <input name="subject" required placeholder={isAr ? 'نوع المشروع' : 'Project type'} className="field" />
+              )}
+              <textarea name="message" required rows={5} placeholder={isAr ? 'حدثنا عن مشروعك...' : 'Tell us about your project...'} className="field" />
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <button type="submit" disabled={status === 'sending'} className="btn btn-primary h-12 px-6 disabled:opacity-50">
+                  {status === 'sending' ? (isAr ? 'جاري الإرسال...' : 'Sending...') : isAr ? 'أرسل' : 'Send message'}
+                  <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                </button>
+                {status === 'sent' && <p className="text-sm text-[var(--muted)]">{isAr ? 'وصلت رسالتك، سنعود إليك قريباً.' : "Thanks — we'll be in touch soon."}</p>}
+                {status === 'error' && <p className="text-sm text-red-300">{isAr ? 'حدث خطأ، حاول مرة أخرى.' : 'Something went wrong. Please try again.'}</p>}
+              </div>
+            </form>
+          </ScrollReveal>
+        </div>
       </div>
     </section>
   );

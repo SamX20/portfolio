@@ -12,6 +12,7 @@ const TABLES = new Set([
   'skill_programs',
   'skills',
   'testimonials',
+  'services',
 ]);
 
 function withoutMissingColumn(records: Record<string, unknown>[], message: string) {
@@ -90,6 +91,7 @@ export async function GET() {
       supabaseAdmin!.from('skills').select('*'),
       supabaseAdmin!.from('testimonials').select('*'),
     ]);
+  const services = await supabaseAdmin!.from('services').select('*').order('sort_order');
 
   const error =
     projects.error ||
@@ -116,6 +118,7 @@ export async function GET() {
     skillPrograms: skillPrograms.data || [],
     skills: skills.data || [],
     testimonials: testimonials.data || [],
+    services: services.error ? [] : services.data || [],
   });
 }
 
@@ -135,7 +138,7 @@ export async function POST(request: Request) {
 
   const timestamp = new Date().toISOString();
   const payload = sourceRecords.map((item) => (
-    table === 'projects' || table === 'clients'
+    table === 'projects' || table === 'clients' || table === 'services'
       ? { ...item, updated_at: timestamp }
       : item
   ));
