@@ -15,6 +15,13 @@ interface ContactProps {
   locale: Locale;
 }
 
+const contactLabels: Record<string, { en: string; ar: string }> = {
+  phone: { en: 'Phone', ar: 'الهاتف' },
+  email: { en: 'Email', ar: 'البريد الإلكتروني' },
+  location: { en: 'Location', ar: 'الموقع' },
+  hours: { en: 'Working hours', ar: 'ساعات العمل' },
+};
+
 export default function Contact({ contacts = [], socialLinks = [], services = [], selectedService = '', locale }: ContactProps) {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const isAr = locale === 'ar';
@@ -64,7 +71,7 @@ export default function Contact({ contacts = [], socialLinks = [], services = []
                     <DynamicIcon value={item.icon} hints={[item.id, item.title, item.href]} className="h-4 w-4" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-xs text-[var(--muted)]">{item.title}</span>
+                    <span className="block text-xs text-[var(--muted)]">{contactLabels[item.id]?.[locale] || item.title}</span>
                     <span className="block truncate text-base" dir={/tel:/.test(item.href) ? 'ltr' : undefined}>{item.content}</span>
                   </span>
                 </a>
