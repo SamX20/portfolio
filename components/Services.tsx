@@ -2,10 +2,9 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
-import { LuArrowUpRight, LuCheck, LuPlay, LuPlus } from 'react-icons/lu';
+import { LuArrowDown, LuArrowUpRight, LuCheck, LuPlus } from 'react-icons/lu';
 import { DynamicIcon } from '@/lib/icons';
-import { getServicePreset } from '@/lib/services';
-import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
+import { getServicePreset, getServiceWorkKind } from '@/lib/services';
 import { Locale, Project, Service } from '@/types';
 import ScrollReveal from './ScrollReveal';
 
@@ -55,9 +54,8 @@ export default function Services({ services, projects = [], locale, onSelect }: 
               ? service.description_ar || preset?.description_ar || service.description
               : service.description || preset?.description;
             const items = (service.items || []).filter((item) => item.title || item.title_ar);
-            const linked = (service.project_ids || [])
-              .map((id) => projects.find((project) => project.id === id))
-              .filter(Boolean) as Project[];
+            const work = (service.work || []).filter((item) => item.title || item.title_ar || item.url || item.image);
+            const kind = getServiceWorkKind(service.type);
             const open = openId === service.id;
 
             return (
@@ -103,38 +101,59 @@ export default function Services({ services, projects = [], locale, onSelect }: 
                               </ul>
                             ) : null}
 
-                            {linked.length > 0 ? (
+                            {work.length > 0 ? (
                               <div className="mt-10">
-                                <p className="mb-5 text-sm text-[var(--muted)]">{isAr ? 'أعمال ضمن هذه الخدمة' : 'Related work'}</p>
-                                <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
-                                  {linked.map((project) => {
-                                    const thumb = project.thumbnail || getGoogleDriveThumbnail(project.video_url);
-                                    const projectTitle = isAr ? project.title_ar || project.title : project.title;
-                                    return (
-                                      <button
-                                        key={project.id}
-                                        type="button"
-                                        onClick={() => window.dispatchEvent(new CustomEvent('sam:open-project', { detail: { id: project.id } }))}
-                                        className="group/card w-64 shrink-0 snap-start text-start"
-                                      >
-                                        <span className="relative block aspect-[4/3] overflow-hidden rounded-[12px] bg-[var(--surface)]">
-                                          {thumb ? <img src={thumb} alt={projectTitle} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover/card:scale-[1.04]" /> : null}
-                                          <span className="absolute bottom-3 end-3 grid h-9 w-9 place-items-center rounded-full bg-white text-black opacity-0 transition group-hover/card:opacity-100">
-                                            <LuPlay className="ms-0.5 h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                                          </span>
+                                <p className="mb-5 text-sm text-[var(--muted)]">{isAr ? 'من أعمالنا' : 'Selected work'}</p>
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                  {work.map((item, workIndex) => {
+                                    const itemTitle = isAr ? item.title_ar || item.title : item.title || item.title_ar;
+                                    const note = isAr ? item.description_ar || item.description : item.description || item.description_ar;
+                                    const host = item.url ? item.url.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
+                                    const body = (
+                                      <>
+                                        <span className={`relative block overflow-hidden rounded-[12px] bg-[var(--surface)] ${kind === 'gallery' ? 'aspect-square' : 'aspect-[16/10]'}`}>
+                                          {item.image ? (
+                                            <img src={item.image} alt={itemTitle || ''} loading="lazy" className={`h-full w-full transition duration-700 group-hover/work:scale-[1.04] ${kind === 'gallery' ? 'object-contain p-6' : 'object-cover object-top'}`} />
+                                          ) : (
+                                            <span className="grid h-full w-full place-items-center px-6 text-center text-lg font-medium tracking-tight text-[var(--muted)]">{itemTitle || host}</span>
+                                          )}
+                                          {item.url ? (
+                                            <span className="absolute end-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-black opacity-0 transition group-hover/work:opacity-100">
+                                              <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                                            </span>
+                                          ) : null}
                                         </span>
-                                        <span className="mt-3 block truncate text-sm font-medium">{projectTitle}</span>
-                                      </button>
+                                        <span className="mt-3 flex items-baseline justify-between gap-3">
+                                          <span className="min-w-0 truncate text-sm font-medium">{itemTitle}</span>
+                                          {host ? <span className="shrink-0 truncate font-mono text-xs text-[var(--muted)]" dir="ltr">{host.split('/')[0]}</span> : null}
+                                        </span>
+                                        {note ? <span className="mt-1 block text-sm leading-6 text-[var(--muted)]">{note}</span> : null}
+                                      </>
+                                    );
+                                    return item.url ? (
+                                      <a key={workIndex} href={item.url} target="_blank" rel="noopener noreferrer" className="group/work block">
+                                        {body}
+                                      </a>
+                                    ) : (
+                                      <div key={workIndex} className="group/work">{body}</div>
                                     );
                                   })}
                                 </div>
                               </div>
                             ) : null}
 
-                            <a href="#contact" onClick={() => onSelect?.(title)} className="btn btn-primary mt-10">
+                            <div className="mt-10 flex flex-wrap gap-3">
+                            {kind === 'onsite' ? (
+                              <a href="#work" className="btn btn-ghost">
+                                {isAr ? 'شاهد أعمال الفيديو' : 'See the video work'}
+                                <LuArrowDown className="h-4 w-4" aria-hidden="true" />
+                              </a>
+                            ) : null}
+                            <a href="#contact" onClick={() => onSelect?.(title)} className="btn btn-primary">
                               {isAr ? `اطلب ${title}` : `Start a ${title.toLowerCase()} project`}
                               <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
                             </a>
+                            </div>
                           </div>
                         </div>
                       </motion.div>

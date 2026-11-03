@@ -2,9 +2,9 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, ServiceItem, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
+import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, ServiceItem, ServiceWork, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
 import { DynamicIcon, ICON_OPTIONS } from '@/lib/icons';
-import { getServicePreset, SERVICE_PRESETS } from '@/lib/services';
+import { getServicePreset, getServiceWorkKind, SERVICE_PRESETS, ServiceWorkKind } from '@/lib/services';
 import { defaultClients, defaultContacts, defaultProfile, defaultProjects, defaultSections, defaultSkillPrograms, defaultSkills, defaultSocials, defaultStats, defaultTestimonials } from '@/lib/portfolioDefaults';
 import VideoOptimizer, { UploadedVideoResult } from '@/components/admin/VideoOptimizer';
 import VideoFramePicker from '@/components/admin/VideoFramePicker';
@@ -958,7 +958,7 @@ export default function AdminPage() {
         {tab === 'services' && (
           <ServicesManager
             services={data.services}
-            projects={sortedAdminProjects}
+            uploadFile={uploadFile}
             onChange={(services) => updateData((current) => ({ ...current, services }))}
             onDelete={stageDelete}
             notify={notify}
@@ -1907,13 +1907,13 @@ function IconPicker({
 
 function ServicesManager({
   services,
-  projects,
+  uploadFile,
   onChange,
   onDelete,
   notify,
 }: {
   services: Service[];
-  projects: Project[];
+  uploadFile: (file: File) => Promise<string>;
   onChange: (services: Service[]) => void;
   onDelete: (table: string, id: string) => void;
   notify: (message: string) => void;
@@ -1936,6 +1936,7 @@ function ServicesManager({
         description_ar: preset.description_ar,
         items: [],
         project_ids: [],
+        work: [],
         featured: true,
         sort_order: services.length + 1,
       },
@@ -2035,10 +2036,12 @@ function ServicesManager({
               items={service.items || []}
               onChange={(items) => update(service.id, { items })}
             />
-            <ServiceProjectsPicker
-              projects={projects}
-              selected={service.project_ids || []}
-              onChange={(project_ids) => update(service.id, { project_ids })}
+            <ServiceWorkEditor
+              kind={getServiceWorkKind(service.type)}
+              work={service.work || []}
+              uploadFile={uploadFile}
+              onChange={(work) => update(service.id, { work })}
+              notify={notify}
             />
             <div className="mt-4 flex flex-wrap gap-2">
               <button type="button" disabled={index === 0} onClick={() => move(service.id, -1)} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 disabled:opacity-30">↑ Up</button>
@@ -2106,68 +2109,6 @@ function ServiceItemsEditor({ items, onChange }: { items: ServiceItem[]; onChang
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function ServiceProjectsPicker({
-  projects,
-  selected,
-  onChange,
-}: {
-  projects: Project[];
-  selected: string[];
-  onChange: (ids: string[]) => void;
-}) {
-  const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(false);
-  const filtered = projects.filter((project) =>
-    `${project.title} ${project.title_ar || ''} ${project.client || ''}`.toLowerCase().includes(query.toLowerCase()),
-  );
-  const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id]);
-
-  return (
-    <div className="mt-5 border-t border-white/10 pt-4">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-white/42">Linked projects ({selected.length})</p>
-        <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-full border border-[#f5f5f4]/45 px-3 py-1.5 text-xs font-bold text-[#f5f5f4]">
-          {open ? 'Done' : 'Choose projects'}
-        </button>
-      </div>
-      {selected.length > 0 ? (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {selected.map((id) => {
-            const project = projects.find((item) => item.id === id);
-            if (!project) return null;
-            return (
-              <button key={id} type="button" onClick={() => toggle(id)} className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-white/80 hover:border-red-400/50">
-                {project.title} ✕
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-      {open ? (
-        <div>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search projects…"
-            className="mb-2 w-full border border-white/10 bg-black/25 px-3 py-2 text-sm text-white outline-none"
-          />
-          <div className="max-h-64 overflow-y-auto border border-white/10">
-            {filtered.map((project) => (
-              <label key={project.id} className="flex cursor-pointer items-center gap-3 border-b border-white/5 px-3 py-2 text-sm hover:bg-white/[0.04]">
-                <input type="checkbox" checked={selected.includes(project.id)} onChange={() => toggle(project.id)} className="h-4 w-4 accent-[#f5f5f4]" />
-                {project.thumbnail ? <img src={project.thumbnail} alt="" className="h-8 w-12 rounded object-cover" /> : <span className="h-8 w-12 rounded bg-white/5" />}
-                <span className="min-w-0 truncate">{project.title}</span>
-                <span className="ms-auto shrink-0 text-xs text-white/35">{project.year}</span>
-              </label>
-            ))}
-            {filtered.length === 0 ? <p className="p-3 text-sm text-white/40">No projects found.</p> : null}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -2298,5 +2239,107 @@ function InquiriesManager({ notify }: { notify: (message: string) => void }) {
         ))}
       </div>
     </section>
+  );
+}
+
+const WORK_HINTS: Record<ServiceWorkKind, string> = {
+  link: 'Add the sites or stores you built: a link (required) and a screenshot. Visitors click to open it in a new tab.',
+  gallery: 'Add images of the work (logos, identities, designs). A link is optional, e.g. to Behance or the client.',
+  onsite: 'Video work already shows in the Work section — visitors get a button that jumps there. You can still add links here, e.g. a YouTube channel.',
+};
+
+function ServiceWorkEditor({
+  kind,
+  work,
+  uploadFile,
+  onChange,
+  notify,
+}: {
+  kind: ServiceWorkKind;
+  work: ServiceWork[];
+  uploadFile: (file: File) => Promise<string>;
+  onChange: (work: ServiceWork[]) => void;
+  notify: (message: string) => void;
+}) {
+  const [uploading, setUploading] = useState<number | null>(null);
+  const updateItem = (index: number, patch: Partial<ServiceWork>) =>
+    onChange(work.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= work.length) return;
+    const next = [...work];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  };
+  const input = 'w-full border border-white/10 bg-black/25 px-3 py-2 text-sm text-white outline-none';
+
+  return (
+    <div className="mt-5 border-t border-white/10 pt-4">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-white/42">Work for this service ({work.length})</p>
+        <button
+          type="button"
+          onClick={() => onChange([...work, { title: '', title_ar: '', url: '', image: '', description: '', description_ar: '' }])}
+          className="rounded-full border border-[#f5f5f4]/45 px-3 py-1.5 text-xs font-bold text-[#f5f5f4]"
+        >
+          + Add work
+        </button>
+      </div>
+      <p className="mb-3 text-xs leading-5 text-white/40">{WORK_HINTS[kind]}</p>
+      <div className="grid gap-3">
+        {work.map((item, index) => (
+          <div key={index} className="rounded-2xl border border-white/10 p-3">
+            <div className="grid gap-3 sm:grid-cols-[96px_1fr]">
+              <label className="relative grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-xl border border-dashed border-white/20 bg-black/30 text-center text-[11px] text-white/45 hover:border-white/40">
+                {item.image ? <img src={item.image} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <span>{uploading === index ? 'Uploading…' : kind === 'link' ? 'Screenshot' : 'Image'}</span>}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    setUploading(index);
+                    try {
+                      updateItem(index, { image: await uploadFile(file) });
+                      notify('Image uploaded. Save changes to publish.');
+                    } catch (error) {
+                      notify(error instanceof Error ? error.message : 'Upload failed');
+                    } finally {
+                      setUploading(null);
+                    }
+                  }}
+                />
+              </label>
+              <div className="grid gap-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input value={item.title} onChange={(event) => updateItem(index, { title: event.target.value })} placeholder="Title (EN), e.g. Firestone Jo" className={input} />
+                  <input value={item.title_ar || ''} onChange={(event) => updateItem(index, { title_ar: event.target.value })} placeholder="العنوان (AR)" dir="rtl" className={input} />
+                </div>
+                <input
+                  value={item.url || ''}
+                  onChange={(event) => updateItem(index, { url: event.target.value.trim() })}
+                  placeholder={kind === 'link' ? 'https://… (required)' : 'https://… (optional)'}
+                  dir="ltr"
+                  className={`${input} ${kind === 'link' && !item.url ? 'border-amber-400/40' : ''}`}
+                />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input value={item.description || ''} onChange={(event) => updateItem(index, { description: event.target.value })} placeholder="Short note (EN), optional" className={input} />
+                  <input value={item.description_ar || ''} onChange={(event) => updateItem(index, { description_ar: event.target.value })} placeholder="وصف قصير (AR)" dir="rtl" className={input} />
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" disabled={index === 0} onClick={() => move(index, -1)} className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70 disabled:opacity-30">↑</button>
+              <button type="button" disabled={index === work.length - 1} onClick={() => move(index, 1)} className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70 disabled:opacity-30">↓</button>
+              {item.image ? (
+                <button type="button" onClick={() => updateItem(index, { image: '' })} className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70">Remove image</button>
+              ) : null}
+              <button type="button" onClick={() => onChange(work.filter((_, itemIndex) => itemIndex !== index))} className="rounded-full border border-red-400/30 px-3 py-1.5 text-xs text-red-200">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

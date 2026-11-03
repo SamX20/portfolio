@@ -173,6 +173,7 @@ export interface Service {
   icon?: string;
   items?: ServiceItem[];
   project_ids?: string[];
+  work?: ServiceWork[];
   featured: boolean;
   sort_order: number;
   created_at?: string;
@@ -182,4 +183,14 @@ export interface Service {
 export interface ServiceItem {
   title: string;
   title_ar?: string;
+}
+
+/** A piece of work done outside the site (a live website, a store, a logo…), shown inside a service. */
+export interface ServiceWork {
+  title: string;
+  title_ar?: string;
+  url?: string;
+  image?: string;
+  description?: string;
+  description_ar?: string;
 }

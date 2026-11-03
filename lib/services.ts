@@ -25,3 +25,29 @@ export const SERVICE_PRESETS: ServicePreset[] = [
 export function getServicePreset(type?: string) {
   return SERVICE_PRESETS.find((preset) => preset.type === type);
 }
+
+/**
+ * How a service shows its work:
+ * - link:    live things you can visit (websites, stores, apps) — a link plus a screenshot.
+ * - gallery: visual work (logos, identities, graphics, 3D) — images, with an optional link (e.g. Behance).
+ * - onsite:  video work that already lives in the "Work" section — a button jumps there; extra links optional.
+ */
+export type ServiceWorkKind = 'link' | 'gallery' | 'onsite';
+
+const WORK_KIND: Record<string, ServiceWorkKind> = {
+  'web-development': 'link',
+  'online-store': 'link',
+  'ui-ux': 'link',
+  'logo-design': 'gallery',
+  branding: 'gallery',
+  'graphic-design': 'gallery',
+  '3d': 'gallery',
+  'video-editing': 'onsite',
+  'motion-design': 'onsite',
+  'logo-animation': 'onsite',
+  'social-media': 'onsite',
+};
+
+export function getServiceWorkKind(type?: string): ServiceWorkKind {
+  return (type && WORK_KIND[type]) || 'link';
+}
