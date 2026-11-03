@@ -1,6 +1,9 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { IconType } from 'react-icons';
+import { LuAtSign, LuChartColumn, LuClapperboard, LuCopy, LuExternalLink, LuHouse, LuInbox, LuLayoutDashboard, LuLogOut, LuMenu, LuPlus, LuQuote, LuSparkles, LuTriangleAlert, LuUsers, LuWandSparkles, LuX } from 'react-icons/lu';
+import { LogoLockup } from '@/components/Logo';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CATEGORIES, Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, ServiceItem, ServiceWork, Skill, SkillProgram, SocialLink, Stat, Testimonial } from '@/types';
 import { DynamicIcon, ICON_OPTIONS } from '@/lib/icons';
@@ -10,7 +13,41 @@ import VideoOptimizer, { UploadedVideoResult } from '@/components/admin/VideoOpt
 import VideoFramePicker from '@/components/admin/VideoFramePicker';
 import { PORTFOLIO_TECHNOLOGIES, ProjectMetadataCandidate, ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
 
-type Tab = 'content' | 'inquiries' | 'projects' | 'services' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
+type Tab = 'overview' | 'content' | 'inquiries' | 'projects' | 'services' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
+
+interface NavItem {
+  id: Tab;
+  label: string;
+  description: string;
+  icon: IconType;
+}
+
+const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
+  { label: '', items: [{ id: 'overview', label: 'Overview', description: 'What needs your attention, at a glance.', icon: LuLayoutDashboard }] },
+  { label: 'Inbox', items: [{ id: 'inquiries', label: 'Inquiries', description: 'Messages from the contact form. Each one is saved here and sent to your WhatsApp.', icon: LuInbox }] },
+  {
+    label: 'Website',
+    items: [
+      { id: 'content', label: 'Home page', description: 'Hero text, showreels, the studio section and the footer.', icon: LuHouse },
+      { id: 'services', label: 'Services', description: 'What you offer. Each service can list what is included and show work done outside the site.', icon: LuSparkles },
+      { id: 'projects', label: 'Projects', description: 'Video and motion work shown in the Work section.', icon: LuClapperboard },
+      { id: 'clients', label: 'Clients', description: 'Logos in the “Trusted by” strip. Clicking one filters the work.', icon: LuUsers },
+      { id: 'testimonials', label: 'Testimonials', description: 'Feedback from clients. Share the client link to collect new ones.', icon: LuQuote },
+      { id: 'skills', label: 'Stats & tools', description: 'The numbers and the tools shown in the studio section.', icon: LuChartColumn },
+      { id: 'contacts', label: 'Contact & social', description: 'Contact details and social links shown in the contact section and footer.', icon: LuAtSign },
+    ],
+  },
+  { label: 'Tools', items: [{ id: 'media', label: 'Video optimizer', description: 'Turn raw videos into fast web versions, a hover preview and a thumbnail, with an AI-written project draft.', icon: LuWandSparkles }] },
+];
+const NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
+
+interface InquirySummary {
+  total: number;
+  attention: number;
+  failed: number;
+  webhookConfigured: boolean;
+  recent: { id: string; name: string; service: string | null; status: string; created_at: string }[];
+}
 
 interface UploadTicket {
   bucket: string;
@@ -245,7 +282,9 @@ export default function AdminPage() {
   const [uploadingAltHeroVideo, setUploadingAltHeroVideo] = useState(false);
   const [altUploadProgress, setAltUploadProgress] = useState(0);
   const [selectedAltHeroVideoFile, setSelectedAltHeroVideoFile] = useState<File | null>(null);
-  const [tab, setTab] = useState<Tab>('content');
+  const [tab, setTab] = useState<Tab>('overview');
+  const [navOpen, setNavOpen] = useState(false);
+  const [inquirySummary, setInquirySummary] = useState<InquirySummary>({ total: 0, attention: 0, failed: 0, webhookConfigured: true, recent: [] });
   const [toast, setToast] = useState('');
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -358,8 +397,29 @@ export default function AdminPage() {
     setHasUnsavedChanges(true);
   };
 
+  const refreshInquirySummary = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/inquiries', { cache: 'no-store' });
+      if (!response.ok) return;
+      const result = await response.json();
+      const items: InquirySummary['recent'] = result.inquiries || [];
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      setInquirySummary({
+        total: items.length,
+        failed: items.filter((item) => item.status !== 'delivered').length,
+        attention: items.filter((item) => item.status !== 'delivered' || new Date(item.created_at).getTime() > weekAgo).length,
+        webhookConfigured: Boolean(result.webhookConfigured),
+        recent: items.slice(0, 5),
+      });
+    } catch {
+      // The overview still works without inquiry numbers.
+    }
+  }, []);
+
   const changeTab = (nextTab: Tab) => {
     setTab(nextTab);
+    window.scrollTo({ top: 0 });
+    if (nextTab === 'overview' || nextTab === 'inquiries') void refreshInquirySummary();
   };
 
   useEffect(() => {
@@ -367,10 +427,13 @@ export default function AdminPage() {
       .then((session) => {
         setAuthed(session.authed);
         setConfigured(session.configured);
-        if (session.authed) return load();
+        if (session.authed) {
+          void refreshInquirySummary();
+          return load();
+        }
       })
       .finally(() => setLoading(false));
-  }, [load]);
+  }, [load, refreshInquirySummary]);
 
   const login = async (event: FormEvent) => {
     event.preventDefault();
@@ -381,6 +444,7 @@ export default function AdminPage() {
         body: JSON.stringify({ password }),
       });
       setAuthed(true);
+      void refreshInquirySummary();
       await load();
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Login failed');
@@ -515,10 +579,6 @@ export default function AdminPage() {
     return response.metadata;
   };
 
-  const setProfile = (key: keyof Profile, value: string) => {
-    updateData((current) => ({ ...current, profile: { ...current.profile, [key]: value } }));
-  };
-
   const setSection = (section: keyof SectionsData, key: string, value: string) => {
     updateData((current) => ({
       ...current,
@@ -563,98 +623,135 @@ export default function AdminPage() {
     );
   }
 
+  const currentPage = NAV_ITEMS.find((item) => item.id === tab) || NAV_ITEMS[0];
+  const pendingTestimonials = data.testimonials.filter((testimonial) => testimonial.approved === false).length;
+  const copyTestimonialLink = async () => {
+    await navigator.clipboard.writeText(`${window.location.origin}/share-testimonial`);
+    notify('Testimonial link copied');
+  };
+  const logout = async () => {
+    if (hasUnsavedChanges && !confirm('You have unsaved changes. Log out anyway?')) return;
+    await api('/api/admin/session', { method: 'DELETE' }).catch(() => undefined);
+    setAuthed(false);
+    setPassword('');
+  };
+  const pageActions: Partial<Record<Tab, React.ReactNode>> = {
+    projects: (
+      <button type="button" onClick={startNewProject} className="admin-btn-primary">
+        <LuPlus className="h-4 w-4" /> Add project
+      </button>
+    ),
+    testimonials: (
+      <button type="button" onClick={copyTestimonialLink} className="admin-btn">
+        <LuCopy className="h-4 w-4" /> Copy client link
+      </button>
+    ),
+  };
+
   return (
     <main className="admin-shell min-h-screen text-white">
       {toast && (
-        <div className="fixed right-4 top-4 z-[120] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-[#f5f5f4]/35 bg-[#111111]/95 p-4 text-sm font-bold leading-6 text-[#f5f5f4] shadow-2xl shadow-black/35 backdrop-blur-xl">
-          <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.2em] text-[#f5f5f4]">Admin update</span>
+        <div className="fixed right-4 top-4 z-[120] w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-white/15 bg-[#161616]/95 p-4 text-sm leading-6 text-[#f5f5f4] shadow-2xl shadow-black/40 backdrop-blur-xl">
           {toast}
         </div>
       )}
-      <header className="admin-header sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#f5f5f4]">Xsamer Admin</p>
-            <h1 className="mt-1 text-2xl font-black">Studio control panel</h1>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              ['content', 'Main page'],
-              ['inquiries', 'Inquiries'],
-              ['projects', 'Projects'],
-              ['services', 'Services'],
-              ['media', 'Video Optimizer'],
-              ['clients', 'Clients'],
-              ['contacts', 'Contact / Social'],
-              ['skills', 'Skills / Stats'],
-              ['testimonials', 'Testimonials'],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                onClick={() => changeTab(value as Tab)}
-                className={`rounded-md border px-4 py-2.5 text-xs font-black uppercase tracking-[0.14em] transition ${
-                  tab === value ? 'accent-gradient border-[#e7e5e4] text-[#090909] ' : 'border-white/10 bg-white/[0.02] text-white/55 hover:border-white/30 hover:bg-white/[0.04] hover:text-white'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
 
-      {hasUnsavedChanges && (
-        <div className="fixed bottom-5 left-1/2 z-[130] w-[min(620px,calc(100vw-2rem))] -translate-x-1/2 rounded-3xl border border-[#f5f5f4]/35 bg-[#111111]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-xl">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Mobile top bar */}
+      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 bg-[#0a0a0a]/90 px-4 backdrop-blur-xl lg:hidden">
+        <LogoLockup markClassName="h-6 w-6" />
+        <button type="button" onClick={() => setNavOpen(true)} className="grid h-9 w-9 place-items-center rounded-full border border-white/15" aria-label="Open menu">
+          <LuMenu className="h-4 w-4" />
+        </button>
+      </div>
+
+      {navOpen ? <button type="button" aria-label="Close menu" onClick={() => setNavOpen(false)} className="fixed inset-0 z-40 bg-black/60 lg:hidden" /> : null}
+
+      <aside className={`admin-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 bg-[#0d0d0d] transition-transform duration-300 lg:translate-x-0 ${navOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex h-16 items-center justify-between px-5">
+          <LogoLockup markClassName="h-6 w-6" />
+          <button type="button" onClick={() => setNavOpen(false)} className="grid h-8 w-8 place-items-center rounded-full text-white/60 lg:hidden" aria-label="Close menu">
+            <LuX className="h-4 w-4" />
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-3 pb-4">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label || 'main'} className="mt-4 first:mt-1">
+              {group.label ? <p className="px-3 pb-2 text-[11px] font-medium text-white/35">{group.label}</p> : null}
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = tab === item.id;
+                const badge = item.id === 'inquiries' ? inquirySummary.attention : item.id === 'testimonials' ? pendingTestimonials : 0;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      changeTab(item.id);
+                      setNavOpen(false);
+                    }}
+                    className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${active ? 'bg-white text-black' : 'text-white/65 hover:bg-white/[0.06] hover:text-white'}`}
+                  >
+                    <Icon className="h-[18px] w-[18px] shrink-0" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {badge ? (
+                      <span className={`min-w-5 rounded-full px-1.5 text-center text-[11px] font-semibold leading-5 ${active ? 'bg-black text-white' : 'bg-[#8ea2ff] text-black'}`}>{badge}</span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+        <div className="grid gap-1 border-t border-white/10 p-3">
+          <a href="/" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/65 transition hover:bg-white/[0.06] hover:text-white">
+            <LuExternalLink className="h-[18px] w-[18px]" /> View site
+          </a>
+          <button type="button" onClick={logout} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/65 transition hover:bg-white/[0.06] hover:text-white">
+            <LuLogOut className="h-[18px] w-[18px]" /> Log out
+          </button>
+        </div>
+      </aside>
+
+      <div className="lg:pl-64">
+        <div className="admin-content mx-auto max-w-[1200px] px-4 pb-32 pt-8 sm:px-8 lg:pt-12">
+          <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5f5f4]">Unsaved changes</p>
-              <p className="mt-1 text-sm text-white/62">You changed admin content. Save everything or dismiss the local changes.</p>
+              <h1 className="text-3xl font-semibold tracking-tight">{currentPage.label}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">{currentPage.description}</p>
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={dismissChanges}
-                disabled={saving}
-                className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white/62 transition hover:border-white/25 hover:text-white disabled:opacity-50"
-              >
-                Dismiss
-              </button>
-              <button
-                type="button"
-                onClick={saveAllChanges}
-                disabled={saving}
-                className="accent-gradient rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#05070b] disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Save changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            {pageActions[tab] ? <div className="flex shrink-0 gap-2">{pageActions[tab]}</div> : null}
+          </header>
 
-      <div className="admin-content mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-10">
+        {tab === 'overview' && (
+          <AdminOverview
+            summary={inquirySummary}
+            projects={data.projects}
+            services={data.services}
+            clients={data.clients}
+            testimonials={data.testimonials}
+            pendingTestimonials={pendingTestimonials}
+            onNavigate={changeTab}
+            onAddProject={startNewProject}
+            onCopyTestimonialLink={copyTestimonialLink}
+          />
+        )}
+
         {tab === 'content' && (
-          <section className="grid gap-5 lg:grid-cols-2">
-            <div className="border border-white/10 bg-white/[0.025] p-5">
-              <h2 className="mb-5 text-xl font-black">Identity</h2>
-              <div className="grid gap-4">
-                <Field label="Display name" value={data.profile.name} onChange={(value) => setProfile('name', value)} />
-                <Field label="Professional title" value={data.profile.title} onChange={(value) => setProfile('title', value)} />
-                <Field label="Bio" value={data.profile.description} onChange={(value) => setProfile('description', value)} textarea />
-                <Field label="Site title" value={data.sections.global.site_title} onChange={(value) => setSection('global', 'site_title', value)} />
-                <Field label="Logo text / image url" value={data.sections.global.logo} onChange={(value) => setSection('global', 'logo', value)} />
+          <section className="grid gap-5">
+            <AdminCard title="Hero" description="The first thing visitors see, over the showreel.">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Small line above the title (EN)" value={data.sections.hero.subtitle} onChange={(value) => setSection('hero', 'subtitle', value)} />
+                <Field label="Small line above the title (AR)" value={data.sections.hero.subtitle_ar} onChange={(value) => setSection('hero', 'subtitle_ar', value)} />
+                <Field label="Title (EN)" value={data.sections.hero.title} onChange={(value) => setSection('hero', 'title', value)} />
+                <Field label="Title (AR)" value={data.sections.hero.title_ar} onChange={(value) => setSection('hero', 'title_ar', value)} />
+                <Field label="Description (EN)" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
+                <Field label="Description (AR)" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
+                <Field label="Main button text (EN)" value={data.sections.hero.cta_text} onChange={(value) => setSection('hero', 'cta_text', value)} />
               </div>
-            </div>
+            </AdminCard>
 
-            <div className="border border-white/10 bg-white/[0.025] p-5">
-              <h2 className="mb-5 text-xl font-black">Hero EN / AR</h2>
-              <div className="grid gap-4">
-                <Field label="Hero title EN" value={data.sections.hero.title} onChange={(value) => setSection('hero', 'title', value)} />
-                <Field label="Hero title AR" value={data.sections.hero.title_ar} onChange={(value) => setSection('hero', 'title_ar', value)} />
-                <Field label="Subtitle EN" value={data.sections.hero.subtitle} onChange={(value) => setSection('hero', 'subtitle', value)} />
-                <Field label="Subtitle AR" value={data.sections.hero.subtitle_ar} onChange={(value) => setSection('hero', 'subtitle_ar', value)} />
-                <Field label="Description EN" value={data.sections.hero.description} onChange={(value) => setSection('hero', 'description', value)} textarea />
-                <Field label="Description AR" value={data.sections.hero.description_ar} onChange={(value) => setSection('hero', 'description_ar', value)} textarea />
+            <AdminCard title="Showreels" description="Background videos of the hero. The second one is optional; visitors can switch between them.">
+              <div className="grid gap-6">
                 <div className="grid gap-3">
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5f5f4]">Primary hero reel</p>
                   <div className="flex flex-col gap-2">
@@ -720,7 +817,7 @@ export default function AdminPage() {
                   ) : null}
                 </div>
 
-                <div className="grid gap-4 border-t border-white/10 pt-5">
+                <div className="grid gap-4 border-t border-white/10 pt-6">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ff9a57]">Alternate hero reel</p>
                     <p className="mt-1 text-xs leading-5 text-white/38">Loaded only when a visitor switches reels.</p>
@@ -777,60 +874,36 @@ export default function AdminPage() {
                       <div className="h-full bg-[#ff9a57] transition-all duration-200" style={{ width: `${altUploadProgress}%` }} />
                     </div>
                   ) : null}
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <Field label="Light accent" value={data.sections.hero.theme_alt_accent} type="color" onChange={(value) => setSection('hero', 'theme_alt_accent', value)} />
-                    <Field label="Mid accent" value={data.sections.hero.theme_alt_accent_mid} type="color" onChange={(value) => setSection('hero', 'theme_alt_accent_mid', value)} />
-                    <Field label="Deep accent" value={data.sections.hero.theme_alt_accent_deep} type="color" onChange={(value) => setSection('hero', 'theme_alt_accent_deep', value)} />
-                  </div>
                 </div>
               </div>
-            </div>
+            </AdminCard>
 
-            <div className="border border-white/10 bg-white/[0.025] p-5 lg:col-span-2">
-              <h2 className="mb-5 text-xl font-black">About / Footer</h2>
+            <AdminCard title="About the studio" description="The “Studio” section on the homepage.">
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="About title EN" value={data.sections.about.title} onChange={(value) => setSection('about', 'title', value)} />
-                <Field label="About title AR" value={data.sections.about.title_ar} onChange={(value) => setSection('about', 'title_ar', value)} />
-                <Field label="About text EN" value={data.sections.about.content} onChange={(value) => setSection('about', 'content', value)} textarea />
-                <Field label="About text AR" value={data.sections.about.content_ar} onChange={(value) => setSection('about', 'content_ar', value)} textarea />
-                <Field label="Footer tagline EN" value={data.sections.footer.tagline} onChange={(value) => setSection('footer', 'tagline', value)} />
-                <Field label="Footer tagline AR" value={data.sections.footer.tagline_ar} onChange={(value) => setSection('footer', 'tagline_ar', value)} />
+                <Field label="Title (EN)" value={data.sections.about.title} onChange={(value) => setSection('about', 'title', value)} />
+                <Field label="Title (AR)" value={data.sections.about.title_ar} onChange={(value) => setSection('about', 'title_ar', value)} />
+                <Field label="Text (EN)" value={data.sections.about.content} onChange={(value) => setSection('about', 'content', value)} textarea />
+                <Field label="Text (AR)" value={data.sections.about.content_ar} onChange={(value) => setSection('about', 'content_ar', value)} textarea />
               </div>
-            </div>
+            </AdminCard>
+
+            <AdminCard title="Footer">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Tagline (EN)" value={data.sections.footer.tagline} onChange={(value) => setSection('footer', 'tagline', value)} />
+                <Field label="Tagline (AR)" value={data.sections.footer.tagline_ar} onChange={(value) => setSection('footer', 'tagline_ar', value)} />
+                <Field label="Copyright" value={data.sections.footer.copyright} onChange={(value) => setSection('footer', 'copyright', value)} />
+              </div>
+            </AdminCard>
           </section>
         )}
 
         {tab === 'projects' && (
-          <section className="pb-24">
-            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Project library</p>
-                <h2 className="mt-2 text-3xl font-black">Stacked project cards</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
-                  Manage project details, thumbnails, links, categories, and featured status from one flexible view.
-                </p>
-              </div>
-              <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] text-center">
-                {[
-                  ['Total', projectSummary.total],
-                  ['Featured', projectSummary.featured],
-                  ['Linked', projectSummary.linked],
-                ].map(([label, value]) => (
-                  <div key={label} className="border-r border-white/10 px-4 py-3 last:border-r-0">
-                    <p className="text-lg font-black text-white">{value}</p>
-                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/38">{label}</p>
-                  </div>
-                ))}
-              </div>
+          <section>
+            <div className="mb-5 flex flex-wrap gap-2 text-sm text-white/55">
+              <span className="rounded-full border border-white/10 px-3 py-1">{projectSummary.total} projects</span>
+              <span className="rounded-full border border-white/10 px-3 py-1">{projectSummary.featured} featured</span>
+              <span className="rounded-full border border-white/10 px-3 py-1">{projectSummary.linked} with video</span>
             </div>
-
-            <button
-              onClick={startNewProject}
-              className="fixed bottom-5 right-5 z-50 rounded-full bg-[#f5f5f4] px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-[#05070b] shadow-2xl shadow-[#e7e5e4]/20 transition hover:brightness-110"
-            >
-              Add project
-            </button>
-
             <div className="grid gap-4">
               {sortedAdminProjects.map((project, index) => (
                 <article
@@ -907,14 +980,7 @@ export default function AdminPage() {
         )}
 
         {tab === 'media' && (
-          <section className="pb-24">
-            <div className="mb-6 max-w-3xl">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Media pipeline</p>
-              <h2 className="mt-2 text-3xl font-black">Video Optimizer</h2>
-              <p className="mt-2 text-sm leading-6 text-white/46">
-                Drop one or more sources. Each creates a fast-start 720p/30fps master, silent hover preview, thumbnail, and bilingual project draft for review.
-              </p>
-            </div>
+          <section>
             <VideoOptimizer
               uploadFile={uploadFile}
               generateMetadata={generateProjectMetadata}
@@ -953,7 +1019,7 @@ export default function AdminPage() {
           </section>
         )}
 
-        {tab === 'inquiries' && <InquiriesManager notify={notify} />}
+        {tab === 'inquiries' && <InquiriesManager notify={notify} onChanged={refreshInquirySummary} />}
 
         {tab === 'services' && (
           <ServicesManager
@@ -1025,26 +1091,6 @@ export default function AdminPage() {
 
         {tab === 'testimonials' && (
           <section>
-            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Client sharing link</p>
-                <h2 className="text-3xl font-black">Testimonials</h2>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-white/46">
-                  Send clients this link: <span className="text-[#f5f5f4]">/share-testimonial</span>. Submitted feedback appears on the main page.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={async () => {
-                  const link = `${window.location.origin}/share-testimonial`;
-                  await navigator.clipboard.writeText(link);
-                  notify('Testimonial sharing link copied');
-                }}
-                className="rounded-full border border-[#f5f5f4]/45 bg-[#f5f5f4]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f5f5f4] transition hover:border-[#f5f5f4] hover:bg-[#f5f5f4]/16 hover:text-white"
-              >
-                Copy link
-              </button>
-            </div>
             <TestimonialsManager
               testimonials={data.testimonials}
               onChange={(testimonials) => updateData((current) => ({ ...current, testimonials }))}
@@ -1053,7 +1099,23 @@ export default function AdminPage() {
             />
           </section>
         )}
+        </div>
       </div>
+
+      {hasUnsavedChanges && (
+        <div className="fixed bottom-5 left-1/2 z-[130] w-[min(620px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-white/15 bg-[#161616]/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl lg:left-[calc(50%+8rem)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold">Unsaved changes</p>
+              <p className="mt-0.5 text-sm text-white/55">Save to publish them on the site, or discard.</p>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={dismissChanges} disabled={saving} className="admin-btn disabled:opacity-50">Discard</button>
+              <button type="button" onClick={saveAllChanges} disabled={saving} className="admin-btn-primary disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {editingProject && (
         <ProjectEditor
@@ -2127,7 +2189,7 @@ interface AdminInquiry {
   created_at: string;
 }
 
-function InquiriesManager({ notify }: { notify: (message: string) => void }) {
+function InquiriesManager({ notify, onChanged }: { notify: (message: string) => void; onChanged?: () => void }) {
   const [items, setItems] = useState<AdminInquiry[]>([]);
   const [webhookConfigured, setWebhookConfigured] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -2161,6 +2223,7 @@ function InquiriesManager({ notify }: { notify: (message: string) => void }) {
     notify(response.ok ? 'Sent to WhatsApp' : data.error || 'Delivery failed');
     setBusyId('');
     void refresh();
+    onChanged?.();
   };
 
   const remove = async (id: string) => {
@@ -2169,6 +2232,7 @@ function InquiriesManager({ notify }: { notify: (message: string) => void }) {
     await fetch('/api/admin/inquiries', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
     setBusyId('');
     setItems((current) => current.filter((item) => item.id !== id));
+    onChanged?.();
   };
 
   const badge = {
@@ -2340,6 +2404,122 @@ function ServiceWorkEditor({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function AdminCard({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6">
+      <div className="mb-5">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {description ? <p className="mt-1 text-sm text-white/45">{description}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function AdminOverview({
+  summary,
+  projects,
+  services,
+  clients,
+  testimonials,
+  pendingTestimonials,
+  onNavigate,
+  onAddProject,
+  onCopyTestimonialLink,
+}: {
+  summary: InquirySummary;
+  projects: Project[];
+  services: Service[];
+  clients: Client[];
+  testimonials: Testimonial[];
+  pendingTestimonials: number;
+  onNavigate: (tab: Tab) => void;
+  onAddProject: () => void;
+  onCopyTestimonialLink: () => void;
+}) {
+  const visibleServices = services.filter((service) => service.featured !== false);
+  const emptyServices = visibleServices.filter((service) => !(service.items?.length || service.work?.length));
+  const projectsWithoutThumb = projects.filter((project) => !project.thumbnail).length;
+
+  const stats: { label: string; value: number; tab: Tab; note?: string }[] = [
+    { label: 'Inquiries', value: summary.total, tab: 'inquiries', note: summary.failed ? `${summary.failed} not delivered` : 'All delivered' },
+    { label: 'Projects', value: projects.length, tab: 'projects', note: `${projects.filter((project) => project.featured).length} featured` },
+    { label: 'Services', value: visibleServices.length, tab: 'services', note: `${services.length - visibleServices.length} hidden` },
+    { label: 'Testimonials', value: testimonials.length, tab: 'testimonials', note: pendingTestimonials ? `${pendingTestimonials} hidden from site` : `${clients.length} clients` },
+  ];
+
+  const todos: { text: string; tab: Tab }[] = [];
+  if (!summary.webhookConfigured) todos.push({ text: 'WhatsApp delivery is not connected — messages are only saved here.', tab: 'inquiries' });
+  if (summary.failed) todos.push({ text: `${summary.failed} inquir${summary.failed === 1 ? 'y was' : 'ies were'} not delivered to WhatsApp.`, tab: 'inquiries' });
+  if (emptyServices.length) todos.push({ text: `${emptyServices.length} service${emptyServices.length === 1 ? ' has' : 's have'} no details or work yet: ${emptyServices.map((service) => service.title).join(', ')}.`, tab: 'services' });
+  if (pendingTestimonials) todos.push({ text: `${pendingTestimonials} testimonial${pendingTestimonials === 1 ? ' is' : 's are'} hidden — review and show ${pendingTestimonials === 1 ? 'it' : 'them'}.`, tab: 'testimonials' });
+  if (projectsWithoutThumb) todos.push({ text: `${projectsWithoutThumb} project${projectsWithoutThumb === 1 ? ' has' : 's have'} no thumbnail.`, tab: 'projects' });
+
+  return (
+    <div className="grid gap-5">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <button key={stat.label} type="button" onClick={() => onNavigate(stat.tab)} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-left transition hover:border-white/25">
+            <p className="text-sm text-white/50">{stat.label}</p>
+            <p className="mt-2 text-4xl font-semibold tracking-tight">{stat.value}</p>
+            <p className="mt-2 text-xs text-white/40">{stat.note}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
+        <AdminCard title="Needs attention">
+          {todos.length ? (
+            <ul className="grid gap-2">
+              {todos.map((todo) => (
+                <li key={todo.text}>
+                  <button type="button" onClick={() => onNavigate(todo.tab)} className="flex w-full items-start gap-3 rounded-xl border border-white/10 px-4 py-3 text-left text-sm text-white/80 transition hover:border-white/25">
+                    <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                    {todo.text}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-white/50">Nothing to fix. Everything looks good.</p>
+          )}
+        </AdminCard>
+
+        <AdminCard title="Quick actions">
+          <div className="grid gap-2">
+            <button type="button" onClick={onAddProject} className="admin-btn justify-start"><LuPlus className="h-4 w-4" /> Add a project</button>
+            <button type="button" onClick={() => onNavigate('media')} className="admin-btn justify-start"><LuWandSparkles className="h-4 w-4" /> Optimize and upload a video</button>
+            <button type="button" onClick={() => onNavigate('services')} className="admin-btn justify-start"><LuSparkles className="h-4 w-4" /> Add work to a service</button>
+            <button type="button" onClick={onCopyTestimonialLink} className="admin-btn justify-start"><LuCopy className="h-4 w-4" /> Copy testimonial link for a client</button>
+          </div>
+        </AdminCard>
+      </div>
+
+      <AdminCard title="Latest inquiries">
+        {summary.recent.length ? (
+          <ul className="divide-y divide-white/10">
+            {summary.recent.map((item) => (
+              <li key={item.id}>
+                <button type="button" onClick={() => onNavigate('inquiries')} className="flex w-full items-center justify-between gap-4 py-3 text-left">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{item.name}</span>
+                    <span className="block truncate text-xs text-white/45">{item.service || 'No service selected'} · {new Date(item.created_at).toLocaleString()}</span>
+                  </span>
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs ${item.status === 'delivered' ? 'bg-emerald-400/10 text-emerald-200' : 'bg-red-400/10 text-red-200'}`}>
+                    {item.status === 'delivered' ? 'On WhatsApp' : 'Not delivered'}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-white/50">No messages yet.</p>
+        )}
+      </AdminCard>
     </div>
   );
 }

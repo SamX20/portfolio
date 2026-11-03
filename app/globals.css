@@ -519,3 +519,24 @@ select.field option {
 @media (prefers-reduced-motion: reduce) {
   .brand-loader *, .brand-loader-track { animation: none !important; transform: none !important; clip-path: none !important; }
 }
+
+@layer components {
+/* Admin buttons */
+.admin-btn,
+.admin-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  padding-inline: 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.admin-btn { border: 1px solid rgba(255, 255, 255, 0.14); color: #f5f5f4; }
+.admin-btn:hover { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.04); }
+.admin-btn-primary { background: #f5f5f4; color: #0a0a0a; }
+.admin-btn-primary:hover { background: #ffffff; }
+}
