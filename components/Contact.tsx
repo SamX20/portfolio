@@ -34,11 +34,19 @@ export default function Contact({ contacts = [], socialLinks = [], services = []
     event.preventDefault();
     setStatus('sending');
     const form = event.currentTarget;
+    const fields = new FormData(form);
     try {
-      const response = await fetch('https://formspree.io/f/xqewrlbl', {
+      const response = await fetch('/api/inquiries', {
         method: 'POST',
-        headers: { Accept: 'application/json' },
-        body: new FormData(form),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fields.get('name'),
+          email: fields.get('email'),
+          service: fields.get('subject'),
+          message: fields.get('message'),
+          website: fields.get('website'),
+          locale,
+        }),
       });
       if (!response.ok) throw new Error('Failed');
       form.reset();
@@ -99,6 +107,8 @@ export default function Contact({ contacts = [], socialLinks = [], services = []
 
           <ScrollReveal delay={120}>
             <form onSubmit={handleSubmit} className="grid gap-6">
+              {/* Honeypot for spam bots — hidden from people and screen readers */}
+              <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
               <div className="grid gap-6 sm:grid-cols-2">
                 <input name="name" required placeholder={isAr ? 'الاسم' : 'Your name'} className="field" />
                 <input name="email" type="email" required placeholder={isAr ? 'البريد الإلكتروني' : 'Email'} className="field" />

@@ -10,7 +10,7 @@ import VideoOptimizer, { UploadedVideoResult } from '@/components/admin/VideoOpt
 import VideoFramePicker from '@/components/admin/VideoFramePicker';
 import { PORTFOLIO_TECHNOLOGIES, ProjectMetadataCandidate, ProjectMetadataInput, ProjectMetadataSuggestion } from '@/lib/projectMetadata';
 
-type Tab = 'content' | 'projects' | 'services' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
+type Tab = 'content' | 'inquiries' | 'projects' | 'services' | 'media' | 'clients' | 'contacts' | 'skills' | 'testimonials';
 
 interface UploadTicket {
   bucket: string;
@@ -580,6 +580,7 @@ export default function AdminPage() {
           <div className="flex flex-wrap gap-2">
             {[
               ['content', 'Main page'],
+              ['inquiries', 'Inquiries'],
               ['projects', 'Projects'],
               ['services', 'Services'],
               ['media', 'Video Optimizer'],
@@ -951,6 +952,8 @@ export default function AdminPage() {
             />
           </section>
         )}
+
+        {tab === 'inquiries' && <InquiriesManager notify={notify} />}
 
         {tab === 'services' && (
           <ServicesManager
@@ -2166,5 +2169,134 @@ function ServiceProjectsPicker({
         </div>
       ) : null}
     </div>
+  );
+}
+
+interface AdminInquiry {
+  id: string;
+  name: string;
+  email: string;
+  service: string | null;
+  message: string;
+  locale: string | null;
+  status: 'pending' | 'delivered' | 'failed';
+  delivery_error: string | null;
+  delivery_attempts: number;
+  delivered_at: string | null;
+  created_at: string;
+}
+
+function InquiriesManager({ notify }: { notify: (message: string) => void }) {
+  const [items, setItems] = useState<AdminInquiry[]>([]);
+  const [webhookConfigured, setWebhookConfigured] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState('');
+  const notifyRef = useRef(notify);
+  notifyRef.current = notify;
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/inquiries', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not load inquiries');
+      setItems(data.inquiries || []);
+      setWebhookConfigured(Boolean(data.webhookConfigured));
+    } catch (error) {
+      notifyRef.current(error instanceof Error ? error.message : 'Could not load inquiries');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const retry = async (id: string) => {
+    setBusyId(id);
+    const response = await fetch('/api/admin/inquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    const data = await response.json().catch(() => ({}));
+    notify(response.ok ? 'Sent to WhatsApp' : data.error || 'Delivery failed');
+    setBusyId('');
+    void refresh();
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm('Delete this inquiry permanently?')) return;
+    setBusyId(id);
+    await fetch('/api/admin/inquiries', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    setBusyId('');
+    setItems((current) => current.filter((item) => item.id !== id));
+  };
+
+  const badge = {
+    delivered: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
+    failed: 'border-red-400/30 bg-red-400/10 text-red-200',
+    pending: 'border-white/15 bg-white/5 text-white/70',
+  } as const;
+
+  return (
+    <section>
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-[#f5f5f4]">Contact form</p>
+          <h2 className="text-3xl font-black">Inquiries</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
+            Every message from the contact form is saved here first, then sent to WhatsApp. If delivery fails, use “Send again”.
+          </p>
+        </div>
+        <button type="button" onClick={() => void refresh()} className="rounded-full border border-white/15 px-5 py-2.5 text-xs font-bold text-white/80">
+          Refresh
+        </button>
+      </div>
+
+      {!webhookConfigured && (
+        <div className="mb-5 rounded-3xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+          WhatsApp is not connected yet. Messages are still saved here. Add WHATSAPP_WEBHOOK_URL and WHATSAPP_WEBHOOK_SECRET in Vercel to turn on delivery.
+        </div>
+      )}
+
+      {loading ? <p className="text-sm text-white/50">Loading…</p> : null}
+      {!loading && items.length === 0 ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 text-sm text-white/48">No messages yet.</div>
+      ) : null}
+
+      <div className="grid gap-4">
+        {items.map((item) => (
+          <article key={item.id} className="rounded-3xl border border-white/10 bg-white/[0.025] p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0">
+                <h3 className="text-lg font-black">{item.name}</h3>
+                <p className="mt-1 text-sm text-white/55">
+                  <a href={`mailto:${item.email}`} className="underline-offset-4 hover:underline">{item.email}</a>
+                  {item.service ? ` · ${item.service}` : ''} · {new Date(item.created_at).toLocaleString()}
+                </p>
+              </div>
+              <span className={`shrink-0 self-start rounded-full border px-3 py-1 text-xs font-bold ${badge[item.status]}`}>
+                {item.status === 'delivered' ? 'Sent to WhatsApp' : item.status === 'failed' ? 'WhatsApp failed' : 'Not sent yet'}
+              </span>
+            </div>
+            <p className="mt-4 whitespace-pre-line text-sm leading-7 text-white/80" dir="auto">{item.message}</p>
+            {item.status === 'failed' && item.delivery_error ? (
+              <p className="mt-3 text-xs text-red-200/80">Reason: {item.delivery_error} (attempts: {item.delivery_attempts})</p>
+            ) : null}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a href={`mailto:${item.email}?subject=${encodeURIComponent('Re: your message to XSam Studio')}`} className="rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-white/80">
+                Reply by email
+              </a>
+              {item.status !== 'delivered' ? (
+                <button type="button" disabled={busyId === item.id} onClick={() => void retry(item.id)} className="rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-white/80 disabled:opacity-40">
+                  Send again
+                </button>
+              ) : null}
+              <button type="button" disabled={busyId === item.id} onClick={() => void remove(item.id)} className="rounded-full border border-red-400/30 px-4 py-2 text-xs font-bold text-red-200 disabled:opacity-40">
+                Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
