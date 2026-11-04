@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import ProjectView from '@/components/ProjectView';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
 import { CATEGORIES, Project } from '@/types';
 
@@ -10,8 +10,9 @@ export const revalidate = 300;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.xsamer.com';
 
 const getProject = cache(async (id: string): Promise<Project | null> => {
-  if (!supabase) return null;
-  const { data } = await supabase.from('projects').select('*').eq('id', id).maybeSingle();
+  const database = supabaseAdmin || supabase;
+  if (!database) return null;
+  const { data } = await database.from('projects').select('*').eq('id', id).maybeSingle();
   return (data as Project) || null;
 });
 
