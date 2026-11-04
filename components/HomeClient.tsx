@@ -42,7 +42,7 @@ export default function HomeClient({ data }: { data: HomeData }) {
     <main className="relative">
       <Splash />
       <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} hasServices={hasServices} />
-      <Hero locale={locale} profile={data.profile} sections={data.sections} />
+      <Hero locale={locale} profile={data.profile} sections={data.sections} projects={data.projects} />
       <ClientsShowcase
         clients={data.clients}
         projects={data.projects}

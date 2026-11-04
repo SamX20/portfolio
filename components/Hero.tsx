@@ -1,25 +1,36 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LuArrowDown, LuArrowUpRight, LuVolume2, LuVolumeX } from 'react-icons/lu';
-import { Locale, Profile, SectionsData } from '@/types';
+import { Locale, Profile, Project, SectionsData } from '@/types';
+import VideoFountain, { FountainClip } from './VideoFountain';
 import VideoPlayer from './VideoPlayer';
 
 interface HeroProps {
   locale: Locale;
   profile: Profile;
   sections: SectionsData;
+  projects?: Project[];
 }
 
 const HERO_MUTE_EVENT = 'sam:set-hero-muted';
 const ease = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-export default function Hero({ locale, sections }: HeroProps) {
+export default function Hero({ locale, sections, projects = [] }: HeroProps) {
   const isAr = locale === 'ar';
   const reels = [sections.hero.video_url, sections.hero.video_url_alt].filter(Boolean) as string[];
   const [activeReel, setActiveReel] = useState(0);
   const [muted, setMuted] = useState(true);
+  // The 6-second hover previews of real projects feed the fountain; the showreel is the fallback.
+  const fountainClips = useMemo<FountainClip[]>(
+    () =>
+      projects
+        .filter((project) => project.hover_video_url && project.thumbnail)
+        .map((project) => ({ id: project.id, src: project.hover_video_url!, poster: project.thumbnail, title: project.title })),
+    [projects],
+  );
+  const useFountain = fountainClips.length >= 4;
   const activeVideoUrl = reels[activeReel];
   // Reels hosted on the site (/media/*.mp4) ship with a poster frame next to them.
   const activePoster = activeVideoUrl?.startsWith('/media/') ? activeVideoUrl.replace(/\.mp4$/i, '.jpg') : '';
@@ -39,7 +50,14 @@ export default function Hero({ locale, sections }: HeroProps) {
 
   return (
     <section className="relative isolate min-h-[100svh] overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
-      {activeVideoUrl ? (
+      {useFountain ? (
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-y-0 end-0 w-full opacity-45 [mask-image:linear-gradient(to_bottom,#000_35%,transparent_75%)] lg:w-[46%] lg:opacity-100 lg:[mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)]">
+            <VideoFountain clips={fountainClips} className="h-full w-full" />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_75%_60%,color-mix(in_srgb,var(--brand)_7%,transparent),transparent)]" />
+        </div>
+      ) : activeVideoUrl ? (
         <div className="absolute inset-0 -z-10">
           <VideoPlayer
             key={activeVideoUrl}
@@ -73,7 +91,7 @@ export default function Hero({ locale, sections }: HeroProps) {
         </motion.p>
 
         <motion.h1
-          className="display max-w-6xl text-[clamp(2.75rem,8vw,7.5rem)]"
+          className={`display ${useFountain ? 'max-w-3xl text-[clamp(2.75rem,7vw,6.25rem)] lg:max-w-[54%]' : 'max-w-6xl text-[clamp(2.75rem,8vw,7.5rem)]'}`}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.08, ease }}
@@ -98,7 +116,7 @@ export default function Hero({ locale, sections }: HeroProps) {
               {isAr ? 'ابدأ مشروعك' : 'Start a project'}
               <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
             </a>
-            {activeVideoUrl ? (
+            {!useFountain && activeVideoUrl ? (
               <div className="flex items-center gap-1 ps-2">
                 {reels.length > 1
                   ? reels.map((_, index) => (
