@@ -28,16 +28,19 @@ export function LogoMark({
 export function LogoLockup({
   className = '',
   markClassName = 'h-7 w-7',
+  textClassName = 'text-[15px]',
   animate,
 }: {
   className?: string;
   markClassName?: string;
+  textClassName?: string;
   animate?: 'intro';
 }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`} dir="ltr">
+    // The wordmark is always set in Inter, even on the Arabic site.
+    <span className={`inline-flex items-center gap-2.5 ${className}`} dir="ltr" style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif' }}>
       <LogoMark className={markClassName} animate={animate} />
-      <span className="whitespace-nowrap text-[15px] font-semibold tracking-tight">
+      <span className={`whitespace-nowrap font-semibold tracking-tight ${textClassName}`}>
         XSam <span className="font-normal text-[var(--muted)]">Studio</span>
       </span>
     </span>

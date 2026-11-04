@@ -141,5 +141,29 @@ async function loadHomeData(): Promise<HomeData> {
 
 export default async function Home() {
   const data = await loadHomeData();
-  return <HomeClient data={data} />;
+  const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.xsamer.com';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name: 'XSam Studio',
+    url: site,
+    logo: `${site}/brand/xsam-icon-512.png`,
+    image: `${site}/og-image.png`,
+    description: 'Creative studio for websites, online stores, video editing, motion design, logos and branding.',
+    founder: { '@type': 'Person', name: 'Samer Jaber' },
+    address: { '@type': 'PostalAddress', addressLocality: 'Amman', addressCountry: 'JO' },
+    areaServed: 'Worldwide',
+    sameAs: data.socials.map((social) => social.url).filter(Boolean),
+    email: data.contacts.find((item) => item.id === 'email')?.content,
+    telephone: data.contacts.find((item) => item.id === 'phone')?.content,
+    makesOffer: data.services
+      .filter((service) => service.featured !== false)
+      .map((service) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: service.title } })),
+  };
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <HomeClient data={data} />
+    </>
+  );
 }

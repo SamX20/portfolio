@@ -21,6 +21,8 @@ export default function Hero({ locale, sections }: HeroProps) {
   const [activeReel, setActiveReel] = useState(0);
   const [muted, setMuted] = useState(true);
   const activeVideoUrl = reels[activeReel];
+  // Reels hosted on the site (/media/*.mp4) ship with a poster frame next to them.
+  const activePoster = activeVideoUrl?.startsWith('/media/') ? activeVideoUrl.replace(/\.mp4$/i, '.jpg') : '';
 
   const title = isAr ? sections.hero.title_ar || sections.hero.title : sections.hero.title;
   const subtitle = isAr ? sections.hero.subtitle_ar || sections.hero.subtitle : sections.hero.subtitle;
@@ -43,7 +45,7 @@ export default function Hero({ locale, sections }: HeroProps) {
             key={activeVideoUrl}
             embedCode=""
             videoUrl={activeVideoUrl}
-            thumbnail=""
+            thumbnail={activePoster}
             title="Showreel"
             autoPlay
             loop

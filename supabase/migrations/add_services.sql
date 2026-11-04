@@ -19,3 +19,6 @@ create policy "service_write_services" on public.services for all to service_rol
 -- Sub-items shown when a service is expanded, and linked projects
 alter table public.services add column if not exists items jsonb not null default '[]'::jsonb;
 alter table public.services add column if not exists project_ids text[] not null default '{}';
+
+-- External work shown inside a service
+alter table public.services add column if not exists work jsonb not null default '[]'::jsonb;

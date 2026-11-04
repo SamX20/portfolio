@@ -9,6 +9,8 @@ import Hero from '@/components/Hero';
 import Navigation from '@/components/Navigation';
 import Portfolio from '@/components/Portfolio';
 import Services from '@/components/Services';
+import Splash from '@/components/Splash';
+import useLocale from '@/lib/useLocale';
 import Testimonials from '@/components/Testimonials';
 import { Client, ContactInfo, Locale, Profile, Project, SectionsData, Service, Skill, SocialLink, Stat, Testimonial } from '@/types';
 
@@ -26,7 +28,7 @@ export interface HomeData {
 }
 
 export default function HomeClient({ data }: { data: HomeData }) {
-  const [locale, setLocale] = useState<Locale>('en');
+  const [locale, setLocale] = useLocale();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState('');
   const hasServices = data.services.some((service) => service.featured !== false);
@@ -36,13 +38,9 @@ export default function HomeClient({ data }: { data: HomeData }) {
     if (!window.location.hash) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
-  useEffect(() => {
-    document.documentElement.lang = locale;
-    document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
-  }, [locale]);
-
   return (
     <main className="relative">
+      <Splash />
       <Navigation locale={locale} onLocaleChange={setLocale} sections={data.sections} hasServices={hasServices} />
       <Hero locale={locale} profile={data.profile} sections={data.sections} />
       <ClientsShowcase

@@ -1,128 +1,61 @@
-'use client';
-
-import { LogoLockup, LogoMark } from '@/components/Logo';
-
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { LuArrowLeft, LuArrowUpRight } from 'react-icons/lu';
-import VideoPlayer from '@/components/VideoPlayer';
+import type { Metadata } from 'next';
+import { cache } from 'react';
+import ProjectView from '@/components/ProjectView';
 import { supabase } from '@/lib/supabase';
-import { CATEGORIES, Locale, Project } from '@/types';
+import { getGoogleDriveThumbnail } from '@/lib/videoUtils';
+import { CATEGORIES, Project } from '@/types';
 
-export default function ProjectPage() {
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [locale, setLocale] = useState<Locale>('en');
-  const isAr = locale === 'ar';
+export const revalidate = 300;
 
-  useEffect(() => {
-    document.documentElement.lang = locale;
-    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
-  }, [isAr, locale]);
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.xsamer.com';
 
-  useEffect(() => {
-    if (!supabase || !id) {
-      setLoading(false);
-      return;
-    }
-    supabase
-      .from('projects')
-      .select('*')
-      .eq('id', id)
-      .single()
-      .then(({ data, error }) => {
-        if (!error) setProject(data);
-        setLoading(false);
-      });
-  }, [id]);
+const getProject = cache(async (id: string): Promise<Project | null> => {
+  if (!supabase) return null;
+  const { data } = await supabase.from('projects').select('*').eq('id', id).maybeSingle();
+  return (data as Project) || null;
+});
 
-  const header = (
-    <header className="container-x flex h-16 items-center justify-between">
-      <Link href="/#work" className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]">
-        <LuArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
-        {isAr ? 'كل الأعمال' : 'All work'}
-      </Link>
-      <Link href="/" aria-label="XSam Studio home"><LogoLockup /></Link>
-      <button type="button" onClick={() => setLocale(isAr ? 'en' : 'ar')} className="text-xs font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]">
-        {isAr ? 'EN' : 'عربي'}
-      </button>
-    </header>
-  );
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const project = await getProject(id);
+  if (!project) return { title: 'Project not found — XSam Studio', robots: { index: false } };
 
-  if (loading || !project) {
-    return (
-      <main className="min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
-        {header}
-        <div className="grid min-h-[60vh] place-items-center text-sm text-[var(--muted)]">
-          {loading ? (isAr ? 'جاري التحميل...' : 'Loading...') : isAr ? 'المشروع غير موجود.' : 'Project not found.'}
-        </div>
-      </main>
-    );
-  }
+  const title = `${project.title || project.title_ar} — XSam Studio`;
+  const categories = CATEGORIES.filter((item) => project.category?.includes(item.value)).map((item) => item.label);
+  const description = (project.description || project.description_ar || `${categories.join(', ')} by XSam Studio.`).slice(0, 160);
+  const image = project.thumbnail || getGoogleDriveThumbnail(project.video_url);
+  const url = `${SITE}/project/${project.id}`;
 
-  const title = isAr ? project.title_ar || project.title : project.title;
-  const description = isAr ? project.description_ar || project.description : project.description;
-  const categories = CATEGORIES.filter((item) => project.category?.includes(item.value)).map((item) => (isAr ? item.labelAr : item.label));
-  const meta = [
-    { label: isAr ? 'العميل' : 'Client', value: project.client },
-    { label: isAr ? 'الخدمة' : 'Service', value: categories.join(', ') },
-    { label: isAr ? 'السنة' : 'Year', value: String(project.year) },
-    { label: isAr ? 'المدة' : 'Duration', value: project.duration },
-  ].filter((item) => item.value);
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'video.other', siteName: 'XSam Studio', images: image ? [{ url: image }] : undefined },
+    twitter: { card: image ? 'summary_large_image' : 'summary', title, description, images: image ? [image] : undefined },
+  };
+}
+
+export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const project = await getProject(id);
+
+  const jsonLd = project
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        name: project.title || project.title_ar,
+        description: project.description || project.description_ar || project.title,
+        thumbnailUrl: project.thumbnail || getGoogleDriveThumbnail(project.video_url) || undefined,
+        uploadDate: project.created_at || `${project.year}-01-01`,
+        contentUrl: project.video_url || undefined,
+        creator: { '@type': 'Organization', name: 'XSam Studio', url: SITE },
+      }
+    : null;
 
   return (
-    <main className="min-h-screen pb-24" dir={isAr ? 'rtl' : 'ltr'}>
-      {header}
-      <div className="container-x pt-12 sm:pt-20">
-        <p className="eyebrow">{categories[0] || (isAr ? 'مشروع' : 'Project')}</p>
-        <h1 className="display mt-5 max-w-5xl text-[clamp(2.5rem,7vw,6rem)]">{title}</h1>
-
-        <div className="mt-14 overflow-hidden rounded-[20px] bg-black">
-          <VideoPlayer
-            embedCode={project.embed_code}
-            videoUrl={project.video_url}
-            thumbnail={project.thumbnail}
-            title={title}
-            objectFit="contain"
-            className="w-full rounded-none"
-          />
-        </div>
-
-        <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
-          <dl className="grid grid-cols-2 gap-x-6 border-t border-[var(--line)] lg:grid-cols-1">
-            {meta.map((item) => (
-              <div key={item.label} className="border-b border-[var(--line)] py-4">
-                <dt className="text-xs text-[var(--muted)]">{item.label}</dt>
-                <dd className="mt-1 text-base">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <div>
-            <p className="whitespace-pre-line text-lg leading-8 text-[var(--muted)]">{description}</p>
-            {project.technologies?.length ? (
-              <div className="mt-10 flex flex-wrap gap-2">
-                {project.technologies.map((tech) => (
-                  <span key={tech} className="chip">{tech}</span>
-                ))}
-              </div>
-            ) : null}
-            <div className="mt-10 flex flex-wrap gap-3">
-              {project.video_url ? (
-                <a href={project.video_url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">
-                  {isAr ? 'فتح الرابط المباشر' : 'Open original'}
-                  <LuArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
-                </a>
-              ) : null}
-              <Link href="/#contact" className="btn btn-primary">
-                {isAr ? 'ابدأ مشروعاً مشابهاً' : 'Start a similar project'}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+    <>
+      {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} /> : null}
+      <ProjectView project={project} />
+    </>
   );
 }
