@@ -750,8 +750,28 @@ export default function AdminPage() {
               </div>
             </AdminCard>
 
-            <AdminCard title="Showreels" description="Background videos of the hero. The second one is optional; visitors can switch between them.">
+            <AdminCard title="Hero background" description="Stream and Fountain use the 6-second previews of your projects. Showreel plays the videos below; it is also the fallback when there are fewer than four previews.">
               <div className="grid gap-6">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {[
+                    ['stream', 'Stream', 'Previews cross the whole hero, growing in the middle'],
+                    ['fountain', 'Fountain', 'Previews rise from a soft glow on one side'],
+                    ['showreel', 'Showreel', 'One full-screen video with sound toggle'],
+                  ].map(([value, label, hint]) => {
+                    const active = (data.sections.hero.style || 'stream') === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setSection('hero', 'style', value)}
+                        className={`rounded-xl border p-4 text-left transition ${active ? 'border-white bg-white text-black' : 'border-white/10 text-white/80 hover:border-white/30'}`}
+                      >
+                        <span className="block text-sm font-semibold">{label}</span>
+                        <span className={`mt-1 block text-xs ${active ? 'text-black/60' : 'text-white/45'}`}>{hint}</span>
+                      </button>
+                    );
+                  })}
+                </div>
                 <div className="grid gap-3">
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5f5f4]">Primary hero reel</p>
                   <div className="flex flex-col gap-2">

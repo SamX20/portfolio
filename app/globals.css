@@ -593,3 +593,23 @@ select.field option {
   from { transform: translateX(-6px) rotate(-1.2deg); }
   to { transform: translateX(6px) rotate(1.2deg); }
 }
+
+/* Hero video stream: full width, no blur. Scale follows height (small -> full in the middle -> small),
+   fast through the bottom and top, slow but never stopped in the middle. */
+.stream-tile {
+  position: absolute;
+  bottom: 0;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  animation: stream-rise var(--dur) linear forwards;
+}
+.stream-tile .fountain-sway { animation-duration: var(--sway); }
+@keyframes stream-rise {
+  0%   { transform: translate3d(0, 0, 0) scale(0.3); opacity: 0; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+  6%   { opacity: 1; }
+  24%  { transform: translate3d(calc(var(--drift) * 0.3), calc(var(--rise) * -0.36), 0) scale(0.92); animation-timing-function: linear; }
+  50%  { transform: translate3d(calc(var(--drift) * 0.5), calc(var(--rise) * -0.5), 0) scale(1); animation-timing-function: linear; }
+  76%  { transform: translate3d(calc(var(--drift) * 0.7), calc(var(--rise) * -0.64), 0) scale(0.92); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+  94%  { opacity: 1; }
+  100% { transform: translate3d(var(--drift), calc(var(--rise) * -1), 0) scale(0.3); opacity: 0; }
+}

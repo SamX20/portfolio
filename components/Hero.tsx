@@ -30,7 +30,9 @@ export default function Hero({ locale, sections, projects = [] }: HeroProps) {
         .map((project) => ({ id: project.id, src: project.hover_video_url!, poster: project.thumbnail, title: project.title })),
     [projects],
   );
-  const useFountain = fountainClips.length >= 4;
+  const heroStyle = sections.hero.style === 'fountain' || sections.hero.style === 'showreel' ? sections.hero.style : 'stream';
+  const useFountain = heroStyle !== 'showreel' && fountainClips.length >= 4;
+  const isStream = heroStyle === 'stream';
   const activeVideoUrl = reels[activeReel];
   // Reels hosted on the site (/media/*.mp4) ship with a poster frame next to them.
   const activePoster = activeVideoUrl?.startsWith('/media/') ? activeVideoUrl.replace(/\.mp4$/i, '.jpg') : '';
@@ -50,7 +52,14 @@ export default function Hero({ locale, sections, projects = [] }: HeroProps) {
 
   return (
     <section className="relative isolate min-h-[100svh] overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
-      {useFountain ? (
+      {useFountain && isStream ? (
+        <div className="absolute inset-0 -z-10">
+          <VideoFountain clips={fountainClips} variant="stream" className="h-full w-full" />
+          {/* Keep the copy readable while previews pass behind it */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,#0a0a0a_0%,rgba(10,10,10,.78)_30%,rgba(10,10,10,.15)_65%,rgba(10,10,10,.35)_100%)]" />
+          <div className="absolute inset-0 hidden bg-[linear-gradient(to_right,rgba(10,10,10,.75)_0%,rgba(10,10,10,.2)_55%,transparent_80%)] lg:block rtl:bg-[linear-gradient(to_left,rgba(10,10,10,.75)_0%,rgba(10,10,10,.2)_55%,transparent_80%)]" />
+        </div>
+      ) : useFountain ? (
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-y-0 end-0 w-full opacity-45 [mask-image:linear-gradient(to_bottom,#000_35%,transparent_75%)] lg:w-[46%] lg:opacity-100 lg:[mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)]">
             <VideoFountain clips={fountainClips} className="h-full w-full" />
@@ -91,7 +100,7 @@ export default function Hero({ locale, sections, projects = [] }: HeroProps) {
         </motion.p>
 
         <motion.h1
-          className={`display ${useFountain ? 'max-w-3xl text-[clamp(2.75rem,7vw,6.25rem)] lg:max-w-[54%]' : 'max-w-6xl text-[clamp(2.75rem,8vw,7.5rem)]'}`}
+          className={`display ${useFountain && !isStream ? 'max-w-3xl text-[clamp(2.75rem,7vw,6.25rem)] lg:max-w-[54%]' : 'max-w-6xl text-[clamp(2.75rem,8vw,7.5rem)]'}`}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.08, ease }}

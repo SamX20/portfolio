@@ -127,6 +127,8 @@ export interface SectionsData {
     cta_link: string;
     video_url?: string;
     video_url_alt?: string;
+    /** Hero background: 'stream' (default), 'fountain' or 'showreel'. */
+    style?: string;
     theme_accent?: string;
     theme_accent_mid?: string;
     theme_accent_deep?: string;
